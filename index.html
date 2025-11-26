@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterKing - Premium Store</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts: Inter for a modern tech feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand': { 
+                            light: '#f48fb1', 
+                            DEFAULT: '#C2185B', 
+                            dark: '#880e4f' 
+                        },
+                        'brand-dark': '#1a1a1a',
+                        'brand-gray': '#f3f4f6',
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 15px rgba(194, 24, 91, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body { @apply font-sans text-gray-800 bg-brand-gray antialiased; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .glass-nav { @apply bg-white border-b border-gray-100; }
+        
+        /* Drawer Transitions */
+        .drawer-overlay { @apply fixed inset-0 bg-black/60 z-[60] transition-opacity opacity-0 pointer-events-none; }
+        .drawer-content { @apply fixed top-0 h-full bg-white shadow-2xl z-[61] transition-transform duration-300 ease-out; }
+        
+        .drawer.open .drawer-overlay { @apply opacity-100 pointer-events-auto; }
+        
+        /* Right Drawer */
+        .drawer.right .drawer-content { @apply right-0 translate-x-full w-[85%] max-w-[400px]; }
+        .drawer.right.open .drawer-content { @apply translate-x-0; }
+        
+        /* Left Drawer */
+        .drawer.left .drawer-content { @apply left-0 -translate-x-full w-[85%] max-w-[380px]; }
+        .drawer.left.open .drawer-content { @apply translate-x-0; }
+
+        /* Loader */
+        .loader-bar { @apply fixed top-0 left-0 h-1 bg-brand z-[100] transition-all duration-300 ease-out; width: 0%; }
+
+        /* Chat Button Pulse */
+        .chat-pulse { animation: chatPulse 2s infinite; }
+        @keyframes chatPulse {
+            0% { box-shadow: 0 0 0 0 rgba(194, 24, 91, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(194, 24, 91, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(194, 24, 91, 0); }
+        }
+
+        /* Hero Animation */
+        .hero-fade { animation: heroFade 1s ease-in-out; }
+        @keyframes heroFade {
+            from { opacity: 0; transform: scale(1.02); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Typing Indicator */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="pb-20 md:pb-0">
+
+    <!-- Page Loader -->
+    <div id="page-loader" class="loader-bar"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="glass-nav sticky top-0 z-40 bg-white">
+        <!-- Top Bar (Desktop) -->
+        <div class="bg-brand-dark text-white text-xs py-2 hidden md:block">
+            <div class="container mx-auto px-6 flex justify-between items-center">
+                <span>Welcome to MasterKing Online Store</span>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-brand-light">Help Center</a>
+                    <a href="#" class="hover:text-brand-light">Track Order</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Header -->
+        <div class="container mx-auto px-4 md:px-6 py-4">
+            <div class="flex items-center justify-between gap-4">
+                <!-- Mobile Menu Button (Left Drawer Trigger) -->
+                <button onclick="document.getElementById('mobile-drawer').classList.add('open')" class="md:hidden text-2xl text-gray-700">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+
+                <!-- Logo -->
+                <a href="/" class="text-2xl md:text-3xl font-black tracking-tighter text-brand-dark flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-brand"></i>
+                    <span>MASTER<span class="text-brand">KING</span></span>
+                </a>
+
+                <!-- Search Bar (Desktop) -->
+                <div class="hidden md:flex flex-grow max-w-xl mx-8 relative group">
+                    <input type="text" placeholder="Search for products..." class="w-full bg-gray-100 border-none rounded-full py-3 px-6 focus:ring-2 focus:ring-brand focus:bg-white transition-all">
+                    <button class="absolute right-3 top-1/2 -translate-y-1/2 bg-brand text-white w-8 h-8 rounded-full hover:bg-brand-dark transition-colors flex items-center justify-center">
+                        <i class="fa fa-search text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Icons -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <button onclick="document.getElementById('mobile-search-bar').classList.toggle('hidden')" class="md:hidden text-gray-700 text-xl"><i class="fa fa-search"></i></button>
+                    
+                    <!-- Auth Button (Triggers Left Drawer) -->
+                    <button onclick="toggleAuthDrawer()" id="auth-btn" class="hidden md:flex flex-col items-center text-gray-600 hover:text-brand transition-colors">
+                        <i class="fa-regular fa-user text-xl"></i>
+                        <span class="text-[10px] font-bold mt-1 uppercase tracking-wide">Account</span>
+                    </button>
+
+                    <!-- Cart Button (Triggers Right Drawer) -->
+                    <button onclick="document.getElementById('cart-drawer').classList.add('open')" id="cart-btn" class="relative text-gray-600 hover:text-brand transition-colors">
+                        <div class="relative">
+                            <i class="fa-solid fa-bag-shopping text-2xl"></i>
+                            <span id="cart-badge" class="absolute -top-1 -right-2 bg-brand text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white transform scale-0 transition-transform">0</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Mobile (Hidden by default) -->
+        <div id="mobile-search-bar" class="hidden px-4 pb-4 md:hidden animate-fade-in">
+            <input type="text" placeholder="Search..." class="w-full bg-gray-100 rounded-lg py-2 px-4 focus:ring-2 focus:ring-brand">
+        </div>
+
+        <!-- Category Navigation Bar -->
+        <div class="hidden md:block border-t border-gray-100 bg-brand-gray text-brand-dark">
+            <div class="container mx-auto px-4 relative">
+                <div class="flex justify-between items-center h-12">
+                    <!-- Left: Categories Dropdown Button & Quick Links -->
+                    <div class="relative h-full flex items-center w-full">
+                        <!-- Category Button -->
+                        <button onclick="toggleCategoryDropdown()" class="flex items-center gap-3 px-6 h-12 bg-brand hover:bg-brand-dark text-white transition-colors font-bold text-sm tracking-wide rounded-t-lg">
+                            <i class="fa-solid fa-bars"></i>
+                            CATEGORIES
+                            <i class="fa-solid fa-chevron-down text-xs ml-2"></i>
+                        </button>
+                        
+                        <!-- Middle: Quick Category Links -->
+                        <div id="header-categories-list" class="flex items-center gap-6 ml-6 text-sm font-semibold text-gray-600 flex-grow">
+                            <!-- Populated via JS -->
+                            <span class="animate-pulse">Loading...</span>
+                        </div>
+
+                        <!-- Right: Order Status -->
+                        <a href="#" class="bg-brand-dark hover:bg-black text-white px-4 py-1.5 rounded text-xs font-bold uppercase tracking-wide transition-colors ml-4">
+                            Order Status
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Categories Dropdown -->
+                <div id="category-dropdown-panel" class="absolute top-full left-4 w-64 bg-white shadow-xl z-50 hidden border-t-2 border-brand">
+                    <div id="dropdown-categories-content" class="flex flex-col py-2">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="min-h-screen">
+        
+        <!-- Hero Section (Admin Dynamic - Boxed Layout) -->
+        <div class="bg-white pb-8">
+            <div class="container mx-auto px-4 pt-4">
+                <section id="hero-section" class="relative w-full overflow-hidden rounded-2xl shadow-lg group">
+                     <!-- Aspect Ratio: ~2.5:1 or 16:6 to match the banner style -->
+                    <div id="hero-container" class="relative w-full aspect-[16/9] md:aspect-[21/8] bg-gray-200 overflow-hidden">
+                         <!-- Banner Image will be loaded here -->
+                         <div class="absolute inset-0 flex items-center justify-center text-gray-400">
+                             <div class="text-center">
+                                <i class="fa-solid fa-image text-4xl mb-2"></i>
+                                <p class="text-sm font-medium">Loading Banners...</p>
+                             </div>
+                         </div>
+                    </div>
+                    
+                    <!-- Hero Controls -->
+                    <button id="hero-prev" class="hidden absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-brand-dark w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all z-10 transform hover:scale-110">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <button id="hero-next" class="hidden absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-brand-dark w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all z-10 transform hover:scale-110">
+                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+        
+                    <!-- Slider Dots -->
+                    <div id="hero-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        <!-- Dots injected via JS -->
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Categories Section -->
+        <div class="container mx-auto px-4 mb-12 mt-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="w-1 h-6 bg-brand rounded-full"></span> Top Categories
+            </h2>
+            <div id="categories-grid" class="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x">
+                <!-- Categories loaded via JS -->
+            </div>
+        </div>
+
+        <!-- New Arrivals -->
+        <div class="container mx-auto px-4 mb-16">
+            <div class="flex justify-between items-end mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Fresh Drops</h2>
+                <div class="flex items-center gap-4">
+                    <button onclick="document.getElementById('filter-drawer').classList.add('open')" class="text-gray-500 hover:text-brand flex items-center gap-2 text-sm font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
+                        <i class="fa-solid fa-filter"></i> Filters
+                    </button>
+                    <a href="#" class="text-brand font-semibold text-sm hover:underline">View All</a>
+                </div>
+            </div>
+            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <div class="col-span-full h-40 flex items-center justify-center text-gray-400">Loading Products...</div>
+            </div>
+        </div>
+
+        <!-- Promo Banner Area -->
+        <div id="promo-banner-container" class="container mx-auto px-4 mb-16"></div>
+
+    </main>
+
+    <!-- Footer (Hidden on Mobile) -->
+    <footer class="hidden md:block bg-gray-900 text-gray-300 pt-16 pb-8 rounded-t-[2rem] mt-auto">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <div class="text-2xl font-black text-white mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-brand"></i> MASTERKING
+                    </div>
+                    <p class="text-sm leading-relaxed text-gray-400">
+                        The ultimate destination for premium quality products. We deliver excellence right to your doorstep.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Shop</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:text-brand transition-colors">New Arrivals</a></li>
+                        <li><a href="#" class="hover:text-brand transition-colors">Best Sellers</a></li>
+                        <li><a href="#" class="hover:text-brand transition-colors">Discounts</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Support</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:text-brand transition-colors">Track Order</a></li>
+                        <li><a href="#" class="hover:text-brand transition-colors">Returns</a></li>
+                        <li><a href="#" class="hover:text-brand transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Stay in loop</h4>
+                    <form class="flex">
+                        <input type="email" placeholder="Email" class="bg-gray-800 border-none rounded-l-lg px-4 py-2 w-full focus:ring-1 focus:ring-brand outline-none">
+                        <button class="bg-brand hover:bg-brand-dark text-white px-4 rounded-r-lg transition-colors"><i class="fa fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+                <p>&copy; 2025 MasterKing. All rights reserved.</p>
+                <div class="flex gap-4 text-xl">
+                    <i class="fab fa-facebook hover:text-white cursor-pointer"></i>
+                    <i class="fab fa-instagram hover:text-white cursor-pointer"></i>
+                    <i class="fab fa-tiktok hover:text-white cursor-pointer"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chat Button (Floating) - Changed to Normal Icon -->
+    <button onclick="toggleChatDrawer()" class="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-brand hover:bg-brand-dark text-white w-14 h-14 rounded-full shadow-2xl z-50 flex items-center justify-center chat-pulse transition-transform hover:scale-110">
+        <i class="fa-solid fa-comment-dots text-2xl"></i>
+    </button>
+
+    <!-- Mobile Bottom Nav -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-3 md:hidden z-40 pb-safe">
+        <a href="#" class="flex flex-col items-center text-brand">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[10px] font-medium">Home</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-gray-400 hover:text-brand" onclick="toggleCategoryDropdown()">
+            <i class="fa-solid fa-layer-group text-lg mb-1"></i>
+            <span class="text-[10px] font-medium">Cats</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-gray-400 hover:text-brand relative" onclick="document.getElementById('cart-drawer').classList.add('open')">
+            <i class="fa-solid fa-bag-shopping text-lg mb-1"></i>
+            <span id="mobile-cart-badge" class="absolute top-0 right-4 bg-brand text-white text-[8px] font-bold h-3 w-3 rounded-full flex items-center justify-center hidden">0</span>
+            <span class="text-[10px] font-medium">Cart</span>
+        </a>
+        <a href="#" class="flex flex-col items-center text-gray-400 hover:text-brand" onclick="toggleAuthDrawer()">
+            <i class="fa-regular fa-user text-lg mb-1"></i>
+            <span class="text-[10px] font-medium">Account</span>
+        </a>
+    </div>
+
+    <!-- DRAWERS -->
+
+    <!-- 1. Mobile Menu Drawer (Left) -->
+    <div id="mobile-drawer" class="drawer left">
+        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
+        <div class="drawer-content flex flex-col p-6">
+            <div class="flex justify-between items-center mb-8">
+                <span class="text-xl font-black text-brand-dark">MENU</span>
+                <button onclick="document.getElementById('mobile-drawer').classList.remove('open')"><i class="fa fa-times text-xl"></i></button>
+            </div>
+            <div class="flex flex-col gap-6 font-medium text-lg text-gray-700">
+                <a href="#" class="text-brand">Home</a>
+                <a href="#">Categories</a>
+                <a href="#">My Orders</a>
+                <a href="#">Contact Us</a>
+            </div>
+            <div class="mt-auto">
+                <button id="drawer-logout-btn" class="hidden w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Auth Drawer (Left) -->
+    <div id="auth-drawer" class="drawer left">
+        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
+        <div class="drawer-content flex flex-col h-full bg-white">
+            <div class="p-6 border-b flex justify-between items-center bg-brand text-white">
+                <h2 class="text-lg font-bold">Welcome</h2>
+                <button onclick="toggleAuthDrawer()" class="text-white hover:text-gray-200"><i class="fa fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-crown text-3xl text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">MasterKing</h3>
+                    <p class="text-sm text-gray-500">Sign in to access your account</p>
+                </div>
+
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                        <input type="email" id="login-email" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand focus:border-transparent outline-none bg-gray-50" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
+                        <input type="password" id="login-password" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand focus:border-transparent outline-none bg-gray-50" required>
+                    </div>
+                    <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition-colors shadow-lg shadow-brand/20">Sign In</button>
+                </form>
+                
+                <div id="auth-message" class="mt-4 text-center text-sm text-red-500 min-h-[20px]"></div>
+
+                <div class="mt-6 text-center text-sm">
+                    <p class="text-gray-500">Don't have an account?</p>
+                    <button class="text-brand font-bold hover:underline">Register Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Filter Drawer (Left) -->
+    <div id="filter-drawer" class="drawer left">
+        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
+        <div class="drawer-content flex flex-col h-full">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-white">
+                <h2 class="text-lg font-bold"><i class="fa-solid fa-filter text-brand mr-2"></i> Filters</h2>
+                <button onclick="document.getElementById('filter-drawer').classList.remove('open')" class="text-gray-400 hover:text-gray-800"><i class="fa fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto flex-grow">
+                <div>
+                    <h3 class="font-bold text-gray-700 mb-2">Price Range</h3>
+                    <div class="flex gap-2">
+                        <input type="number" placeholder="Min" class="w-1/2 p-2 border rounded">
+                        <input type="number" placeholder="Max" class="w-1/2 p-2 border rounded">
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-700 mb-2">Categories</h3>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <label class="flex items-center gap-2"><input type="checkbox" class="accent-brand"> Furniture</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="accent-brand"> Cakes</label>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 border-t bg-gray-50">
+                <button class="w-full bg-brand text-white py-3 rounded-xl font-bold">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Chat Drawer (AI Assistant) -->
+    <div id="chat-drawer" class="drawer left">
+        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
+        <div class="drawer-content flex flex-col h-full bg-white w-full max-w-[380px]">
+            <!-- Header -->
+            <div class="p-4 bg-brand text-white shadow-md flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-xl"></i>
+                    <div>
+                        <h2 class="font-bold text-lg leading-none">MasterKing AI</h2>
+                        <p class="text-xs text-brand-light opacity-90">Online Assistant</p>
+                    </div>
+                </div>
+                <button onclick="toggleChatDrawer()" class="text-white/80 hover:text-white"><i class="fa fa-times text-lg"></i></button>
+            </div>
+
+            <!-- View 1: Language Selection -->
+            <div id="chat-language-selection" class="flex flex-col flex-grow justify-center items-center p-6 text-center">
+                <div class="w-20 h-20 bg-brand-gray rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <i class="fa-solid fa-language text-4xl text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Select your Language</h3>
+                <p class="text-sm text-gray-500 mb-8">භාෂාව / மொழி</p>
+                
+                <div class="flex flex-col gap-3 w-full max-w-xs">
+                    <button onclick="selectLanguage('en')" class="w-full py-3 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-all">English</button>
+                    <button onclick="selectLanguage('si')" class="w-full py-3 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-all">සිංහල</button>
+                    <button onclick="selectLanguage('ta')" class="w-full py-3 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-all">தமிழ்</button>
+                </div>
+            </div>
+
+            <!-- View 2: Chat Interface (Hidden Initially) -->
+            <div id="chat-interface" class="hidden flex-col flex-grow h-full">
+                <!-- Messages -->
+                <div id="chat-messages" class="flex-grow p-4 bg-gray-50 overflow-y-auto flex flex-col gap-4">
+                    <!-- Welcome message will be injected here -->
+                </div>
+
+                <!-- Input -->
+                <div class="p-3 border-t bg-white">
+                    <form id="chat-form" class="flex gap-2">
+                        <input type="text" id="chat-input" placeholder="Type your message..." class="flex-grow bg-gray-100 border-none rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand focus:bg-white transition-all outline-none">
+                        <button type="submit" class="bg-brand text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-brand-dark transition-transform active:scale-95">
+                            <i class="fa fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Change Language Link -->
+                <div class="text-center py-2 bg-gray-100 border-t border-gray-200">
+                    <button onclick="resetChatLanguage()" class="text-[10px] text-gray-500 hover:text-brand font-bold uppercase tracking-wide">Change Language</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Cart Drawer (Right) -->
+    <div id="cart-drawer" class="drawer right">
+        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
+        <div class="drawer-content flex flex-col h-full">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-white z-10">
+                <h2 class="text-lg font-bold">Shopping Bag</h2>
+                <button onclick="document.getElementById('cart-drawer').classList.remove('open')" class="text-gray-400 hover:text-gray-800"><i class="fa fa-times text-xl"></i></button>
+            </div>
+            
+            <div id="cart-items" class="flex-grow overflow-y-auto p-5 space-y-4">
+                <div class="flex flex-col items-center justify-center h-full text-gray-400">
+                    <i class="fa-solid fa-basket-shopping text-4xl mb-3 opacity-20"></i>
+                    <p>Your bag is empty</p>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-gray-100 bg-gray-50">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-gray-500">Subtotal</span>
+                    <span id="cart-total" class="text-xl font-bold text-brand-dark">Rs. 0.00</span>
+                </div>
+                <button class="w-full bg-brand hover:bg-brand-dark text-white py-4 rounded-xl font-bold shadow-lg shadow-brand/20 transition-all transform active:scale-95">
+                    Checkout Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT (MODULE) -->
+    <script type="module">
+        // --- FIREBASE CONFIGURATION (MASTERKING) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, onSnapshot, query, limit, orderBy, setDoc, updateDoc, increment, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+            authDomain: "masterking-fa629.firebaseapp.com",
+            projectId: "masterking-fa629",
+            storageBucket: "masterking-fa629.firebasestorage.app",
+            messagingSenderId: "680021576286",
+            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+            measurementId: "G-9443L8L88Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const appId = 'default-app-id'; 
+        const publicDataPath = `/artifacts/${appId}/public/data`;
+        const usersPath = `/users`;
+        let currentUser = null;
+
+        // --- GEMINI API KEY ---
+        const apiKey = ""; // Filled by environment
+
+        // --- UI UTILS ---
+        window.toggleAuthDrawer = () => {
+            const drawer = document.getElementById('auth-drawer');
+            if(currentUser) {
+                if(confirm("Do you want to logout?")) {
+                    signOut(auth);
+                }
+            } else {
+                drawer.classList.toggle('open');
+            }
+        };
+
+        window.toggleCategoryDropdown = () => {
+            const dropdown = document.getElementById('category-dropdown-panel');
+            dropdown.classList.toggle('hidden');
+        };
+
+        window.toggleChatDrawer = () => {
+            document.getElementById('chat-drawer').classList.toggle('open');
+        };
+
+        window.imgError = (image) => {
+            image.onerror = null;
+            image.src = "https://placehold.co/400x400/f3f4f6/C2185B?text=MasterKing";
+        };
+
+        // --- CHAT AI LOGIC (WITH GEMINI API) ---
+        let currentLang = null;
+        const chatHistory = [];
+
+        const langConfig = {
+            en: { welcome: "Hello! I'm your MasterKing AI assistant. How can I help you today?", placeholder: "Type your question here..." },
+            si: { welcome: "ආයුබෝවන්! මම MasterKing AI සහායකයා. මට ඔබට උදව් කළ හැක්කේ කෙසේද?", placeholder: "ඔබේ ප්‍රශ්නය මෙහි ලියන්න..." },
+            ta: { welcome: "வணக்கம்! நான் MasterKing AI உதவியாளர். இன்று நான் உங்களுக்கு எவ்வாறு உதவ முடியும்?", placeholder: "உங்கள் கேள்வியை இங்கே தட்டச்சு செய்க..." }
+        };
+
+        window.selectLanguage = (lang) => {
+            currentLang = lang;
+            document.getElementById('chat-language-selection').classList.add('hidden');
+            document.getElementById('chat-interface').classList.remove('hidden');
+            document.getElementById('chat-interface').classList.add('flex');
+            
+            // Update Placeholder
+            document.getElementById('chat-input').placeholder = langConfig[lang].placeholder;
+
+            // Add Welcome Message
+            addMessageToChat(langConfig[lang].welcome, 'ai');
+        };
+
+        window.resetChatLanguage = () => {
+            currentLang = null;
+            document.getElementById('chat-messages').innerHTML = '';
+            document.getElementById('chat-interface').classList.add('hidden');
+            document.getElementById('chat-interface').classList.remove('flex');
+            document.getElementById('chat-language-selection').classList.remove('hidden');
+        };
+
+        function addMessageToChat(text, sender) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            
+            if (sender === 'user') {
+                div.className = "self-end bg-brand text-white p-3 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm animate-fade-in";
+            } else {
+                div.className = "self-start bg-white p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm border border-gray-100 animate-fade-in";
+            }
+            
+            div.innerHTML = `<p>${text}</p>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.id = "typing-indicator";
+            div.className = "self-start bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 w-16 flex items-center justify-center gap-1";
+            div.innerHTML = `<div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            document.getElementById('typing-indicator')?.remove();
+        }
+
+        async function callGeminiAPI(prompt) {
+            if (!apiKey) {
+                return "API Key is missing. Please configure it.";
+            }
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            // Context instructions based on language
+            let systemInstruction = "You are a helpful customer support AI for 'MasterKing', a premium online store in Sri Lanka. You sell electronics, fashion, and home items. Be polite, concise, and helpful.";
+            if (currentLang === 'si') systemInstruction += " Reply in Sinhala.";
+            if (currentLang === 'ta') systemInstruction += " Reply in Tamil.";
+            
+            const payload = {
+                contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Question: ${prompt}` }] }]
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble connecting right now. Please try again.";
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return "Sorry, I encountered an error. Please try again later.";
+            }
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            // 1. Show User Message
+            addMessageToChat(msg, 'user');
+            input.value = '';
+
+            // 2. Show Typing
+            showTypingIndicator();
+
+            // 3. Call API
+            const reply = await callGeminiAPI(msg);
+
+            // 4. Show Response
+            removeTypingIndicator();
+            addMessageToChat(reply, 'ai');
+        });
+
+
+        // --- CORE FUNCTIONS & AUTH ---
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const authBtn = document.getElementById('auth-btn');
+            const drawerLogout = document.getElementById('drawer-logout-btn');
+            
+            if (user) {
+                authBtn.innerHTML = `<i class="fa-solid fa-user-check text-xl text-brand"></i><span class="text-[10px] font-bold mt-1 uppercase tracking-wide">My Profile</span>`;
+                drawerLogout.classList.remove('hidden');
+                document.getElementById('auth-drawer').classList.remove('open');
+                listenToCart(user.uid);
+            } else {
+                authBtn.innerHTML = `<i class="fa-regular fa-user text-xl"></i><span class="text-[10px] font-bold mt-1 uppercase tracking-wide">Sign In</span>`;
+                drawerLogout.classList.add('hidden');
+                updateCartUI([]);
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const msg = document.getElementById('auth-message');
+            try {
+                msg.textContent = "Authenticating...";
+                await signInWithEmailAndPassword(auth, email, password);
+                msg.textContent = "";
+            } catch (error) {
+                msg.textContent = "Invalid Credentials.";
+            }
+        });
+
+        document.getElementById('drawer-logout-btn').addEventListener('click', () => signOut(auth));
+
+        // --- LOAD CONTENT ---
+
+        async function loadHero() {
+            const container = document.getElementById('hero-container');
+            const dotsContainer = document.getElementById('hero-dots');
+            const prevBtn = document.getElementById('hero-prev');
+            const nextBtn = document.getElementById('hero-next');
+            
+            const bannerIds = ['heroBannerMain', 'heroBanner1', 'heroBanner2', 'heroBanner3'];
+            let slides = [];
+
+            for (const id of bannerIds) {
+                try {
+                    const docSnap = await getDoc(doc(db, publicDataPath, 'siteContent', id));
+                    if(docSnap.exists()) {
+                         const data = docSnap.data();
+                         const img = data.imageUrl_pc || data.imageUrl; 
+                         if(img) slides.push({ imageUrl: img, linkUrl: data.linkUrl || '#' });
+                    }
+                } catch(e) {}
+            }
+
+            if(slides.length === 0) {
+                slides.push({ 
+                    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1000&auto=format&fit=crop', 
+                    linkUrl: '#' 
+                });
+            }
+
+            let currentSlide = 0;
+            
+            const renderSlide = (idx) => {
+                const slide = slides[idx];
+                container.innerHTML = `
+                    <a href="${slide.linkUrl}" class="block w-full h-full relative hero-fade">
+                        <img src="${slide.imageUrl}" class="w-full h-full object-cover object-center" alt="Hero Banner">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </a>
+                `;
+                
+                // Update Dots
+                dotsContainer.innerHTML = slides.map((_, i) => 
+                    `<button onclick="changeSlide(${i})" class="w-2.5 h-2.5 rounded-full transition-all ${i === idx ? 'bg-brand w-6' : 'bg-white/60 hover:bg-white'}"></button>`
+                ).join('');
+            };
+
+            window.changeSlide = (i) => {
+                currentSlide = i;
+                renderSlide(currentSlide);
+            };
+
+            renderSlide(0);
+
+            if(slides.length > 1) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                prevBtn.onclick = () => changeSlide((currentSlide - 1 + slides.length) % slides.length);
+                nextBtn.onclick = () => changeSlide((currentSlide + 1) % slides.length);
+                setInterval(() => changeSlide((currentSlide + 1) % slides.length), 6000);
+            }
+        }
+
+        function loadCategories() {
+            const gridContainer = document.getElementById('categories-grid');
+            const headerList = document.getElementById('header-categories-list');
+            const dropdownContent = document.getElementById('dropdown-categories-content');
+
+            onSnapshot(collection(db, publicDataPath, 'categories'), (snap) => {
+                if(snap.empty) { headerList.innerHTML = ''; return; }
+                gridContainer.innerHTML = ''; headerList.innerHTML = ''; dropdownContent.innerHTML = '';
+
+                let count = 0;
+                snap.forEach(d => {
+                    const cat = d.data();
+                    if(count < 5) {
+                        headerList.innerHTML += `<a href="#" class="hover:text-brand-dark hover:underline transition-colors cursor-pointer whitespace-nowrap">${cat.name}</a>`;
+                        count++;
+                    }
+                    dropdownContent.innerHTML += `<a href="#" class="px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 hover:text-brand transition-colors block border-b border-gray-50 last:border-0">${cat.name}</a>`;
+                    gridContainer.innerHTML += `
+                        <a href="#" class="group flex flex-col items-center gap-2 cursor-pointer snap-start flex-shrink-0">
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden border border-gray-200 shadow-sm group-hover:border-brand group-hover:shadow-glow transition-all duration-300">
+                                <img src="${cat.imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="window.imgError(this)">
+                            </div>
+                            <span class="text-[11px] sm:text-xs font-bold text-gray-600 group-hover:text-brand uppercase tracking-wide text-center max-w-[100px] truncate">${cat.name}</span>
+                        </a>
+                    `;
+                });
+            });
+        }
+
+        function loadProducts() {
+            const container = document.getElementById('products-grid');
+            const q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(10));
+            
+            onSnapshot(q, (snap) => {
+                if(snap.empty) { container.innerHTML = '<p>No products found.</p>'; return; }
+                container.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    const price = p.price ? `Rs. ${parseFloat(p.price).toFixed(2)}` : 'N/A';
+                    
+                    container.innerHTML += `
+                        <div class="bg-white rounded-2xl p-3 shadow-soft hover:shadow-2xl transition-all duration-300 group relative border border-transparent hover:border-gray-100">
+                            ${p.saleTag ? `<span class="absolute top-3 left-3 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">SALE</span>` : ''}
+                            <div class="relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3">
+                                <img src="${p.imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="window.imgError(this)">
+                                <button onclick="addToCart('${d.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.imageUrl}')" class="absolute bottom-2 right-2 bg-white text-brand w-10 h-10 rounded-full shadow-lg flex items-center justify-center transform translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-brand hover:text-white">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="px-1">
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 truncate">${p.category || 'General'}</p>
+                                <h3 class="text-sm font-bold text-gray-800 leading-tight mb-2 line-clamp-2 h-10">${p.name}</h3>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-brand font-black text-sm">${price}</span>
+                                    <div class="flex text-yellow-400 text-[10px]"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        window.addToCart = async (pid, name, price, img) => {
+            if(!currentUser) { toggleAuthDrawer(); return; }
+            try {
+                await setDoc(doc(db, usersPath, currentUser.uid, 'cart', pid), {
+                    name: name, price: price, imageUrl: img, quantity: increment(1), addedAt: serverTimestamp()
+                }, { merge: true });
+                document.getElementById('cart-drawer').classList.add('open');
+            } catch(e) { console.error(e); }
+        };
+
+        function listenToCart(uid) {
+            const container = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+            const badges = [document.getElementById('cart-badge'), document.getElementById('mobile-cart-badge')];
+
+            onSnapshot(collection(db, usersPath, uid, 'cart'), (snap) => {
+                const items = []; let total = 0; let count = 0;
+                snap.forEach(d => {
+                    const data = d.data(); items.push({ id: d.id, ...data });
+                    total += (data.price || 0) * (data.quantity || 1); count += (data.quantity || 0);
+                });
+
+                badges.forEach(b => { b.textContent = count; count > 0 ? b.classList.remove('hidden', 'scale-0') : b.classList.add('hidden', 'scale-0'); });
+                totalEl.textContent = `Rs. ${total.toFixed(2)}`;
+
+                if(items.length === 0) {
+                    container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-400"><i class="fa-solid fa-basket-shopping text-4xl mb-3 opacity-20"></i><p>Your bag is empty</p></div>`;
+                } else {
+                    container.innerHTML = '';
+                    items.forEach(item => {
+                        container.innerHTML += `
+                            <div class="flex gap-4 items-center bg-gray-50 p-3 rounded-xl relative group">
+                                <img src="${item.imageUrl}" class="w-16 h-16 rounded-lg object-cover bg-white" onerror="window.imgError(this)">
+                                <div class="flex-grow">
+                                    <h4 class="text-sm font-bold text-gray-800 line-clamp-1">${item.name}</h4>
+                                    <p class="text-xs text-brand font-semibold mt-1">Rs. ${(item.price * item.quantity).toFixed(2)}</p>
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 rounded bg-white shadow flex items-center justify-center text-xs hover:bg-brand hover:text-white">-</button>
+                                        <span class="text-xs font-bold">${item.quantity}</span>
+                                        <button onclick="updateQty('${item.id}', 1)" class="w-6 h-6 rounded bg-white shadow flex items-center justify-center text-xs hover:bg-brand hover:text-white">+</button>
+                                    </div>
+                                </div>
+                                <button onclick="removeItem('${item.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors"><i class="fa fa-times"></i></button>
+                            </div>
+                        `;
+                    });
+                }
+            });
+        }
+
+        window.updateQty = async (id, change) => {
+            if(!currentUser) return;
+            const ref = doc(db, usersPath, currentUser.uid, 'cart', id);
+            if (change === 1) await updateDoc(ref, { quantity: increment(1) });
+            else await updateDoc(ref, { quantity: increment(-1) });
+        };
+
+        window.removeItem = async (id) => {
+            if(!currentUser) return;
+            await deleteDoc(doc(db, usersPath, currentUser.uid, 'cart', id));
+        };
+
+        function updateCartUI(items) {
+             document.getElementById('cart-items').innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-400"><i class="fa-solid fa-lock text-4xl mb-3 opacity-20"></i><p>Login to view cart</p></div>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('page-loader');
+            loadHero(); loadCategories(); loadProducts();
+            
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => document.getElementById('mobile-drawer').classList.add('open'));
+            document.getElementById('cart-btn').addEventListener('click', () => document.getElementById('cart-drawer').classList.add('open'));
+
+            loader.style.width = '100%';
+            setTimeout(() => { loader.classList.add('opacity-0'); setTimeout(() => loader.remove(), 300); }, 800);
+        });
+    </script>
+</body>
+</html>
