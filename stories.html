@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Stories - Pink Store</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'mudalali-green': {
+                            light: '#fbcfe8',       /* Light Pink */
+                            DEFAULT: '#db2777',      /* Hot Pink */
+                            dark: '#be185d',        /* Dark Pink */
+                        },
+                        'mudalali-gold': '#fce7f3',
+                        'mudalali-red': '#be123c',
+                        'mudalali-bg': '#ffffff',
+                        'mm-gray': { 
+                            light: '#fff1f2',
+                            DEFAULT: '#f3f4f6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            @apply font-sans text-gray-800 bg-white;
+        }
+        .sale-tag {
+            @apply absolute top-0 right-0 bg-mudalali-green text-white text-xs font-bold px-3 py-1;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 25% 50%);
+        }
+        .dropdown-menu {
+            @apply hidden;
+        }
+        .group:hover .dropdown-menu {
+            @apply block;
+        }
+        .drawer-overlay {
+            @apply fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity opacity-0 pointer-events-none;
+        }
+        .drawer-content {
+            @apply fixed top-0 right-0 h-full bg-white shadow-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out;
+            width: 90%;
+            max-width: 400px;
+        }
+        .drawer-content.left {
+            @apply left-0 right-auto transform -translate-x-full;
+        }
+        .drawer.open .drawer-overlay {
+            @apply opacity-100 pointer-events-auto;
+        }
+        .drawer.open .drawer-content {
+            @apply transform translate-x-0;
+        }
+        .mobile-nav-link.active {
+            @apply text-mudalali-green;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            scrollbar-width: none;
+        }
+        .tab-button.active { 
+            border-color: #db2777; 
+            color: #db2777; 
+        }
+        .menu-tab-btn.active {
+            @apply border-mudalali-green text-mudalali-green;
+        }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .pop { animation: pop 0.2s ease-out; }
+        
+        .like-button.liked {
+            @apply text-mudalali-green font-bold;
+        }
+        .sidebar-loader {
+            @apply animate-spin h-5 w-5 text-mudalali-green mx-auto;
+        }
+        .group.open .dropdown-menu {
+            @apply block;
+        }
+    </style>
+</head>
+<body class="pb-20 md:pb-0"> 
+    
+    <div id="page-loader" class="fixed top-0 left-0 w-0 h-1 bg-mudalali-green z-[9999] transition-all duration-300 ease-linear"></div>
+    
+    <header class="bg-white shadow-sm sticky top-0 z-40 hidden md:block border-b border-pink-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green">
+                <span class="text-gray-800">PINK</span>STORE
+            </a>
+
+            <div class="flex-grow max-w-xl mx-4">
+                <form class="flex">
+                    <input type="text" placeholder="Search for anything..." class="w-full px-4 py-2 border border-pink-100 rounded-l-full focus:outline-none focus:ring-2 focus:ring-mudalali-green bg-pink-50/20">
+                    <button type="submit" class="bg-mudalali-green text-white px-6 py-2 rounded-r-full hover:bg-mudalali-green-dark transition-colors">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <div class="text-right">
+                    <div class="text-xs font-semibold text-gray-400">Hotline</div>
+                    <div id="header-hotline" class="text-lg font-bold text-mudalali-green-dark">...</div>
+                </div>
+                <a href="account.html" id="desktop-account-btn" class="flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-user text-xl"></i>
+                    <span class="text-xs">Account</span>
+                </a>
+                <a href="wishlist.html" class="relative flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-heart text-xl"></i>
+                    <span id="wishlist-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Wishlist</span>
+                </a>
+                <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-500 hover:text-mudalali-green relative transition-colors">
+                    <i class="fa fa-shopping-bag text-xl"></i>
+                    <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Cart</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-gray-100 shadow-sm hidden md:block relative z-30">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div id="desktop-nav-links-container" class="flex space-x-6">
+                <div class="relative group" id="categories-dropdown-group">
+                    <a href="#" id="categories-dropdown-btn" class="flex items-center text-gray-700 hover:text-mudalali-green px-4 py-3 font-bold uppercase text-sm tracking-wide">
+                        <i class="fa fa-bars mr-2 text-mudalali-green"></i>
+                        Shop By Category
+                        <i class="fa fa-chevron-down text-xs ml-2"></i>
+                    </a>
+                    <div class="dropdown-menu absolute left-0 top-full w-56 bg-white shadow-lg rounded-b-md z-40 border-t-2 border-mudalali-green">
+                    </div>
+                </div>
+            </div>
+            <a href="#" class="text-mudalali-green border border-mudalali-green px-4 py-1.5 rounded-full text-sm font-bold hover:bg-mudalali-green hover:text-white transition-all">
+                Track Order
+            </a>
+        </div>
+    </nav>
+
+    <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
+        <button id="mobile-menu-btn" class="text-2xl text-gray-600">
+            <i class="fa fa-bars"></i>
+        </button>
+      <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
+        PINK<span class="text-gray-600">STORE</span>
+    </a>
+    <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
+        <i class="fa fa-user"></i>
+    </a>
+</header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+            <aside id="related-products-sidebar" class="hidden lg:block lg:col-span-4 sticky top-24 self-start">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-pink-100">Trending Now</h3>
+                <div id="related-products-list" class="flex flex-col gap-4"> 
+                    <div id="related-products-loader" class="text-center py-10">
+                        <svg class="sidebar-loader mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <p class="mt-2 text-gray-400 font-semibold text-sm">Loading Products...</p>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="lg:col-span-8">
+                <div id="related-products-mobile" class="lg:hidden mb-8">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-pink-100">Trending Now</h3>
+                    <div id="related-products-list-mobile" class="flex gap-4 overflow-x-auto no-scrollbar scroll-snap-type-x-mandatory pb-4">
+                        <div id="related-products-loader-mobile" class="col-span-full text-center py-5 w-full">
+                            <svg class="sidebar-loader mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center mb-6">
+                    <div class="bg-mudalali-green w-1 h-8 mr-3 rounded-full"></div>
+                    <h1 class="text-3xl font-bold text-gray-800">Seller Stories</h1>
+                </div>
+                
+                <div id="stories-grid-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="stories-loader" class="col-span-full text-center py-10">
+                        <svg class="animate-spin h-8 w-8 text-mudalali-green mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <p class="mt-2 text-gray-400 font-semibold">Loading Stories...</p>
+                    </div>
+                </div>
+
+                <div id="stories-infinite-loader" class="text-center py-10 hidden">
+                    <svg class="animate-spin h-6 w-6 text-mudalali-green mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-50 text-gray-600 pt-16 pb-8 hidden md:block border-t border-pink-100">
+        <div id="footer-container" class="container mx-auto px-4">
+            <div class="bg-mudalali-green p-8 rounded-2xl -mt-28 mb-16 relative z-10 shadow-xl flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2">JOIN OUR NEWSLETTER</h3>
+                    <p class="text-pink-100">Get 10% off your first order!</p>
+                </div>
+                <form class="flex w-full max-w-md">
+                    <input type="email" placeholder="Email Address" class="w-full px-4 py-3 rounded-l-full text-gray-800 focus:outline-none border-0">
+                    <button type="submit" class="bg-gray-900 text-white px-8 py-3 rounded-r-full font-bold hover:bg-gray-800 transition-colors">
+                        SUBSCRIBE
+                    </button>
+                </form>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+                <div><h4 class="font-bold text-gray-800 mb-4">PINK STORE</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">INFO</h4><ul id="footer-col-info" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">QUICK LINKS</h4><ul id="footer-col-quicklinks" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">CONTACT US</h4><address id="footer-address" class="not-italic text-sm">Loading...</address><p class="mt-2 text-sm">Email: <a id="footer-email" href="#" class="hover:text-mudalali-green">...</a></p><p class="text-sm">Hotline: <a id="footer-hotline" href="#" class="hover:text-mudalali-green">...</a></p></div>
+                <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">FOLLOW US</h4><div id="footer-socials" class="flex space-x-4 mb-4 text-mudalali-green text-xl"></div><h4 class="font-bold text-gray-800 mb-4 mt-6">PAYMENTS</h4><div class="flex space-x-2 opacity-70 grayscale hover:grayscale-0 transition-all"><img src="https://i.ibb.co/fDYrL3g/visa.png" alt="Visa" class="h-6"><img src="https://i.ibb.co/7rmXz4F/mastercard.png" alt="Mastercard" class="h-6"><img src="https://i.ibb.co/C0W2LFr/amex.png" alt="Amex" class="h-6"></div></div>
+            </div>
+            <div class="border-t border-gray-200 pt-6 text-sm text-center md:flex justify-between text-gray-400">
+                <p>&copy; 2025 Pink Store. All Rights reserved.</p>
+                <div class="space-x-4 mt-4 md:mt-0"><a href="#" class="hover:text-mudalali-green">Terms</a><span>|</span><a href="#" class="hover:text-mudalali-green">Privacy</a></div>
+            </div>
+        </div>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 shadow-lg flex justify-around items-center z-40 md:hidden">
+        <a href="index.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-store text-xl"></i><span class="mt-1">Shop</span>
+        </a>
+        <a href="stories.html" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-mudalali-green hover:text-mudalali-green text-xs">
+            <i class="fa fa-book-open text-xl"></i><span class="mt-1">Stories</span>
+        </a>
+        <a href="wishlist.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs relative">
+            <div class="relative"><i class="fa fa-heart text-xl"></i><span id="mobile-wishlist-badge" class="absolute -top-1 -right-2.5 bg-mudalali-green text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span></div><span class="mt-1">Wishlist</span>
+        </a>
+        <button id="mobile-cart-btn" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs relative">
+            <div class="relative"><i class="fa fa-shopping-bag text-xl"></i><span id="mobile-cart-badge" class="absolute -top-1 -right-2.5 bg-mudalali-green text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span></div><span class="mt-1">Cart</span>
+        </button>
+        <a href="account.html" id="mobile-account-btn" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-user text-xl"></i><span class="mt-1">My account</span>
+        </a>
+    </nav>
+
+    <div id="account-drawer-modal" class="drawer drawer-modal fixed inset-0 z-50 hidden">
+        <div id="account-drawer-bg" class="drawer-bg fixed inset-0 bg-black bg-opacity-50 opacity-0 transition-opacity"></div>
+        <div id="account-drawer" class="drawer-content fixed top-0 right-0 h-full bg-white shadow-xl w-full max-w-md flex flex-col">
+            <div id="account-drawer-logged-in" class="hidden flex flex-col h-full">
+                <div class="p-4 flex justify-between items-center border-b flex-shrink-0"><h2 class="text-xl font-semibold text-gray-800">My Account</h2><button id="close-account-drawer-btn-logged-in" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button></div>
+                <div class="flex-grow p-6 overflow-y-auto"><p class="text-gray-600 mb-2">Welcome back,</p><h3 id="account-drawer-user-email" class="text-lg font-semibold text-gray-800 mb-6 break-words"></h3><a href="account.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">Go to My Account</a><button id="drawer-logout-btn" class="w-full text-center bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200 font-bold text-base mt-4">Logout</button></div>
+            </div>
+            <div id="account-drawer-logged-out" class="hidden flex flex-col h-full">
+                <div class="p-4 border-b"><div class="flex justify-between items-center"><h2 class="text-xl font-bold text-gray-700">Welcome!</h2><button id="close-account-drawer-btn-logged-out" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button></div></div>
+                <div class="p-2 bg-pink-50 flex gap-2"><button id="drawer-login-tab-btn" class="tab-button active flex-1 bg-white p-2 rounded-md font-semibold border-b-2">Login</button><button id="drawer-signup-tab-btn" class="tab-button flex-1 bg-white p-2 rounded-md font-semibold text-gray-500 border-b-2 border-transparent">Sign Up</button></div>
+                <div class="p-6" style="max-height: 80vh; overflow-y: auto;"><form id="drawer-login-form" class="space-y-4"><input type="email" id="drawer-login-email" placeholder="Email" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="password" id="drawer-login-password" placeholder="Password" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><button type="submit" class="w-full bg-mudalali-green text-white p-3 rounded-md hover:bg-mudalali-green-dark font-bold">Login</button><p id="drawer-login-error" class="text-red-500 text-sm text-center"></p></form><form id="drawer-signup-form" class="space-y-4 hidden"><div class="flex items-center"><input id="drawer-signup-is-seller" type="checkbox" class="h-4 w-4 text-mudalali-green focus:ring-mudalali-green border-gray-300 rounded"><label for="drawer-signup-is-seller" class="ml-2 block text-sm text-gray-900">I want to register as a Seller</label></div><input type="text" id="drawer-signup-name" placeholder="Full Name or Store Name" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="email" id="drawer-signup-email" placeholder="Email" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="password" id="drawer-signup-password" placeholder="Password" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><button type="submit" class="w-full bg-mudalali-green text-white p-3 rounded-md hover:bg-mudalali-green-dark font-bold">Create Account</button><p id="drawer-signup-error" class="text-red-500 text-sm text-center"></p></form></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-drawer" class="drawer">
+        <div class="drawer-overlay" id="menu-drawer-overlay"></div>
+        <div class="drawer-content left flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold text-mudalali-green">MENU</h2><button id="menu-drawer-close" class="text-xl">&times;</button></div>
+            <div class="p-4 border-b"><form class="flex"><input type="text" placeholder="Search..." class="w-full px-4 py-2 border border-r-0 border-gray-300 rounded-l-md focus:outline-none focus:border-mudalali-green"><button type="submit" class="bg-gray-100 border border-gray-300 px-4 rounded-r-md text-gray-600 hover:text-mudalali-green"><i class="fa fa-search"></i></button></form></div>
+            <div class="flex border-b"><button id="menu-tab-menu" class="menu-tab-btn active flex-1 py-3 font-semibold border-b-2">MENU</button><button id="menu-tab-categories" class="menu-tab-btn flex-1 py-3 font-semibold text-gray-500 border-b-2 border-transparent">CATEGORIES</button></div>
+            <div id="menu-tab-menu-content" class="flex-col flex-grow overflow-y-auto"><a href="index.html" class="block p-4 border-b font-semibold text-mudalali-green">HOME</a><a href="stories.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SELLER STORIES</a><a href="shop.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SHOP</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">ABOUT US</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">CONTACT US</a><div class="p-4 bg-pink-50 font-bold text-gray-600">MY ACCOUNT</div><a href="wishlist.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-heart w-6 mr-1"></i> WISHLIST</a><a href="account.html" id="drawer-my-account-btn" class="block w-full text-left p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-user w-6 mr-1"></i> MY ACCOUNT</a></div>
+            <div id="menu-tab-categories-content" class="hidden flex-col flex-grow overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="cart-drawer" class="drawer">
+        <div class="drawer-overlay" id="cart-drawer-overlay"></div>
+        <div class="drawer-content flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold">Shopping cart</h2><button id="cart-drawer-close" class="text-xl">&times;</button></div>
+            <div id="cart-drawer-items-container" class="flex-grow p-6 overflow-y-auto text-center"><p class="text-gray-500">Your cart is empty.</p></div>
+            <div class="p-6 border-t bg-pink-50"><div class="flex justify-between items-center mb-2"><span class="text-lg font-medium text-gray-600">Subtotal:</span><span id="cart-drawer-total" class="text-xl font-bold text-mudalali-green-dark">Rs. 0.00</span></div><p class="text-sm text-center text-gray-500 mb-4">Shipping & taxes calculated at checkout.</p><div class="flex flex-col gap-3"><a href="cart.html" class="w-full text-center bg-white border-2 border-mudalali-green text-mudalali-green p-3 rounded-lg hover:bg-gray-50 font-bold text-base">VIEW CART</a><a href="checkout.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">CHECKOUT</a></div></div>
+        </div>
+    </div>
+
+    <div id="comments-drawer" class="drawer">
+        <div class="drawer-overlay" id="comments-drawer-overlay"></div>
+        <div class="drawer-content flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold">Comments</h2><button id="comments-drawer-close" class="text-xl">&times;</button></div>
+            <div id="comments-list-container" class="flex-grow p-4 overflow-y-auto space-y-4"><p class="text-gray-500 text-center">Loading comments...</p></div>
+            <div class="p-4 border-t bg-gray-50"><div class="flex gap-2"><input type="text" id="new-comment-input" placeholder="Write a comment..." class="flex-grow p-2 border rounded-lg focus:ring-mudalali-green focus:border-mudalali-green" disabled><button id="submit-comment-btn" class="bg-mudalali-green text-white px-4 rounded-lg font-semibold hover:bg-mudalali-green-dark" disabled><i class="fa fa-paper-plane"></i></button></div><p id="comment-login-prompt" class="text-xs text-gray-500 mt-2 text-center hidden">Please <a href="#" id="comment-login-link" class="text-mudalali-green font-semibold">log in</a> to comment.</p></div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, startAfter, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+       const firebaseConfig = {
+  apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+  authDomain: "masterking-fa629.firebaseapp.com",
+  projectId: "masterking-fa629",
+  storageBucket: "masterking-fa629.firebasestorage.app",
+  messagingSenderId: "680021576286",
+  appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+  measurementId: "G-9443L8L88Q"
+};
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const publicDataPath = `/artifacts/${appId}/public/data`;
+        const usersPath = `/users`; 
+
+        let currentUser = null;
+        let currentUserData = null;
+        let currentStoryIdForComment = null;
+        let unsubscribeCommentsListener = null;
+        let wishlistUnsubscribe = null;
+        const pageLoader = document.getElementById('page-loader');
+
+        // Infinite Scroll State
+        let lastVisibleStory = null;
+        let isLoadingStories = false;
+        const STORIES_PER_PAGE = 5;
+
+        function captureAffiliateRef() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const affiliateId = urlParams.get('ref');
+            if (affiliateId) {
+                console.log(`Affiliate ID captured: ${affiliateId}`);
+                localStorage.setItem('affiliateRef', affiliateId);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (pageLoader) pageLoader.style.width = '30%';
+            loadSiteConfig();
+            captureAffiliateRef();
+            loadInitialStories(); 
+            loadRelatedProducts(); // New sidebar function
+            loadDesktopNavCategories();
+            loadFooter();
+            setupMobileDrawers(); 
+            setupCommentDrawer();
+            setupDesktopCategoriesClick();
+
+            if (pageLoader) {
+                pageLoader.style.width = '100%';
+                setTimeout(() => { pageLoader.classList.add('hidden'); }, 500);
+            }
+
+            window.addEventListener('scroll', () => {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !isLoadingStories) {
+                    loadMoreStories();
+                }
+            });
+        });
+
+        // --- NEW INFINITE SCROLL FUNCTIONS ---
+
+        async function loadInitialStories() {
+            const gridEl = document.getElementById('stories-grid-container');
+            const loader = document.getElementById('stories-loader');
+            isLoadingStories = true;
+            
+            try {
+                const storiesRef = collection(db, publicDataPath, 'stories'); 
+                const q = query(storiesRef, orderBy("createdAt", "desc"), limit(STORIES_PER_PAGE));
+                
+                const querySnapshot = await getDocs(q);
+                
+                loader?.remove();
+                
+                if (querySnapshot.empty) {
+                    gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">No seller stories found yet.</p>';
+                    return;
+                }
+                
+                lastVisibleStory = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+                for (const storyDoc of querySnapshot.docs) {
+                    await renderStoryCard(gridEl, storyDoc);
+                }
+                
+            } catch (error) {
+                console.error("Error loading initial stories: ", error);
+                loader?.remove();
+                gridEl.innerHTML = '<p class="col-span-full text-red-500 text-center">Error loading stories.</p>';
+            }
+            isLoadingStories = false;
+        }
+
+        async function loadMoreStories() {
+            if (!lastVisibleStory) return;
+
+            isLoadingStories = true;
+            const gridEl = document.getElementById('stories-grid-container');
+            const loader = document.getElementById('stories-infinite-loader');
+            loader.classList.remove('hidden');
+            
+            try {
+                const storiesRef = collection(db, publicDataPath, 'stories'); 
+                const q = query(storiesRef, 
+                    orderBy("createdAt", "desc"), 
+                    startAfter(lastVisibleStory), 
+                    limit(STORIES_PER_PAGE)
+                );
+
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    lastVisibleStory = null; 
+                    loader.classList.add('hidden');
+                    return;
+                }
+
+                lastVisibleStory = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+                for (const storyDoc of querySnapshot.docs) {
+                    await renderStoryCard(gridEl, storyDoc);
+                }
+
+            } catch (error) {
+                console.error("Error loading more stories: ", error);
+            }
+            
+            loader.classList.add('hidden');
+            isLoadingStories = false;
+        }
+
+        // --- NEW SIDEBAR FUNCTIONS (Modified for Pink Theme) ---
+
+        async function loadRelatedProducts() {
+            const pcContainer = document.getElementById('related-products-list');
+            const mobileContainer = document.getElementById('related-products-list-mobile');
+            
+            try {
+                const productsRef = collection(db, publicDataPath, 'products');
+                const q = query(productsRef, orderBy("createdAt", "desc"), limit(20)); // Limit 20
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    const msg = '<p class="text-sm text-gray-500 col-span-full">No products found.</p>';
+                    pcContainer.innerHTML = msg;
+                    mobileContainer.innerHTML = msg;
+                    return;
+                }
+
+                pcContainer.innerHTML = ''; 
+                mobileContainer.innerHTML = ''; 
+
+                querySnapshot.forEach(doc => {
+                    const product = doc.data();
+                    const priceHtml = formatProductCardPrice(product); 
+                    const imageUrl = product.imageUrl || 'https://placehold.co/300x300';
+                    
+                    // Desktop Card HTML (Rows)
+                    const pcCardHtml = `
+                        <a href="product.html?id=${doc.id}" class="group bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden flex items-center p-2 hover:shadow-md transition-shadow">
+                            <div class="w-16 h-16 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden">
+                                <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                            </div>
+                            <div class="ml-3 flex-grow min-w-0">
+                                <h4 class="text-sm font-semibold text-gray-800 line-clamp-1 mb-0.5 hover:text-mudalali-green">${product.name}</h4>
+                                <div class="text-left">
+                                    ${priceHtml}
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    
+                    // Mobile Card HTML (Slider)
+                    const mobileCardHtml = `
+                        <a href="product.html?id=${doc.id}" class="group bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden block w-[40vw] flex-shrink-0 scroll-snap-align-start">
+                            <div class="w-full h-32 overflow-hidden bg-gray-50">
+                                <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                            </div>
+                            <div class="p-2">
+                                <h4 class="text-xs font-semibold text-gray-800 line-clamp-1 mb-1">${product.name}</h4>
+                                <div>${priceHtml}</div>
+                            </div>
+                        </a>
+                    `;
+
+                    pcContainer.innerHTML += pcCardHtml;
+                    mobileContainer.innerHTML += mobileCardHtml;
+                });
+            } catch (e) {
+                console.error("Error loading related products: ", e);
+                const errorMsg = '<p class="text-sm text-red-500 col-span-full">Error loading products.</p>';
+                pcContainer.innerHTML = errorMsg;
+                mobileContainer.innerHTML = errorMsg;
+            }
+        }
+
+        async function renderStoryCard(gridEl, storyDoc) {
+            const story = storyDoc.data();
+            const storyId = storyDoc.id;
+            const sellerUid = story.sellerUid;
+            let sellerName = 'Pink Store';
+            let sellerProfilePic = 'https://placehold.co/40x40/db2777/ffffff?text=PS';
+
+            if (sellerUid) {
+                try {
+                    const storeRef = doc(db, publicDataPath, 'stores', sellerUid);
+                    const storeSnap = await getDoc(storeRef);
+                    if(storeSnap.exists()) {
+                        sellerName = storeSnap.data().storeName || sellerName;
+                        sellerProfilePic = storeSnap.data().profileUrl || sellerProfilePic;
+                    }
+                } catch (e) { console.error("Error fetching store data: ", e); }
+            }
+            
+            const likeCount = story.likeCount || 0;
+            const commentCount = story.commentCount || 0;
+
+            let likeBtnClass = "like-button flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-50 rounded transition-colors";
+            if (currentUser) {
+                try {
+                    const likeRef = doc(db, publicDataPath, 'storyInteractions', `${storyId}_${currentUser.uid}`);
+                    const likeSnap = await getDoc(likeRef);
+                    if (likeSnap.exists() && likeSnap.data().type === 'like') {
+                        likeBtnClass += " liked text-mudalali-green";
+                    }
+                } catch (e) { console.error("Error checking like status: ", e); }
+            }
+
+            let taggedProductHtml = '';
+            if (story.taggedProductId && story.taggedProductName) {
+                taggedProductHtml = `
+                    <a href="product.html?id=${story.taggedProductId}" class="block p-3 bg-pink-50/50 hover:bg-pink-100/50 transition-colors border-t border-pink-50">
+                        <div class="flex items-center gap-3">
+                            <img src="${story.taggedProductImageUrl || 'https://placehold.co/60x60'}" class="w-12 h-12 object-cover rounded-md border border-pink-100 flex-shrink-0 bg-white">
+                            <div class="flex-grow min-w-0">
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Featured Product</p>
+                                <p class="text-sm font-bold text-gray-800 truncate">${story.taggedProductName}</p>
+                                <p class="text-sm font-bold text-mudalali-green">Rs. ${story.taggedProductPrice ? parseFloat(story.taggedProductPrice).toFixed(2) : '0.00'}</p>
+                            </div>
+                            <button class="buy-now-tag-btn flex-shrink-0 bg-white border border-mudalali-green text-mudalali-green text-xs font-bold px-3 py-1.5 rounded-full hover:bg-mudalali-green hover:text-white transition-all">
+                                Shop Now
+                            </button>
+                        </div>
+                    </a>
+                `;
+            }
+
+            const storyCard = document.createElement('div');
+            storyCard.className = "bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transform transition-all duration-300 hover:shadow-lg flex flex-col";
+            
+            storyCard.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <img class="h-10 w-10 rounded-full object-cover ring-2 ring-pink-50" src="${sellerProfilePic}" alt="${sellerName}">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800">${sellerName}</h4>
+                                <a href="store.html?id=${sellerUid}" class="text-xs font-medium text-gray-400 hover:text-mudalali-green transition-colors">
+                                    View Store
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-1">
+                        ${story.content ? story.content : '...'}
+                    </p>
+                </div>
+
+                <a href="story-detail.html?id=${storyId}" class="block relative w-full bg-gray-100" style="aspect-ratio: 1/1;">
+                    <img class="h-full w-full object-cover" src="${story.imageUrl || 'https://placehold.co/400x400'}" alt="Story Image">
+                </a>
+
+                ${taggedProductHtml}
+
+                <div class="p-2 flex border-t border-gray-100">
+                    <button class="${likeBtnClass} flex items-center justify-center gap-1.5" data-story-id="${storyId}">
+                        <i class="fa fa-heart"></i> <span class="like-count-text text-xs">${likeCount}</span>
+                    </button>
+                    <button class="comment-btn flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-50 rounded flex items-center justify-center gap-1.5 transition-colors" data-story-id="${storyId}" data-seller-id="${sellerUid}">
+                        <i class="fa fa-comment"></i> <span class="text-xs">${commentCount}</span>
+                    </button>
+                    <button class="share-story-btn flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-50 rounded flex items-center justify-center gap-1.5 transition-colors" data-story-id="${storyId}" data-content="${story.content ? story.content.replace(/"/g, '&quot;') : ''}">
+                        <i class="fa fa-share"></i> <span class="text-xs">Share</span>
+                    </button>
+                </div>
+            `;
+            gridEl.appendChild(storyCard);
+
+            storyCard.querySelector('.like-button').addEventListener('click', (e) => toggleLike(storyId, e.currentTarget));
+            storyCard.querySelector('.comment-btn').addEventListener('click', (e) => openCommentsDrawer(e.currentTarget.dataset.storyId, e.currentTarget.dataset.sellerId));
+            storyCard.querySelector('.share-story-btn').addEventListener('click', (e) => shareStory(e.currentTarget.dataset.storyId, e.currentTarget, e.currentTarget.dataset.content));
+        }
+
+        // --- ALL SUPPORTING FUNCTIONS ---
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            const loggedInView = document.getElementById('account-drawer-logged-in');
+            const loggedOutView = document.getElementById('account-drawer-logged-out');
+            
+            const desktopAccountBtn = document.getElementById('desktop-account-btn');
+            const mobileAccountBtn = document.getElementById('mobile-account-btn');
+            const drawerMyAccountBtn = document.getElementById('drawer-my-account-btn');
+
+            if (user) {
+                const userDocRef = doc(db, usersPath, user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    currentUserData = userDocSnap.data();
+                }
+
+                loggedInView.classList.remove('hidden');
+                loggedInView.classList.add('flex');
+                loggedOutView.classList.add('hidden');
+                loggedOutView.classList.remove('flex');
+                document.getElementById('account-drawer-user-email').textContent = user.email;
+                attachCartDrawerListener(user.uid);
+                attachWishlistBadgeListener(user.uid);
+
+                desktopAccountBtn.href = 'account.html';
+                desktopAccountBtn.addEventListener('click', (e) => { 
+                    e.preventDefault();
+                    document.getElementById('account-drawer-modal')?.classList.remove('hidden');
+                });
+                
+                if (currentUserData && currentUserData.isSeller) {
+                    mobileAccountBtn.href = 'seller-profile.html';
+                } else {
+                    mobileAccountBtn.href = 'customer-account.html';
+                }
+                
+                document.getElementById('new-comment-input').disabled = false;
+                document.getElementById('submit-comment-btn').disabled = false;
+                document.getElementById('comment-login-prompt').classList.add('hidden');
+
+            } else {
+                currentUserData = null;
+                loggedInView.classList.add('hidden');
+                loggedInView.classList.remove('flex');
+                loggedOutView.classList.remove('hidden');
+                loggedOutView.classList.add('flex');
+                attachCartDrawerListener(null); 
+                
+                if (wishlistUnsubscribe) {
+                    wishlistUnsubscribe();
+                    wishlistUnsubscribe = null;
+                }
+                updateWishlistCountBadge(0); 
+
+                desktopAccountBtn.href = "account.html";
+                desktopAccountBtn.replaceWith(desktopAccountBtn.cloneNode(true)); // Remove listener
+                mobileAccountBtn.href = "account.html";
+                drawerMyAccountBtn.href = "account.html";
+                
+                document.getElementById('new-comment-input').disabled = true;
+                document.getElementById('submit-comment-btn').disabled = true;
+                document.getElementById('comment-login-prompt').classList.remove('hidden');
+            }
+        });
+
+        function formatProductCardPrice(product) {
+            let price = parseFloat(product.price || 0).toFixed(2);
+            let originalPrice = product.originalPrice ? parseFloat(product.originalPrice).toFixed(2) : null;
+            
+            if (originalPrice) {
+                return `<span class="text-xs font-bold text-mudalali-red">Rs. ${price}</span>
+                        <span class="text-[10px] text-gray-400 line-through ml-1">Rs. ${originalPrice}</span>`;
+            } else {
+                return `<span class="text-xs font-bold text-mudalali-green-dark">Rs. ${price}</span>`;
+            }
+        }
+
+        function updateWishlistCountBadge(count) {
+            const desktopBadge = document.getElementById('wishlist-count-badge');
+            const mobileBadge = document.getElementById('mobile-wishlist-badge');
+            const countStr = String(count);
+
+            if (desktopBadge) {
+                desktopBadge.textContent = countStr;
+                if (count > 0) {
+                    desktopBadge.classList.add('pop');
+                    setTimeout(() => desktopBadge.classList.remove('pop'), 200);
+                }
+            }
+            if (mobileBadge) {
+                mobileBadge.textContent = countStr;
+            }
+        };
+
+        function attachWishlistBadgeListener(userId) {
+            if (wishlistUnsubscribe) { wishlistUnsubscribe(); }
+            const wishlistRef = collection(db, usersPath, userId, 'wishlist');
+            wishlistUnsubscribe = onSnapshot(wishlistRef, (snapshot) => {
+                updateWishlistCountBadge(snapshot.size);
+            }, (error) => {
+                console.error("Error updating wishlist badge: ", error);
+                updateWishlistCountBadge(0);
+            });
+        }
+
+        async function loadSiteConfig() {
+            const docRef = doc(db, publicDataPath, 'siteContent', 'config');
+            try {
+                const docSnap = await getDoc(docRef);
+                let config = {};
+                if (docSnap.exists()) config = docSnap.data();
+                
+                const logoLink = document.getElementById('logo-link');
+                const mobileLogoLink = document.getElementById('mobile-logo-link');
+
+                if (logoLink) logoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
+                if (mobileLogoLink) mobileLogoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
+                
+                if(document.getElementById('header-hotline')) {
+                    document.getElementById('header-hotline').textContent = config.headerHotline || '011 234 5678';
+                }
+            } catch (e) {
+                console.error("Error loading site config: ", e);
+            }
+        }
+        
+        async function loadDesktopNavCategories() {
+            const container = document.getElementById('desktop-nav-links-container');
+            if (!container) return;
+            
+            const collRef = collection(db, publicDataPath, 'categories');
+            onSnapshot(collRef, (querySnapshot) => {
+                const dropdownContainer = container.querySelector('.dropdown-menu');
+                if (dropdownContainer) dropdownContainer.innerHTML = '';
+                const existingLinks = container.querySelectorAll('a:not(.group > a)');
+                existingLinks.forEach(link => link.remove());
+
+                if (querySnapshot.empty) return;
+                
+                let count = 0;
+                querySnapshot.forEach((doc) => {
+                    const category = doc.data();
+                    if (count < 6) { 
+                        const linkHtml = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green px-3 py-2.5 hidden md:block">${category.name}</a>`;
+                        container.insertAdjacentHTML('beforeend', linkHtml);
+                        count++;
+                    }
+                    if (dropdownContainer) {
+                         const dropdownLink = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green hover:bg-pink-50 px-4 py-3 block border-b border-gray-100 last:border-0">${category.name}</a>`;
+                         dropdownContainer.innerHTML += dropdownLink;
+                    }
+                });
+            }, (error) => { console.error("Error loading nav categories: ", error); });
+        }
+
+        async function loadFooter() {
+            try {
+                const contactRef = doc(db, publicDataPath, 'siteContent', 'footerContact');
+                const contactSnap = await getDoc(contactRef);
+                if (contactSnap.exists()) {
+                    const data = contactSnap.data();
+                    document.getElementById('footer-address').textContent = data.address || '...';
+                    const emailEl = document.getElementById('footer-email');
+                    emailEl.textContent = data.email || '...';
+                    emailEl.href = `mailto:${data.email}`;
+                    const hotlineEl = document.getElementById('footer-hotline');
+                    hotlineEl.textContent = data.hotline || '...';
+                    hotlineEl.href = `tel:${data.hotline}`;
+                    
+                    const socialsContainer = document.getElementById('footer-socials');
+                    socialsContainer.innerHTML = '';
+                    if (data.facebookUrl) socialsContainer.innerHTML += `<a href="${data.facebookUrl}" target="_blank" class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-full text-xl hover:bg-mudalali-green hover:text-white transition-all"><i class="fab fa-facebook-f"></i></a>`;
+                    if (data.youtubeUrl) socialsContainer.innerHTML += `<a href="${data.youtubeUrl}" target="_blank" class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-full text-xl hover:bg-mudalali-green hover:text-white transition-all"><i class="fab fa-youtube"></i></a>`;
+                    if (data.instagramUrl) socialsContainer.innerHTML += `<a href="${data.instagramUrl}" target="_blank" class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-full text-xl hover:bg-mudalali-green hover:text-white transition-all"><i class="fab fa-instagram"></i></a>`;
+                }
+            } catch(e) { console.error("Error loading footer contact", e); }
+            
+            const linksRef = collection(db, publicDataPath, 'footerLinks');
+            onSnapshot(linksRef, (querySnapshot) => {
+                const lists = {
+                    col_tsmgroup: document.getElementById('footer-col-tsmgroup'),
+                    col_info: document.getElementById('footer-col-info'),
+                    col_quicklinks: document.getElementById('footer-col-quicklinks')
+                };
+                Object.values(lists).forEach(list => { if(list) list.innerHTML = ''; }); 
+
+                querySnapshot.forEach((doc) => {
+                    const link = doc.data();
+                    if (lists[link.column]) {
+                        lists[link.column].innerHTML += `<li><a href="${link.url}" class="hover:text-mudalali-green">${link.text}</a></li>`;
+                    }
+                });
+            });
+        }
+
+        // --- Common Helpers ---
+        function updateCartCounters(count) {
+            const countStr = String(count);
+            const badges = [document.getElementById('cart-count-badge'), document.getElementById('mobile-cart-badge')];
+            badges.forEach(badge => {
+                if(badge) {
+                    badge.textContent = countStr;
+                    badge.classList.add('pop');
+                    setTimeout(() => badge.classList.remove('pop'), 200);
+                }
+            });
+        }
+
+        function attachCartDrawerListener(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            const totalEl = document.getElementById('cart-drawer-total');
+            if (!container || !totalEl) return;
+            if (!userId) {
+                container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
+                totalEl.textContent = 'Rs. 0.00';
+                updateCartCounters(0);
+                return;
+            }
+            const cartRef = collection(db, usersPath, userId, 'cart');
+            onSnapshot(cartRef, (snapshot) => {
+                updateCartCounters(snapshot.size); 
+                let subtotalLKR = 0;
+                let subtotalUSDT = 0;
+                let cartHasUSDT = false;
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
+                } else {
+                    container.innerHTML = ''; 
+                    snapshot.forEach(doc => {
+                        const item = { id: doc.id, ...doc.data() };
+                        const quantity = parseInt(item.quantity) || 1;
+                        const priceLKR = parseFloat(item.price) || 0;
+                        const itemTotalLKR = priceLKR * quantity;
+                        subtotalLKR += itemTotalLKR;
+                        let priceString = `Rs. ${itemTotalLKR.toFixed(2)}`;
+                        if (item.priceUSDT) {
+                            cartHasUSDT = true;
+                            const priceUSDT = parseFloat(item.priceUSDT) || 0;
+                            const itemTotalUSDT = priceUSDT * quantity;
+                            subtotalUSDT += itemTotalUSDT;
+                            priceString = `Rs. ${itemTotalLKR.toFixed(2)} / $${itemTotalUSDT.toFixed(2)}`;
+                        }
+                        container.innerHTML += `<div class="flex items-center gap-4 py-4 border-b"><img src="${item.imageUrl || 'https://placehold.co/64'}" alt="${item.name}" class="w-16 h-16 rounded object-contain border p-1"><div class="flex-grow text-left"><h4 class="font-semibold text-sm text-slate-800">${item.name}</h4><div class="flex items-center gap-2 my-1"><button data-id="${item.id}" class="cart-qty-decrease w-6 h-6 font-bold rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center">-</button><span class="w-6 text-center font-bold text-sm text-slate-700">${quantity}</span><button data-id="${item.id}" class="cart-qty-increase w-6 h-6 font-bold rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center">+</button></div><p class="text-sm text-mudalali-green font-bold">${priceString}</p></div><button data-id="${item.id}" class="cart-remove-item text-slate-400 hover:text-red-500" title="Remove Item"><i class="fas fa-times text-lg"></i></button></div>`;
+                    });
+                }
+                let totalString = `Rs. ${subtotalLKR.toFixed(2)}`;
+                if (cartHasUSDT) { totalString += ` / $${subtotalUSDT.toFixed(2)}`; }
+                totalEl.textContent = totalString;
+                addCartDrawerButtonListeners(userId);
+            }, (error) => { console.error("Error in cart drawer listener: ", error); });
+        }
+
+        function addCartDrawerButtonListeners(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            if (!container) return;
+            container.querySelectorAll('.cart-qty-decrease, .cart-qty-increase, .cart-remove-item').forEach(button => {
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                newButton.addEventListener('click', async (e) => {
+                    const itemId = newButton.dataset.id;
+                    const itemRef = doc(db, usersPath, userId, 'cart', itemId);
+                    try {
+                        if (newButton.classList.contains('cart-remove-item')) { await deleteDoc(itemRef); } 
+                        else if (newButton.classList.contains('cart-qty-increase')) { await updateDoc(itemRef, { quantity: increment(1) }); } 
+                        else if (newButton.classList.contains('cart-qty-decrease')) {
+                            const docSnap = await getDoc(itemRef);
+                            if (docSnap.exists() && docSnap.data().quantity > 1) { await updateDoc(itemRef, { quantity: increment(-1) }); } 
+                            else { await deleteDoc(itemRef); }
+                        }
+                    } catch (error) { console.error("Error updating cart item: ", error); }
+                });
+            });
+        }
+
+        function formatTimestamp(date) {
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + "y ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + "mo ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + "d ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + "h ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + "m ago";
+            return Math.floor(seconds) + "s ago";
+        }
+
+        function setupCommentDrawer() {
+            const drawer = document.getElementById('comments-drawer');
+            const closeBtn = document.getElementById('comments-drawer-close');
+            const overlay = document.getElementById('comments-drawer-overlay');
+            const closeDrawer = () => {
+                drawer.classList.remove('open');
+                if (unsubscribeCommentsListener) { unsubscribeCommentsListener(); unsubscribeCommentsListener = null; }
+                currentStoryIdForComment = null;
+            };
+            closeBtn.addEventListener('click', closeDrawer);
+            overlay.addEventListener('click', closeDrawer);
+
+            document.getElementById('submit-comment-btn').addEventListener('click', async () => {
+                if (!currentUser || !currentStoryIdForComment) return;
+                const input = document.getElementById('new-comment-input');
+                const commentText = input.value.trim();
+                if (!commentText) return;
+                const btn = document.getElementById('submit-comment-btn');
+                btn.disabled = true; input.disabled = true;
+                try {
+                    const storyRef = doc(db, publicDataPath, 'stories', currentStoryIdForComment);
+                    const interactionRef = collection(db, publicDataPath, 'storyInteractions');
+                    await addDoc(interactionRef, { storyId: currentStoryIdForComment, userId: currentUser.uid, type: 'comment', commentText: commentText, createdAt: serverTimestamp() });
+                    await updateDoc(storyRef, { commentCount: increment(1) });
+                    input.value = '';
+                } catch (e) { console.error("Error adding comment: ", e); } finally { btn.disabled = false; input.disabled = false; }
+            });
+        }
+
+        function openCommentsDrawer(storyId, sellerUid) {
+            if (unsubscribeCommentsListener) { unsubscribeCommentsListener(); }
+            currentStoryIdForComment = storyId;
+            const drawer = document.getElementById('comments-drawer');
+            const container = document.getElementById('comments-list-container');
+            container.innerHTML = '<p class="text-gray-500 text-center">Loading comments...</p>';
+            drawer.classList.add('open');
+            const commentsRef = collection(db, publicDataPath, 'storyInteractions');
+            const q = query(commentsRef, where("storyId", "==", storyId), where("type", "==", "comment"), orderBy("createdAt", "asc"));
+            unsubscribeCommentsListener = onSnapshot(q, async (snapshot) => {
+                container.innerHTML = '';
+                if (snapshot.empty) { container.innerHTML = '<p class="text-gray-500 text-center">No comments yet.</p>'; return; }
+                for (const doc of snapshot.docs) {
+                    const comment = doc.data();
+                    let userName = 'User'; let userPic = 'https://placehold.co/40x40/fce7f3/db2777?text=U';
+                    try { const userRef = doc(db, usersPath, comment.userId); const userSnap = await getDoc(userRef); if (userSnap.exists()) { userName = userSnap.data().name || 'User'; } } catch (e) { console.error("Error getting user", e); }
+                    const commentDate = comment.createdAt ? formatTimestamp(comment.createdAt.toDate()) : '';
+                    const isCreator = comment.userId === sellerUid;
+                    const creatorBadge = isCreator ? '<span class="ml-2 bg-mudalali-green text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Seller</span>' : '';
+                    container.innerHTML += `<div class="flex gap-3"><img src="${userPic}" class="h-8 w-8 rounded-full object-cover flex-shrink-0 border border-pink-100"><div class="bg-pink-50 rounded-2xl p-3 px-4"><div class="flex items-center mb-1"><span class="font-bold text-xs text-gray-800 mr-2">${userName}</span>${creatorBadge}<span class="text-[10px] text-gray-400 ml-auto">${commentDate}</span></div><p class="text-sm text-gray-600">${comment.commentText}</p></div></div>`;
+                }
+            });
+        }
+
+        async function toggleLike(storyId, buttonEl) {
+            if (!currentUser) { document.getElementById('account-drawer-modal').classList.remove('hidden'); return; }
+            buttonEl.disabled = true;
+            const storyRef = doc(db, publicDataPath, 'stories', storyId);
+            const likeRef = doc(db, publicDataPath, 'storyInteractions', `${storyId}_${currentUser.uid}`);
+            let newLikeCount = 0;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const likeSnap = await transaction.get(likeRef);
+                    const storySnap = await transaction.get(storyRef);
+                    if (!storySnap.exists()) { throw "Story does not exist!"; }
+                    newLikeCount = storySnap.data().likeCount || 0;
+                    if (likeSnap.exists()) { transaction.delete(likeRef); newLikeCount = Math.max(0, newLikeCount - 1); } 
+                    else { transaction.set(likeRef, { storyId: storyId, userId: currentUser.uid, type: 'like', createdAt: serverTimestamp() }); newLikeCount += 1; }
+                    transaction.update(storyRef, { likeCount: newLikeCount });
+                });
+                const likeCountSpan = buttonEl.closest('.bg-white').querySelector('.like-count-text');
+                if (likeCountSpan) { likeCountSpan.innerHTML = `${newLikeCount}`; }
+                buttonEl.classList.toggle('liked'); buttonEl.classList.toggle('text-mudalali-green');
+            } catch (e) { console.error("Transaction failed: ", e); } finally { buttonEl.disabled = false; }
+        }
+
+        async function shareStory(storyId, buttonEl, storyContent) {
+            const storyUrl = `${window.location.origin}/story-detail.html?id=${storyId}`; 
+            const shareData = { title: `Story from Pink Store`, text: storyContent ? storyContent.substring(0, 100) + '...' : 'Check out this story!', url: storyUrl };
+            try { if (navigator.share) { await navigator.share(shareData); } else { throw new Error('Web Share not supported'); } } 
+            catch (err) { try { await navigator.clipboard.writeText(storyUrl); buttonEl.innerHTML = '<i class="fa fa-check text-green-500"></i> <span class="text-xs">Copied</span>'; buttonEl.disabled = true; setTimeout(() => { buttonEl.innerHTML = '<i class="fa fa-share"></i> <span class="text-xs">Share</span>'; buttonEl.disabled = false; }, 2000); } catch (copyErr) { alert('Failed to copy link.'); } }
+        }
+
+        function setupDesktopCategoriesClick() {
+            const dropdownGroup = document.getElementById('categories-dropdown-group');
+            const dropdownBtn = document.getElementById('categories-dropdown-btn');
+            if (dropdownGroup && dropdownBtn) {
+                dropdownBtn.addEventListener('click', (e) => { e.preventDefault(); dropdownGroup.classList.toggle('open'); });
+                document.addEventListener('click', (e) => { if (!dropdownGroup.contains(e.target)) { dropdownGroup.classList.remove('open'); } });
+            }
+        }
+
+        // --- MISSING FUNCTION ADDED HERE ---
+        function setupMobileDrawers() {
+            const menuDrawer = document.getElementById('menu-drawer');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const menuDrawerClose = document.getElementById('menu-drawer-close');
+            const menuDrawerOverlay = document.getElementById('menu-drawer-overlay');
+            
+            mobileMenuBtn?.addEventListener('click', () => menuDrawer?.classList.add('open'));
+            menuDrawerClose?.addEventListener('click', () => menuDrawer?.classList.remove('open'));
+            menuDrawerOverlay?.addEventListener('click', () => menuDrawer?.classList.remove('open'));
+
+            const menuTabMenu = document.getElementById('menu-tab-menu');
+            const menuTabCategories = document.getElementById('menu-tab-categories');
+            const menuContent = document.getElementById('menu-tab-menu-content');
+            const categoriesContent = document.getElementById('menu-tab-categories-content');
+
+            menuTabMenu?.addEventListener('click', () => {
+                menuContent?.classList.remove('hidden');
+                categoriesContent?.classList.add('hidden');
+                menuTabMenu.classList.add('active');
+                menuTabCategories.classList.remove('active');
+            });
+            menuTabCategories?.addEventListener('click', () => {
+                menuContent?.classList.add('hidden');
+                categoriesContent?.classList.remove('hidden');
+                menuTabCategories.classList.add('active');
+                menuTabMenu.classList.remove('active');
+                if (categoriesContent.children.length === 0) {
+                    loadCategoriesIntoDrawer(categoriesContent);
+                }
+            });
+
+            const cartDrawer = document.getElementById('cart-drawer');
+            const mobileCartBtn = document.getElementById('mobile-cart-btn');
+            const desktopCartBtn = document.getElementById('desktop-cart-btn');
+            const cartDrawerClose = document.getElementById('cart-drawer-close');
+            const cartDrawerOverlay = document.getElementById('cart-drawer-overlay');
+
+            const openCart = () => cartDrawer?.classList.add('open');
+            const closeCart = () => cartDrawer?.classList.remove('open');
+
+            mobileCartBtn?.addEventListener('click', openCart);
+            desktopCartBtn?.addEventListener('click', openCart);
+            cartDrawerClose?.addEventListener('click', closeCart);
+            cartDrawerOverlay?.addEventListener('click', closeCart);
+            
+            const authDrawer = document.getElementById('account-drawer-modal');
+            const authDrawerBg = document.getElementById('account-drawer-bg');
+            const closeAuthBtn1 = document.getElementById('close-account-drawer-btn-logged-in');
+            const closeAuthBtn2 = document.getElementById('close-account-drawer-btn-logged-out');
+            
+            document.getElementById('desktop-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                authDrawer?.classList.remove('hidden');
+            });
+            document.getElementById('mobile-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                authDrawer?.classList.remove('hidden');
+            });
+            document.getElementById('drawer-my-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('menu-drawer')?.classList.remove('open'); 
+                authDrawer?.classList.remove('hidden'); 
+            });
+            
+            const closeAuthDrawer = () => authDrawer?.classList.add('hidden');
+            authDrawerBg?.addEventListener('click', closeAuthDrawer);
+            closeAuthBtn1?.addEventListener('click', closeAuthDrawer);
+            closeAuthBtn2?.addEventListener('click', closeAuthDrawer);
+
+            document.getElementById('comment-login-link')?.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                document.getElementById('comments-drawer')?.classList.remove('open');
+                authDrawer?.classList.remove('hidden'); 
+            });
+
+            const loginTab = document.getElementById('drawer-login-tab-btn');
+            const signupTab = document.getElementById('drawer-signup-tab-btn');
+            const loginForm = document.getElementById('drawer-login-form');
+            const signupForm = document.getElementById('drawer-signup-form');
+
+            loginTab?.addEventListener('click', () => {
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            });
+            signupTab?.addEventListener('click', () => {
+                signupTab.classList.add('active');
+                loginTab.classList.remove('active');
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            });
+
+            loginForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('drawer-login-email').value;
+                const password = document.getElementById('drawer-login-password').value;
+                const errorP = document.getElementById('drawer-login-error');
+                errorP.textContent = 'Logging in...';
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    errorP.textContent = '';
+                    closeAuthDrawer(); 
+                } catch (error) {
+                    console.error("Login Error:", error);
+                    errorP.textContent = error.message.replace('Firebase: ', '');
+                }
+            });
+
+            signupForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('drawer-signup-name').value;
+                const email = document.getElementById('drawer-signup-email').value;
+                const password = document.getElementById('drawer-signup-password').value;
+                const isSeller = document.getElementById('drawer-signup-is-seller').checked;
+                const errorP = document.getElementById('drawer-signup-error');
+                errorP.textContent = 'Creating account...';
+                
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    const userDocRef = doc(db, usersPath, user.uid);
+                    await setDoc(userDocRef, {
+                        name: name, 
+                        email: email,
+                        isSeller: isSeller, 
+                        role: isSeller ? "seller" : "customer",
+                        createdAt: serverTimestamp()
+                    });
+                    
+                    if (isSeller) {
+                        const storeDocRef = doc(db, publicDataPath, 'stores', user.uid); 
+                        await setDoc(storeDocRef, {
+                            ownerUid: user.uid,
+                            storeName: name,
+                            email: email,
+                            profileUrl: '', 
+                            coverUrl: '', 
+                            createdAt: serverTimestamp(),
+                            isApproved: false
+                        });
+                    }
+                    
+                    errorP.textContent = '';
+                    closeAuthDrawer(); 
+                } catch (error) {
+                    console.error("Signup Error:", error);
+                    errorP.textContent = error.message.replace('Firebase: ', '');
+                }
+            });
+            
+            document.getElementById('drawer-logout-btn')?.addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    closeAuthDrawer();
+                    console.log('User signed out');
+                });
+            });
+        }
+
+    </script>
+</body>
+</html>

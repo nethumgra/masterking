@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - Nano Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8 font-sans">
+
+    <!-- Main Invoice Container -->
+    <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden" id="invoice-content">
+        
+        <!-- Header -->
+        <div class="bg-slate-800 text-white p-8 flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold tracking-wide">INVOICE</h1>
+                <p class="text-slate-400 mt-1">#02431</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-xl font-bold">Nano Solutions</h2>
+                <p class="text-sm text-slate-300">Mathizz (Founder)</p>
+            </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="p-8">
+            <div class="flex flex-col md:flex-row justify-between mb-8 gap-6">
+                
+                <!-- Bill To -->
+                <div class="w-full md:w-1/2">
+                    <h3 class="text-gray-600 uppercase text-xs font-bold tracking-wider mb-2">Invoiced To</h3>
+                    <div class="text-gray-800 font-semibold text-lg">King Ceylon</div>
+                    <div class="text-gray-600">+94 76 243 7424</div>
+                </div>
+
+                <!-- Date Details -->
+                <div class="w-full md:w-1/2 md:text-right">
+                    <h3 class="text-gray-600 uppercase text-xs font-bold tracking-wider mb-2">Date</h3>
+                    <div class="text-gray-800">November 25, 2025</div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="w-full mb-8">
+                <thead>
+                    <tr class="border-b-2 border-slate-200">
+                        <th class="text-left py-3 text-sm font-bold text-gray-600 uppercase">Description</th>
+                        <th class="text-right py-3 text-sm font-bold text-gray-600 uppercase">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    <tr class="border-b border-gray-100">
+                        <td class="py-4">Logo Improvement</td>
+                        <td class="py-4 text-right">Rs. 500.00</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <td class="py-4">Business Card Design</td>
+                        <td class="py-4 text-right">Rs. 800.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Total Section -->
+            <div class="flex justify-end mb-8">
+                <div class="w-full md:w-1/2 lg:w-1/3">
+                    <div class="flex justify-between py-2 text-gray-600">
+                        <span>Subtotal</span>
+                        <span>Rs. 1,300.00</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-t-2 border-slate-800 text-slate-800 font-bold text-xl">
+                        <span>Total</span>
+                        <span>Rs. 1,300.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Details (Editable) -->
+            <div class="bg-gray-50 rounded p-6 border border-gray-100">
+                <h3 class="text-gray-600 uppercase text-xs font-bold tracking-wider mb-3">Payment Details</h3>
+                <p class="text-sm text-gray-500 mb-2">Please make the transfer to the following account:</p>
+                
+                <!-- Editable Area -->
+                <div class="text-gray-800 text-sm space-y-1 p-2 border border-dashed border-gray-300 rounded hover:border-slate-400 transition-colors" contenteditable="true">
+                    <p><span class="font-bold">Bank:</span> Sampath Bank </p>
+                    <p><span class="font-bold">Account Name:</span> J A J JAYASURIYA</p>
+                    <p><span class="font-bold">Account No:</span>1197 5293 7908</p>
+                </div>
+                <p class="text-xs text-gray-400 mt-2 italic">* Click on the box above to edit bank details before printing.</p>
+            </div>
+            
+            <div class="mt-8 text-center text-gray-500 text-sm">
+                Thank you for your business!
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button (Visible only on screen) -->
+    <div class="fixed bottom-6 right-6 no-print">
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print / Save PDF
+        </button>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Marketing - Mudalali Mama</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'mudalali-green': {
+                            light: '#76b852',       
+                            DEFAULT: '#3a6a4a',      
+                            dark: '#2c5234',        
+                        },
+                        'mudalali-gold': '#bda26b',
+                        'mudalali-red': '#d93a3e',
+                        'mudalali-bg': '#f5f5f4',
+                        'mm-gray': { 
+                            light: '#f8f8f8',
+                            DEFAULT: '#e5e5e5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        body {
+            @apply font-sans text-gray-800;
+        }
+        .drawer-overlay {
+            @apply fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity opacity-0 pointer-events-none;
+        }
+        .drawer-content {
+            @apply fixed top-0 right-0 h-full bg-white shadow-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out;
+            width: 90%;
+            max-width: 400px;
+        }
+        .drawer-content.left {
+            @apply left-0 right-auto transform -translate-x-full;
+        }
+        .drawer.open .drawer-overlay {
+            @apply opacity-100 pointer-events-auto;
+        }
+        .drawer.open .drawer-content {
+            @apply transform translate-x-0;
+        }
+        .mobile-nav-link.active {
+            @apply text-mudalali-green;
+        }
+        .tab-button.active { 
+            border-color: #3a6a4a;
+            color: #3a6a4a;
+        }
+        .sidebar-link.active {
+            background-color: #f3f4f6; color: #1f2937; 
+            border-left: 4px solid #3a6a4a;
+            padding-left: 16px; font-weight: 600; 
+        }
+        .menu-tab-btn.active {
+            @apply border-mudalali-green text-mudalali-green;
+        }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .pop { animation: pop 0.2s ease-out; }
+        .loading-spinner { 
+            border: 4px solid #f3f3ff; 
+            border-top: 4px solid #3a6a4a;
+            border-radius: 50%; width: 30px; height: 30px; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .sidebar-link { 
+            display: block; padding: 12px 16px; font-size: 0.9rem; font-weight: 500; 
+            color: #374151; border-bottom: 1px solid #f3f4f6; transition: all 0.2s ease; 
+        }
+        .sidebar-link:hover { 
+            background-color: #f9fafb; 
+            color: #2c5234;
+            padding-left: 20px; 
+        }
+        .sidebar-link.mobile-nav-link {
+            @apply flex items-center p-4 border-b text-gray-700;
+        }
+        .sidebar-link.mobile-nav-link i {
+            @apply w-5 mr-3 text-center;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+        
+        .page-tab-btn {
+            @apply flex-1 text-center py-4 px-2 font-semibold text-gray-500 border-b-2 border-transparent transition-colors;
+        }
+        .page-tab-btn.active {
+            @apply text-mudalali-green border-mudalali-green;
+        }
+        
+        .store-filter-btn {
+            @apply w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors duration-150;
+        }
+        .store-filter-btn.active {
+            @apply bg-mudalali-green text-white font-bold;
+        }
+        .store-filter-btn:not(.active):hover {
+            @apply bg-gray-100;
+        }
+        
+        .download-image-btn {
+            @apply absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10;
+        }
+        .download-image-btn:hover {
+            @apply bg-black bg-opacity-80;
+        }
+
+    </style>
+</head>
+<body class="pb-20 md:pb-0" style="background-color: #f5f5f4;"> 
+
+    <div id="auth-loader" class="fixed inset-0 bg-mudalali-bg z-[10000] flex flex-col items-center justify-center">
+        <svg class="animate-spin h-10 w-10 text-mudalali-green mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-4 text-gray-600 font-semibold">Verifying Affiliate Access...</p>
+    </div>
+
+    <header class="bg-white shadow-md sticky top-0 z-40 hidden md:block">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            
+            <button id="desktop-menu-btn" class="text-2xl text-gray-700">
+                <i class="fa fa-bars"></i>
+            </button>
+            
+            <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green-dark">
+              <img id="logo-img" src="https://i.ibb.co/1tCywvyP/logo.png" class="h-10" alt="Mudalali Mama Logo">
+            </a>
+            
+            <div class="flex-grow max-w-xl mx-4">
+                <form class="flex">
+                    <input type="text" placeholder="Search for anything..." class="w-full px-4 py-2 border border-mm-gray-DEFAULT rounded-l-md focus:outline-none focus:ring-2 focus:ring-mudalali-green">
+                    <button type="submit" class="bg-mudalali-green text-white px-4 py-2 rounded-r-md hover:bg-mudalali-green-dark">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="text-right">
+                    <div class="text-sm font-semibold">Support Hotline</div>
+                    <div id="header-hotline" class="text-lg font-bold text-mudalali-green-dark">...</div>
+                </div>
+                <a href="customer-account.html" id="desktop-account-btn" class="flex flex-col items-center text-gray-600 hover:text-mudalali-green">
+                    <i class="fa fa-user text-xl"></i>
+                    <span class="text-xs">Account</span>
+                </a>
+                <a href="wishlist.html" class="relative flex flex-col items-center text-gray-600 hover:text-mudalali-green">
+                    <i class="fa fa-heart text-xl"></i>
+                    <span id="wishlist-count-badge" class="absolute -top-2 -right-2 bg-mudalali-red text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Wishlist</span>
+                </a>
+                <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-600 hover:text-mudalali-green relative">
+                    <i class="fa fa-shopping-cart text-xl"></i>
+                    <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-mudalali-red text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Cart</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
+        <button id="mobile-menu-btn" class="text-2xl text-gray-700">
+            <i class="fa fa-bars"></i>
+        </button>
+        <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
+            <img id="mobile-logo-img" src="https://i.ibb.co/1tCywvyP/logo.png" class="h-8" alt="Mudalali Mama Logo">
+        </a>
+        <a href="customer-account.html" id="mobile-account-btn" class="text-2xl text-gray-700 w-8 text-right">
+            <i class="fa fa-user"></i>
+        </a>
+    </header>
+
+    <div id="account-drawer-modal" class="drawer drawer-modal fixed inset-0 z-50 hidden">
+        <div id="account-drawer-bg" class="drawer-overlay fixed inset-0 bg-black bg-opacity-50 opacity-0 transition-opacity"></div>
+        <div id="account-drawer" class="drawer-content fixed top-0 right-0 h-full bg-white shadow-xl w-full max-w-md flex flex-col">
+            <div id="account-drawer-logged-in" class="hidden flex flex-col h-full">
+                <div class="p-4 flex justify-between items-center border-b flex-shrink-0">
+                    <h2 class="text-xl font-semibold text-gray-800">My Account</h2>
+                    <button id="close-account-drawer-btn-logged-in" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button>
+                </div>
+                <div class="flex-grow p-6 overflow-y-auto">
+                    <p class="text-gray-600 mb-2">Welcome back,</p>
+                    <h3 id="account-drawer-user-email" class="text-lg font-semibold text-gray-800 mb-6 break-words"></h3>
+                    <a href="customer-account.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">Customer Account</a>
+                    <button id="drawer-logout-btn" class="w-full text-center bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200 font-bold text-base mt-4">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-drawer" class="drawer">
+        <div class="drawer-overlay" id="menu-drawer-overlay"></div>
+        <div class="drawer-content left flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold">MENU</h2>
+                <button id="menu-drawer-close" class="text-xl">&times;</button>
+            </div>
+            
+            <div id="menu-tab-menu-content" class="flex-col flex-grow overflow-y-auto">
+                <a href="affiliate-dashboard.html" class="sidebar-link mobile-nav-link">
+                    <i class="fas fa-chart-line"></i> Affiliate Stats
+                </a>
+                
+                <a href="affiliate-story-marketing.html" class="sidebar-link mobile-nav-link active">
+                    <i class="fas fa-bullhorn"></i> Story Marketing
+                </a>
+                
+                <a href="affiliate-payouts.html" class="sidebar-link mobile-nav-link">
+                    <i class="fas fa-money-bill-wave"></i> Payouts
+                </a>
+                
+                <div class="p-4 bg-gray-100 font-bold text-gray-600">My Account</div>
+                
+                <a href="customer-account.html" class="sidebar-link mobile-nav-link">
+                    <i class="fa fa-user-circle"></i> Customer Account
+                </a>
+                <a href="wishlist.html" class="sidebar-link mobile-nav-link">
+                    <i class="fa fa-heart"></i> Wishlist
+                </a>
+                <a href="#" class="sidebar-link mobile-nav-link" id="hamburger-logout-btn">
+                    <i class="fa fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="cart-drawer" class="drawer">
+        <div class="drawer-overlay" id="cart-drawer-overlay"></div>
+        <div class="drawer-content flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold">Shopping cart</h2>
+                <button id="cart-drawer-close" class="text-xl">&times;</button>
+            </div>
+            <div id="cart-drawer-items-container" class="flex-grow p-6 overflow-y-auto text-center">
+                <p class="text-gray-500">Your cart is empty.</p>
+            </div>
+            <div class="p-6 border-t bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-lg font-medium text-gray-600">Subtotal:</span>
+                    <span id="cart-drawer-total" class="text-xl font-bold text-mudalali-green-dark">Rs. 0.00</span>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <a href="cart.html" class="w-full text-center bg-white border-2 border-mudalali-green text-mudalali-green p-3 rounded-lg hover:bg-gray-50 font-bold text-base">VIEW CART</a>
+                    <a href="checkout.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">CHECKOUT</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="container mx-auto p-4 md:p-8" style="min-height: calc(100vh - 200px);">
+        
+        <div id="account-container" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 uppercase tracking-wide">Story Marketing</h2>
+             
+            <div class="flex flex-col md:flex-row gap-8">
+                
+                <div class="w-full md:w-3/4 lg:w-2/3">
+                    <div class="flex border-b border-gray-300 mb-6">
+                        <button id="tab-btn-stories" class="page-tab-btn active">
+                            <i class="fa fa-book-open mr-2"></i> Stories
+                        </button>
+                        <button id="tab-btn-products" class="page-tab-btn">
+                            <i class="fa fa-box mr-2"></i> Products
+                        </button>
+                    </div>
+        
+                    <div id="stories-view" class="tab-panel">
+                        <div id="stories-grid-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            </div>
+                    </div>
+                    <div id="products-view" class="tab-panel hidden">
+                        <div id="products-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            </div>
+                    </div>
+        
+                    <div id="content-loader" class="text-center py-10">
+                        <div class="loading-spinner mx-auto"></div>
+                        <p class="mt-2 text-gray-500">Loading content...</p>
+                    </div>
+                </div>
+
+                <aside class="w-full md:w-1/4 lg:w-1/3 self-start md:sticky top-24">
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Filter by Entrepreneur</h3>
+                        <div id="store-filter-list" class="space-y-3 max-h-[60vh] overflow-y-auto">
+                            </div>
+                        <div id="store-filter-loader" class="text-center py-4">
+                            <div class="loading-spinner mx-auto"></div>
+                        </div>
+                    </div>
+                </aside>
+
+            </div>
+         </div>
+    </main>
+    <footer class="bg-gray-800 text-gray-300 pt-16 pb-8 hidden md:block">
+        <div id="footer-container" class="container mx-auto px-4">
+            <div class="bg-gray-700 p-8 rounded-lg -mt-28 mb-16 relative z-10 shadow-xl flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2">SUBSCRIBE TO US</h3>
+                    <p class="text-gray-300">Get the first look at exclusive offers, promotions, and more.</p>
+                </div>
+                <form class="flex w-full max-w-md">
+                    <input type="email" placeholder="Email Address" class="w-full px-4 py-3 rounded-l-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-mudalali-green">
+                    <button type="submit" class="bg-mudalali-green text-white px-6 py-3 rounded-r-md font-bold hover:bg-mudalali-green-dark">
+                        SUBSCRIBE
+                    </button>
+                </form>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+                <div>
+                    <h4 class="font-bold text-white mb-4">මුදලාලි මාමා</h4>
+                    <ul id="footer-col-tsmgroup" class="space-y-2"><li>Loading...</li></ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">INFO</h4>
+                    <ul id="footer-col-info" class="space-y-2"><li>Loading...</li></ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">QUICK LINKS</h4>
+                    <ul id="footer-col-quicklinks" class="space-y-2"><li>Loading...</li></ul>
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    <h4 class="font-bold text-white mb-4">COLOMBO HEAD OFFICE</h4>
+                    <address id="footer-address" class="not-italic">Loading...</address>
+                    <p class="mt-2">Email: <a id="footer-email" href="#" class="hover:text-white">...</a></p>
+                    <p>Hotline: <a id="footer-hotline" href="#" class="hover:text-white">...</a></a
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    <h4 class="font-bold text-white mb-4">KEEP IN TOUCH</h4>
+                    <div id="footer-socials" class="flex space-x-4 mb-4"></div>
+                    <h4 class="font-bold text-white mb-4 mt-6">PAYMENTS</h4>
+                    <div class="flex space-x-2">
+                        <img src="https://i.ibb.co/fDYrL3g/visa.png" alt="Visa" class="h-6">
+                        <img src="https://i.ibb.co/7rmXz4F/mastercard.png" alt="Mastercard" class="h-6">
+                        <img src="https://i.ibb.co/C0W2LFr/amex.png" alt="Amex" class="h-6">
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 text-sm text-center md:flex justify-between">
+                <p>&copy; 2025 Mudalali Mama. All Rights reserved.</p>
+                <div class="space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-white">TERMS & CONDITIONS</a>
+                    <span>|</span>
+                    <a href="#" class="hover:text-white">PRIVACY POLICY</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 shadow-lg flex justify-around items-center z-40 md:hidden">
+        <a href="index.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-600 hover:text-mudalali-green text-xs">
+            <i class="fa fa-store text-xl"></i>
+            <span class="mt-1">Shop</span>
+        </a>
+        <a href="stories.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-600 hover:text-mudalali-green text-xs">
+            <i class="fa fa-book-open text-xl"></i>
+            <span class="mt-1">Stories</span>
+        </a>
+        <a href="wishlist.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-600 hover:text-mudalali-green text-xs relative">
+            <div class="relative">
+                <i class="fa fa-heart text-xl"></i>
+                <span id="mobile-wishlist-badge" class="absolute -top-1 -right-2.5 bg-mudalali-red text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span>
+            </div>
+            <span class="mt-1">Wishlist</span>
+        </a>
+        <button id="mobile-cart-btn" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-600 hover:text-mudalali-green text-xs relative">
+            <div class="relative">
+                <i class="fa fa-shopping-bag text-xl"></i>
+                <span id="mobile-cart-badge" class="absolute -top-1 -right-2.5 bg-mudalali-red text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span>
+            </div>
+            <span class="mt-1">Cart</span>
+        </button>
+         <a href="customer-account.html" id="mobile-account-btn-nav" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-gray-600 hover:text-mudalali-green text-xs">
+            <i class="fa fa-user text-xl"></i>
+            <span class="mt-1">My account</span>
+        </a>
+    </nav>
+
+
+    <script type="module">
+        // Firebase Imports (v11.6.1)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            getDocs,
+            collection, 
+            onSnapshot,
+            query,
+            where,
+            orderBy,
+            limit,
+            startAfter,
+            setDoc,
+            addDoc,
+            updateDoc, 
+            deleteDoc, 
+            increment, 
+            serverTimestamp,
+            runTransaction,
+            writeBatch
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIbu2qT53iGPqMCx5UdU6XY8wvXkb3ZF4",
+            authDomain: "mudalali-mama.firebaseapp.com",
+            projectId: "mudalali-mama",
+            storageBucket: "mudalali-mama.firebasestorage.app",
+            messagingSenderId: "296597428969",
+            appId: "1:296597428969:web:684668be9c0eaeecb4ae78",
+            measurementId: "G-GC1CP1LRFD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+        
+        // Paths
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const publicDataPath = `/artifacts/${appId}/public/data`;
+        const usersPath = `/users`; 
+
+        // Global State
+        let currentUser = null;
+        let currentUserData = null;
+        let currentUserDocRef = null;
+        let wishlistUnsubscribe = null;
+        
+        // ALUTH: Page-specific State
+        let currentFilterStoreId = null; // null kiyanne "All Stores"
+        let currentView = 'stories'; // 'stories' or 'products'
+        let lastVisibleStory = null;
+        let lastVisibleProduct = null;
+        let lastVisibleStore = null; // Sidebar pagination
+        let isLoading = false; // Infinite scroll lock
+        const LOAD_LIMIT = 20; // Oyage request eka
+
+
+        // --- DOM Elements ---
+        const authLoader = document.getElementById('auth-loader');
+        const accountContainer = document.getElementById('account-container');
+        
+        // --- Page Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Mudalali Mama Story Marketing Page Initialized");
+            // Standard page loads
+            loadSiteConfig();
+            loadDesktopNavCategories();
+            loadFooter();
+            setupMobileDrawers();
+        });
+
+
+        // =====================================
+        // ======== JS (Redirect Fix + Load) ========
+        // =====================================
+        onAuthStateChanged(auth, async (user) => {
+            const loggedInView = document.getElementById('account-drawer-logged-in');
+
+            if (user) {
+                // User is found, clear any redirect timers
+                if(window.authRedirectTimer) {
+                    console.log("Auth timer cleared, user found.");
+                    clearTimeout(window.authRedirectTimer);
+                }
+                
+                currentUser = user;
+                currentUserDocRef = doc(db, usersPath, user.uid);
+                const userDocSnap = await getDoc(currentUserDocRef);
+
+                if (userDocSnap.exists()) {
+                    currentUserData = userDocSnap.data();
+
+                    // Check karanna eya 'isAffiliate' (approved) HO 'wantsToBeAffiliate' (pending) da kiyala
+                    if (currentUserData.isAffiliate === true || currentUserData.wantsToBeAffiliate === true) {
+                        
+                        // --- SUCCESS: User IS an Affiliate OR Pending ---
+                        
+                        loggedInView.classList.remove('hidden');
+                        loggedInView.classList.add('flex');
+                        document.getElementById('account-drawer-user-email').textContent = user.email;
+                        attachCartDrawerListener(user.uid);
+                        attachWishlistBadgeListener(user.uid);
+                        
+                        // Affiliate Dashboard eka initialize karamu
+                        initializeAppiliateDashboard();
+                        
+                        // Auth loader eka ain karala page eka pennamu
+                        authLoader.classList.add('hidden');
+                        accountContainer.classList.remove('hidden');
+
+                    } else {
+                        // --- FAILURE: User is NOT an Affiliate ---
+                        alert("You do not have affiliate access. Redirecting to your customer account.");
+                        window.location.href = 'customer-account.html';
+                    }
+                } else {
+                     // --- FAILURE: Doc eka natham ---
+                    console.error("User doc not found!");
+                    alert("Error finding user data. Redirecting to customer account.");
+                    window.location.href = 'customer-account.html';
+                }
+
+            } else {
+                // User is null. Wait 1.5 seconds.
+                console.log("User is null, starting redirect timer...");
+                if(window.authRedirectTimer) {
+                    clearTimeout(window.authRedirectTimer);
+                }
+                window.authRedirectTimer = setTimeout(() => {
+                    if (!auth.currentUser) { 
+                        console.log("Timer fired. User is still null. Redirecting.");
+                        window.location.href = 'account.html?redirect=affiliate-story-marketing.html'; 
+                    } else {
+                        console.log("Timer fired, but user was found. No redirect.");
+                        window.location.reload();
+                    }
+                }, 1500); // 1.5 second delay
+            }
+        });
+        
+        // --- Dashboard Initialization (WENAS KALA) ---
+        function initializeAppiliateDashboard() {
+            setupTabs();
+            loadStoresSidebar(); // Load sidebar first
+            loadContent(false); // Load default content (All Stories)
+            setupScrollListener(); // Setup infinite scroll
+            setupCardListeners(); // Setup copy/download button listeners
+        }
+        
+        // --- ALUTH: Tab Switching Logic ---
+        function setupTabs() {
+            const storiesBtn = document.getElementById('tab-btn-stories');
+            const productsBtn = document.getElementById('tab-btn-products');
+            const storiesView = document.getElementById('stories-view');
+            const productsView = document.getElementById('products-view');
+
+            storiesBtn.addEventListener('click', () => {
+                if (currentView === 'stories') return; // Do nothing if already active
+                currentView = 'stories';
+                storiesBtn.classList.add('active');
+                productsBtn.classList.remove('active');
+                storiesView.classList.remove('hidden');
+                productsView.classList.add('hidden');
+                
+                // Reset and load
+                document.getElementById('stories-grid-container').innerHTML = '';
+                lastVisibleStory = null;
+                lastVisibleProduct = null; // Reset both
+                loadContent(false);
+            });
+
+            productsBtn.addEventListener('click', () => {
+                if (currentView === 'products') return; // Do nothing
+                currentView = 'products';
+                productsBtn.classList.add('active');
+                storiesBtn.classList.remove('active');
+                productsView.classList.remove('hidden');
+                storiesView.classList.add('hidden');
+                
+                // Reset and load
+                document.getElementById('products-grid-container').innerHTML = '';
+                lastVisibleStory = null; // Reset both
+                lastVisibleProduct = null;
+                loadContent(false);
+            });
+        }
+        
+        // --- ALUTH: Load Stores for Sidebar ---
+        async function loadStoresSidebar() {
+            const container = document.getElementById('store-filter-list');
+            const loader = document.getElementById('store-filter-loader');
+            container.innerHTML = ''; // Clear
+            
+            // 1. Add "All Stores" button
+            const allStoresBtn = document.createElement('button');
+            allStoresBtn.className = "store-filter-btn active"; // Active by default
+            allStoresBtn.innerHTML = `<i class="fa fa-store w-5 mr-2"></i> All Entrepreneurs`;
+            allStoresBtn.dataset.storeId = "null"; // Use "null" as a string
+            container.appendChild(allStoresBtn);
+
+            // 2. Load other stores
+            try {
+                const storesRef = collection(db, publicDataPath, 'stores');
+                
+                // ==========================================================
+                // ======== FIX 2: "approved" filter eka ain kala ========
+                // ==========================================================
+                // Dan me query ekata "stores" collection eke "createdAt" (Ascending) 
+                // kiyala single-field index ekak hadanna ona.
+                const q = query(storesRef, orderBy("createdAt", "asc"));
+                // ==========================================================
+                
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    console.warn("No stores found at all.");
+                    loader.innerHTML = '<p class="text-gray-500 text-xs text-center p-2">No entrepreneurs found yet.</p>';
+                } else {
+                    snap.forEach(doc => {
+                        const store = doc.data();
+                        const storeBtn = document.createElement('button');
+                        storeBtn.className = "store-filter-btn";
+                        storeBtn.dataset.storeId = doc.id;
+                        storeBtn.innerHTML = `
+                            <img src="${store.profileUrl || 'https://placehold.co/40'}" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            <span class="font-semibold text-sm text-gray-700">${store.storeName}</span>
+                        `;
+                        container.appendChild(storeBtn);
+                    });
+                    loader.classList.add('hidden'); 
+                }
+                
+                // 3. Add click listener to all buttons
+                container.querySelectorAll('.store-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        container.querySelectorAll('.store-filter-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        const storeId = btn.dataset.storeId === "null" ? null : btn.dataset.storeId;
+                        currentFilterStoreId = storeId;
+                        
+                        document.getElementById('stories-grid-container').innerHTML = '';
+                        document.getElementById('products-grid-container').innerHTML = '';
+                        lastVisibleStory = null;
+                        lastVisibleProduct = null;
+                        loadContent(false);
+                    });
+                });
+
+            } catch (e) {
+                console.error("Error loading stores sidebar: ", e);
+                if (e.code === 'failed-precondition') {
+                    alert('FIREBASE INDEX ERROR: "stores" collection eke "createdAt" (Ascending) kiyala single-field index ekak hadanna.');
+                    loader.innerHTML = '<p class="text-red-500 text-sm">Firebase Index Error. Please contact admin.</p>';
+                } else {
+                    loader.innerHTML = '<p class="text-red-500 text-sm">Error loading stores.</p>';
+                }
+            }
+        }
+        
+        // --- ALUTH: Content Loading "Router" ---
+        function loadContent(isLoadMore = false) {
+            if (currentView === 'stories') {
+                loadStories(currentFilterStoreId, isLoadMore);
+            } else {
+                loadProducts(currentFilterStoreId, isLoadMore);
+            }
+        }
+        
+        // --- ALUTH: Load Stories Function ---
+        async function loadStories(storeId, isLoadMore) {
+            if (isLoading) return;
+            isLoading = true;
+
+            const container = document.getElementById('stories-grid-container');
+            const loader = document.getElementById('content-loader');
+            loader.classList.remove('hidden');
+            if (!isLoadMore) container.innerHTML = ''; 
+
+            try {
+                const storiesRef = collection(db, publicDataPath, 'stories');
+                let q;
+                
+                // ==========================================================
+                // ======== FIX 2: "approved" filter eka ain kala ========
+                // ==========================================================
+                let queryConstraints = []; 
+                
+                if (storeId) {
+                    // Filter by store: Me query ekata (sellerUid ASC, createdAt ASC) index eka ona
+                    queryConstraints.push(where("sellerUid", "==", storeId));
+                    queryConstraints.push(orderBy("createdAt", "asc"));
+                } else {
+                    // No filter (All Stories): Me query ekata (createdAt ASC) single-field index eka ona
+                    queryConstraints.push(orderBy("createdAt", "asc")); 
+                }
+                // ==========================================================
+                
+                if (isLoadMore && lastVisibleStory) {
+                    queryConstraints.push(startAfter(lastVisibleStory));
+                }
+                
+                queryConstraints.push(limit(LOAD_LIMIT));
+                
+                q = query(storiesRef, ...queryConstraints);
+                const snap = await getDocs(q);
+
+                if (snap.empty && !isLoadMore) {
+                    container.innerHTML = '<p class="col-span-full text-center text-gray-500">No stories found for this filter.</p>';
+                }
+
+                if (snap.empty) {
+                    loader.classList.add('hidden');
+                    isLoading = false;
+                    return; 
+                }
+
+                lastVisibleStory = snap.docs[snap.docs.length - 1]; 
+
+                for (const doc of snap.docs) {
+                    renderStoryCard(doc.data(), doc.id);
+                }
+
+            } catch (e) {
+                console.error("Error loading stories: ", e);
+                if (e.code === 'failed-precondition') {
+                    alert('FIREBASE INDEX ERROR: "stories" collection eke indexes 2k hadanna:\n1. (sellerUid ASC, createdAt ASC)\n2. (createdAt ASC)');
+                    container.innerHTML = '<p class="col-span-full text-center text-red-500 p-4"><b>Firebase Error!</b><br>Missing Index. Please contact admin.</p>';
+                } else {
+                    container.innerHTML = '<p class="col-span-full text-center text-red-500">Error loading stories.</p>';
+                }
+            }
+            loader.classList.add('hidden');
+            isLoading = false;
+        }
+
+        // --- ALUTH: Load Products Function ---
+        async function loadProducts(storeId, isLoadMore) {
+            if (isLoading) return;
+            isLoading = true;
+
+            const container = document.getElementById('products-grid-container');
+            const loader = document.getElementById('content-loader');
+            loader.classList.remove('hidden');
+            if (!isLoadMore) container.innerHTML = '';
+
+            try {
+                const productsRef = collection(db, publicDataPath, 'products');
+                let q;
+                
+                // ==========================================================
+                // ======== FIX 2: "approved" filter eka ain kala ========
+                // ==========================================================
+                let queryConstraints = []; 
+                
+                if (storeId) {
+                    // Filter by store: Me query ekata (sellerUid ASC, createdAt ASC) index eka ona
+                    queryConstraints.push(where("sellerUid", "==", storeId));
+                    queryConstraints.push(orderBy("createdAt", "asc")); 
+                } else {
+                    // No filter (All Products): Me query ekata (createdAt ASC) single-field index eka ona
+                    queryConstraints.push(orderBy("createdAt", "asc")); 
+                }
+                // ==========================================================
+                
+                if (isLoadMore && lastVisibleProduct) {
+                    queryConstraints.push(startAfter(lastVisibleProduct));
+                }
+                
+                queryConstraints.push(limit(LOAD_LIMIT));
+                
+                q = query(productsRef, ...queryConstraints);
+                const snap = await getDocs(q);
+
+                if (snap.empty && !isLoadMore) {
+                    container.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found for this filter.</p>';
+                }
+                
+                if (snap.empty) {
+                    loader.classList.add('hidden');
+                    isLoading = false;
+                    return; 
+                }
+
+                lastVisibleProduct = snap.docs[snap.docs.length - 1];
+
+                for (const doc of snap.docs) {
+                    renderProductCard(doc.data(), doc.id);
+                }
+
+            } catch (e) {
+                console.error("Error loading products: ", e);
+                if (e.code === 'failed-precondition') {
+                    alert('FIREBASE INDEX ERROR: "products" collection eke indexes 2k hadanna:\n1. (sellerUid ASC, createdAt ASC)\n2. (createdAt ASC)');
+                    container.innerHTML = '<p class="col-span-full text-center text-red-500 p-4"><b>Firebase Error!</b><br>Missing Index. Please contact admin.</p>';
+                } else {
+                    container.innerHTML = '<p class="col-span-full text-center text-red-500">Error loading products.</p>';
+                }
+            }
+            loader.classList.add('hidden');
+            isLoading = false;
+        }
+
+        // --- ALUTH: Render Story Card (Style Wenas Kala) ---
+        function renderStoryCard(story, storyId) {
+            // (No changes needed in this function)
+            const container = document.getElementById('stories-grid-container');
+            const card = document.createElement('div');
+            card.className = "group bg-white rounded-lg shadow-lg overflow-hidden flex flex-col";
+            const content = story.content || '...';
+            const imageUrl = story.imageUrl || 'https://placehold.co/400x400';
+            card.innerHTML = `
+                <div class="block relative w-full bg-gray-100" style="aspect-ratio: 1/1;">
+                    <img class="h-full w-full object-cover" src="${imageUrl}" alt="Story Image">
+                    <button class="download-image-btn"
+                            data-download-url="${imageUrl}"
+                            data-download-name="story-${storyId}.jpg"
+                            title="Download Image">
+                        <i class="fa fa-download text-sm"></i>
+                    </button>
+                </div>
+                <div class="p-3 flex-grow flex flex-col">
+                    <p class="text-gray-600 text-xs leading-relaxed line-clamp-2 flex-grow">
+                        ${content}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-2">By: ${story.storeName || 'Seller'}</p>
+                </div>
+                <div class="p-3 bg-gray-50 border-t">
+                    <button class="copy-affiliate-link-btn w-full bg-mudalali-green text-white p-2 rounded-md font-semibold text-xs" data-type="story" data-id="${storyId}">
+                        <i class="fa fa-copy mr-1"></i> Copy Story Link
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        // --- ALUTH: Render Product Card (Style Wenas Kala) ---
+        function renderProductCard(product, productId) {
+            // (No changes needed in this function)
+            const container = document.getElementById('products-grid-container');
+            const card = document.createElement('div');
+            card.className = "group bg-white rounded-lg shadow-lg overflow-hidden flex flex-col";
+            const priceHtml = formatPrice(product);
+            const imageUrl = product.imageUrl || 'https://placehold.co/400x400';
+            card.innerHTML = `
+                <div class="block relative w-full bg-gray-100" style="aspect-ratio: 1/1;">
+                    <img class="h-full w-full object-cover" src="${imageUrl}" alt="${product.name}">
+                    <button class="download-image-btn"
+                            data-download-url="${imageUrl}"
+                            data-download-name="product-${productId}.jpg"
+                            title="Download Image">
+                        <i class="fa fa-download text-sm"></i>
+                    </button>
+                </div>
+                <div class="p-3 flex-grow flex flex-col">
+                    <h3 class="font-semibold text-gray-800 line-clamp-2 flex-grow text-sm">${product.name}</h3>
+                    <div class="mt-1 text-center">${priceHtml}</div>
+                </div>
+                <div class="p-3 bg-gray-50 border-t">
+                    <button class="copy-affiliate-link-btn w-full bg-mudalali-green text-white p-2 rounded-md font-semibold text-xs" data-type="product" data-id="${productId}">
+                        <i class="fa fa-copy mr-1"></i> Copy Product Link
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        // --- ALUTH: Format Price Helper (Style Wenas Kala) ---
+        function formatPrice(product) {
+            // (No changes needed in this function)
+            let prices = {
+                price: `Rs. ${parseFloat(product.price).toFixed(2)}`,
+                originalPrice: product.originalPrice ? `Rs. ${parseFloat(product.originalPrice).toFixed(2)}` : null,
+                priceClass: 'text-mudalali-green-dark'
+            };
+            if (prices.originalPrice) {
+                prices.priceClass = 'text-red-600';
+            }
+            return `
+                <div classRead-only">
+                    <p class="text-base font-bold ${prices.priceClass}">${prices.price}</p>
+                    ${prices.originalPrice ? `<p class="text-xs text-gray-400 line-through">${prices.originalPrice}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // --- ALUTH: Infinite Scroll Listener ---
+        function setupScrollListener() {
+            // (No changes needed in this function)
+            window.addEventListener('scroll', () => {
+                if (isLoading) return; 
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                    console.log("Reached bottom, loading more...");
+                    loadContent(true); 
+                }
+            });
+        }
+        
+        // --- ALUTH: Download Image Function ---
+        async function downloadImage(url, filename, btn) {
+            // (No changes needed in this function)
+            if (!url) {
+                alert('Image URL not found.');
+                return;
+            }
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = objectUrl;
+                a.download = filename || 'mudalali-mama-image.jpg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(objectUrl);
+                btn.innerHTML = '<i class="fa fa-check"></i>';
+            } catch (error) {
+                console.error('Error downloading image:', error);
+                alert('Could not download image directly. Opening in new tab.');
+                window.open(url, '_blank'); 
+                btn.innerHTML = originalHtml;
+            } finally {
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }, 2000);
+            }
+        }
+
+        // --- ALUTH: Card Listeners (Copy + Download) ---
+        function setupCardListeners() {
+            // (No changes needed in this function)
+            const mainContainer = document.querySelector('main');
+            mainContainer.addEventListener('click', (e) => {
+                const copyBtn = e.target.closest('.copy-affiliate-link-btn');
+                if (copyBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const type = copyBtn.dataset.type;
+                    const id = copyBtn.dataset.id;
+                    const domain = window.location.origin;
+                    let link = '';
+                    if (type === 'story') {
+                        link = `${domain}/story-detail.html?id=${id}&ref=${currentUser.uid}`;
+                    } else if (type === 'product') {
+                        link = `${domain}/product.html?id=${id}&ref=${currentUser.uid}`;
+                    }
+                    try {
+                        navigator.clipboard.writeText(link);
+                        copyBtn.innerHTML = '<i class="fa fa-check mr-2"></i> Copied!';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = `<i class="fa fa-copy mr-2"></i> Copy ${type === 'story' ? 'Story' : 'Product'} Link`;
+                        }, 2000);
+                    } catch (err) {
+                        prompt('Here is your link:', link);
+                    }
+                }
+                
+                const downloadBtn = e.target.closest('.download-image-btn');
+                if (downloadBtn) {
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    const url = downloadBtn.dataset.downloadUrl;
+                    const name = downloadBtn.dataset.downloadName;
+                    if (url && !downloadBtn.disabled) {
+                        downloadImage(url, name, downloadBtn);
+                    } else if (!url) {
+                        alert('No image URL found to download.');
+                    }
+                }
+            });
+        }
+
+        // --- ANITH OKKOMA STANDARD FUNCTIONS (HEADER/FOOTER/CART/DRAWER) ---
+        // (No changes needed in these functions)
+
+        async function loadSiteConfig() {
+            try {
+                const docRef = doc(db, publicDataPath, 'siteContent', 'config');
+                const docSnap = await getDoc(docRef);
+                let config = {};
+                if (docSnap.exists()) config = docSnap.data();
+                
+                const logoImg = document.getElementById('logo-img');
+                const mobileLogoImg = document.getElementById('mobile-logo-img');
+
+                if (config.logoImageUrl && logoImg && mobileLogoImg) {
+                    logoImg.src = config.logoImageUrl;
+                    mobileLogoImg.src = config.logoImageUrl;
+                }
+                
+                if (document.getElementById('header-hotline')) {
+                    document.getElementById('header-hotline').textContent = config.headerHotline || '...';
+                }
+            } catch (e) {
+                console.error("Error loading site config: ", e);
+            }
+        }
+        
+        function updateCartCounters(count) {
+            const countStr = String(count);
+            const badges = [
+                document.getElementById('cart-count-badge'),
+                document.getElementById('mobile-cart-badge')
+            ];
+            badges.forEach(badge => {
+                if(badge) {
+                    badge.textContent = countStr;
+                    badge.classList.add('pop');
+                    setTimeout(() => badge.classList.remove('pop'), 200);
+                }
+            });
+        }
+
+        function attachCartDrawerListener(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            const totalEl = document.getElementById('cart-drawer-total');
+            if (!container || !totalEl) return;
+            
+            if (!userId) {
+                container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
+                totalEl.textContent = 'Rs. 0.00';
+                updateCartCounters(0);
+                return;
+            }
+
+            const cartRef = collection(db, usersPath, userId, 'cart');
+            
+            onSnapshot(cartRef, (snapshot) => {
+                updateCartCounters(snapshot.size); 
+                let subtotalLKR = 0;
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
+                } else {
+                    container.innerHTML = ''; 
+                    snapshot.forEach(doc => {
+                        const item = { id: doc.id, ...doc.data() };
+                        const quantity = parseInt(item.quantity) || 1;
+                        const priceLKR = parseFloat(item.price) || 0;
+                        const itemTotalLKR = priceLKR * quantity;
+                        subtotalLKR += itemTotalLKR;
+                        
+                        container.innerHTML += `
+                        <div class="flex items-center gap-4 py-4 border-b">
+                            <img src="${item.imageUrl || 'https://placehold.co/64'}" alt="${item.name}" class="w-16 h-16 rounded object-contain border p-1">
+                            <div class="flex-grow text-left">
+                                <h4 class="font-semibold text-sm text-slate-800">${item.name}</h4>
+                                <div class="flex items-center gap-2 my-1">
+                                    <button data-id="${item.id}" class="cart-qty-decrease w-6 h-6 font-bold rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center">-</button>
+                                    <span class="w-6 text-center font-bold text-sm text-slate-700">${quantity}</span>
+                                    <button data-id="${item.id}" class="cart-qty-increase w-6 h-6 font-bold rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center">+</button>
+                                </div>
+                                <p class="text-sm text-mudalali-green-dark font-bold">Rs. ${itemTotalLKR.toFixed(2)}</p>
+                            </div>
+                            <button data-id="${item.id}" class="cart-remove-item text-slate-400 hover:text-red-500" title="Remove Item">
+                                <i class="fas fa-times text-lg"></i>
+                            </button>
+                        </div>`;
+                    });
+                }
+                
+                totalEl.textContent = `Rs. ${subtotalLKR.toFixed(2)}`;
+                addCartDrawerButtonListeners(userId);
+                
+            }, (error) => {
+                console.error("Error in cart drawer listener: ", error);
+                container.innerHTML = '<p class="text-red-500">Error loading cart.</p>';
+            });
+        }
+
+        function addCartDrawerButtonListeners(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            if (!container) return;
+            
+            container.querySelectorAll('.cart-qty-decrease, .cart-qty-increase, .cart-remove-item').forEach(button => {
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                newButton.addEventListener('click', async (e) => {
+                    const itemId = newButton.dataset.id;
+                    const itemRef = doc(db, usersPath, userId, 'cart', itemId);
+                    try {
+                        if (newButton.classList.contains('cart-remove-item')) {
+                            await deleteDoc(itemRef);
+                        } else if (newButton.classList.contains('cart-qty-increase')) {
+                            await updateDoc(itemRef, { quantity: increment(1) });
+                        } else if (newButton.classList.contains('cart-qty-decrease')) {
+                            const docSnap = await getDoc(itemRef);
+                            if (docSnap.exists() && docSnap.data().quantity > 1) {
+                                await updateDoc(itemRef, { quantity: increment(-1) });
+                            } else {
+                                await deleteDoc(itemRef);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error updating cart item: ", error);
+                    }
+                });
+            });
+        }
+
+        async function loadDesktopNavCategories() {
+            // (Function code)
+        }
+
+        async function loadFooter() {
+            try {
+                const contactRef = doc(db, publicDataPath, 'siteContent', 'footerContact');
+                const contactSnap = await getDoc(contactRef);
+                if (contactSnap.exists()) {
+                    const data = contactSnap.data();
+                    document.getElementById('footer-address').textContent = data.address || '...';
+                    const emailEl = document.getElementById('footer-email');
+                    emailEl.textContent = data.email || '...';
+                    emailEl.href = `mailto:${data.email}`;
+                    const hotlineEl = document.getElementById('footer-hotline');
+                    hotlineEl.textContent = data.hotline || '...';
+                    hotlineEl.href = `tel:${data.hotline}`;
+                    
+                    const socialsContainer = document.getElementById('footer-socials');
+                    socialsContainer.innerHTML = '';
+                    if (data.facebookUrl) socialsContainer.innerHTML += `<a href="${data.facebookUrl}" target="_blank" class="bg-gray-700 w-10 h-10 flex items-center justify-center rounded-full text-xl hover:bg-mudalali-green"><i class="fab fa-facebook-f"></i></a>`;
+                    if (data.youtubeUrl) socialsContainer.innerHTML += `<a href="${data.youtubeUrl}" target="_blank" class="bg-gray-700 w-10 h-10 flex items-center justify-center rounded-full text-xl hover:bg-mudalali-green"><i class="fab fa-youtube"></i></a>`;
+                    if (data.instagramUrl) socialsContainer.innerHTML += `<a href="${data.instagramUrl}" target="_blank" class="bg-gray-700 w-10 h-10 flex items-center justify-center rounded-full text-xl hover:bg-mudalali-green"><i class="fab fa-instagram"></i></a>`;
+                }
+            } catch(e) { console.error("Error loading footer contact", e); }
+            
+            const linksRef = collection(db, publicDataPath, 'footerLinks');
+            onSnapshot(linksRef, (querySnapshot) => {
+                const lists = {
+                    col_tsmgroup: document.getElementById('footer-col-tsmgroup'),
+                    col_info: document.getElementById('footer-col-info'),
+                    col_quicklinks: document.getElementById('footer-col-quicklinks')
+                };
+                Object.values(lists).forEach(list => { if(list) list.innerHTML = ''; }); 
+                querySnapshot.forEach((doc) => {
+                    const link = doc.data();
+                    if (lists[link.column]) {
+                        lists[link.column].innerHTML += `<li><a href="${link.url}" class="hover:text-white">${link.text}</a></li>`;
+                    }
+                });
+            });
+        }
+
+        function loadCategoriesIntoDrawer(container) {
+            // (Function code)
+        }
+
+        function setupMobileDrawers() {
+            const menuDrawer = document.getElementById('menu-drawer');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const menuDrawerClose = document.getElementById('menu-drawer-close');
+            const menuDrawerOverlay = document.getElementById('menu-drawer-overlay');
+            
+            mobileMenuBtn?.addEventListener('click', () => menuDrawer?.classList.add('open'));
+            menuDrawerClose?.addEventListener('click', () => menuDrawer?.classList.remove('open'));
+            menuDrawerOverlay?.addEventListener('click', () => menuDrawer?.classList.remove('open'));
+
+            const desktopMenuBtn = document.getElementById('desktop-menu-btn');
+            desktopMenuBtn?.addEventListener('click', () => menuDrawer?.classList.add('open'));
+
+            const cartDrawer = document.getElementById('cart-drawer');
+            const mobileCartBtn = document.getElementById('mobile-cart-btn');
+            const desktopCartBtn = document.getElementById('desktop-cart-btn');
+            const cartDrawerClose = document.getElementById('cart-drawer-close');
+            const cartDrawerOverlay = document.getElementById('cart-drawer-overlay');
+
+            const openCart = () => cartDrawer?.classList.add('open');
+            const closeCart = () => cartDrawer?.classList.remove('open');
+
+            mobileCartBtn?.addEventListener('click', openCart);
+            desktopCartBtn?.addEventListener('click', openCart);
+            cartDrawerClose?.addEventListener('click', closeCart);
+            cartDrawerOverlay?.addEventListener('click', closeCart);
+            
+            const authDrawer = document.getElementById('account-drawer-modal');
+            const authDrawerBg = document.getElementById('account-drawer-bg');
+            const closeAuthBtn1 = document.getElementById('close-account-drawer-btn-logged-in');
+            
+            document.getElementById('desktop-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                authDrawer?.classList.remove('hidden');
+            });
+            document.getElementById('mobile-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                authDrawer?.classList.remove('hidden');
+            });
+            
+            const closeAuthDrawer = () => authDrawer?.classList.add('hidden');
+            authDrawerBg?.addEventListener('click', closeAuthDrawer);
+            closeAuthBtn1?.addEventListener('click', closeAuthDrawer);
+            
+            document.getElementById('drawer-logout-btn')?.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                }
+            });
+            
+            document.getElementById('hamburger-logout-btn')?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                }
+            });
+        }
+        
+        function attachWishlistBadgeListener(userId) {
+            if (wishlistUnsubscribe) {
+                wishlistUnsubscribe();
+            }
+            const wishlistRef = collection(db, usersPath, userId, 'wishlist');
+            wishlistUnsubscribe = onSnapshot(wishlistRef, (snapshot) => {
+                updateWishlistCountBadge(snapshot.size);
+            }, (error) => {
+                console.error("Error updating wishlist badge: ", error);
+                updateWishlistCountBadge(0);
+            });
+        }
+        
+        function updateWishlistCountBadge(count = 0) {
+            const desktopBadge = document.getElementById('wishlist-count-badge');
+            const mobileBadge = document.getElementById('mobile-wishlist-badge');
+            const countStr = String(count);
+
+            if (desktopBadge) {
+                desktopBadge.textContent = countStr;
+                if (count > 0) {
+                    desktopBadge.classList.add('pop');
+                    setTimeout(() => desktopBadge.classList.remove('pop'), 200);
+                }
+            }
+            if (mobileBadge) {
+                mobileBadge.textContent = countStr;
+            }
+        };
+
+    </script>
+
+</body>
+</html>

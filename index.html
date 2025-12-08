@@ -1,911 +1,1049 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MasterKing - Premium Store</title>
+    <title>Pink Store - Fashion & Lifestyle</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <!-- Google Fonts: Inter for a modern tech feel -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        'brand': { 
-                            light: '#f48fb1', 
-                            DEFAULT: '#C2185B', 
-                            dark: '#880e4f' 
-                        },
-                        'brand-dark': '#1a1a1a',
-                        'brand-gray': '#f3f4f6',
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
                     },
-                    boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'glow': '0 0 15px rgba(194, 24, 91, 0.3)'
+                    colors: {
+                        'mudalali-green': {
+                            light: '#fbcfe8',       /* Light Pink */
+                            DEFAULT: '#db2777',      /* Hot Pink */
+                            dark: '#be185d',        /* Dark Pink */
+                        },
+                        'mudalali-gold': '#fce7f3',
+                        'mudalali-red': '#be123c',
+                        'mudalali-bg': '#ffffff',
+                        'mm-gray': { 
+                            light: '#fff1f2',
+                            DEFAULT: '#f3f4f6',
+                        }
                     }
                 }
             }
         }
     </script>
     <style type="text/tailwindcss">
-        body { @apply font-sans text-gray-800 bg-brand-gray antialiased; }
-        
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .glass-nav { @apply bg-white border-b border-gray-100; }
-        
-        /* Drawer Transitions */
-        .drawer-overlay { @apply fixed inset-0 bg-black/60 z-[60] transition-opacity opacity-0 pointer-events-none; }
-        .drawer-content { @apply fixed top-0 h-full bg-white shadow-2xl z-[61] transition-transform duration-300 ease-out; }
-        
-        .drawer.open .drawer-overlay { @apply opacity-100 pointer-events-auto; }
-        
-        /* Right Drawer */
-        .drawer.right .drawer-content { @apply right-0 translate-x-full w-[85%] max-w-[400px]; }
-        .drawer.right.open .drawer-content { @apply translate-x-0; }
-        
-        /* Left Drawer */
-        .drawer.left .drawer-content { @apply left-0 -translate-x-full w-[85%] max-w-[380px]; }
-        .drawer.left.open .drawer-content { @apply translate-x-0; }
-
-        /* Loader */
-        .loader-bar { @apply fixed top-0 left-0 h-1 bg-brand z-[100] transition-all duration-300 ease-out; width: 0%; }
-
-        /* Chat Button Pulse */
-        .chat-pulse { animation: chatPulse 2s infinite; }
-        @keyframes chatPulse {
-            0% { box-shadow: 0 0 0 0 rgba(194, 24, 91, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(194, 24, 91, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(194, 24, 91, 0); }
+        body {
+            @apply font-sans text-gray-800 bg-white;
         }
-
-        /* Hero Animation */
-        .hero-fade { animation: heroFade 1s ease-in-out; }
-        @keyframes heroFade {
-            from { opacity: 0; transform: scale(1.02); }
-            to { opacity: 1; transform: scale(1); }
+        .sale-tag {
+            @apply absolute top-0 right-0 bg-mudalali-green text-white text-xs font-bold px-3 py-1;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 25% 50%);
         }
-        
-        /* Typing Indicator */
-        .typing-dot {
-            animation: typing 1.4s infinite ease-in-out both;
+        .dropdown-menu {
+            @apply hidden;
         }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+        .group:hover .dropdown-menu {
+            @apply block;
+        }
+        .drawer-overlay {
+            @apply fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity opacity-0 pointer-events-none;
+        }
+        .drawer-content {
+            @apply fixed top-0 right-0 h-full bg-white shadow-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out;
+            width: 90%;
+            max-width: 400px;
+        }
+        .drawer-content.left {
+            @apply left-0 right-auto transform -translate-x-full;
+        }
+        .drawer.open .drawer-overlay {
+            @apply opacity-100 pointer-events-auto;
+        }
+        .drawer.open .drawer-content {
+            @apply transform translate-x-0;
+        }
+        .mobile-nav-link.active {
+            @apply text-mudalali-green;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            scrollbar-width: none;
+        }
+        .tab-button.active { 
+            border-color: #db2777; 
+            color: #db2777; 
+        }
+        .menu-tab-btn.active {
+            @apply border-mudalali-green text-mudalali-green;
+        }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .pop { animation: pop 0.2s ease-out; }
+        .hero-slide {
+            @apply absolute inset-0 w-full h-full opacity-0 transition-opacity duration-1000 ease-in-out;
+        }
+        .hero-slide.active {
+            @apply opacity-100 z-10;
+        }
+        .slider-dot {
+            @apply h-3 w-3 bg-white bg-opacity-50 rounded-full cursor-pointer transition-all;
+        }
+        .slider-dot.active {
+            @apply bg-opacity-100 w-6;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+        .product-card-link {
+            @apply cursor-pointer block h-full;
         }
     </style>
 </head>
-<body class="pb-20 md:pb-0">
+<body class="pb-20 md:pb-0"> 
+    
+    <div id="page-loader" class="fixed top-0 left-0 w-0 h-1 bg-mudalali-green z-[9999] transition-all duration-300 ease-linear"></div>
+    
+    <header class="bg-white shadow-sm sticky top-0 z-40 hidden md:block border-b border-pink-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green">
+                <span class="text-gray-800">TU</span>TU
+            </a>
 
-    <!-- Page Loader -->
-    <div id="page-loader" class="loader-bar"></div>
-
-    <!-- Navigation Bar -->
-    <nav class="glass-nav sticky top-0 z-40 bg-white">
-        <!-- Top Bar (Desktop) -->
-        <div class="bg-brand-dark text-white text-xs py-2 hidden md:block">
-            <div class="container mx-auto px-6 flex justify-between items-center">
-                <span>Welcome to MasterKing Online Store</span>
-                <div class="flex gap-4">
-                    <a href="#" class="hover:text-brand-light">Help Center</a>
-                    <a href="#" class="hover:text-brand-light">Track Order</a>
-                </div>
+            <div class="flex-grow max-w-xl mx-4">
+                <form class="flex">
+                    <input type="text" placeholder="Search for anything..." class="w-full px-4 py-2 border border-pink-100 rounded-l-full focus:outline-none focus:ring-2 focus:ring-mudalali-green bg-pink-50/20">
+                    <button type="submit" class="bg-mudalali-green text-white px-6 py-2 rounded-r-full hover:bg-mudalali-green-dark transition-colors">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
             </div>
-        </div>
 
-        <!-- Main Header -->
-        <div class="container mx-auto px-4 md:px-6 py-4">
-            <div class="flex items-center justify-between gap-4">
-                <!-- Mobile Menu Button (Left Drawer Trigger) -->
-                <button onclick="document.getElementById('mobile-drawer').classList.add('open')" class="md:hidden text-2xl text-gray-700">
-                    <i class="fa-solid fa-bars-staggered"></i>
-                </button>
-
-                <!-- Logo -->
-                <a href="/" class="text-2xl md:text-3xl font-black tracking-tighter text-brand-dark flex items-center gap-2">
-                    <i class="fa-solid fa-crown text-brand"></i>
-                    <span>MASTER<span class="text-brand">KING</span></span>
+            <div class="flex items-center space-x-6">
+                <div class="text-right">
+                    <div class="text-xs font-semibold text-gray-400">Hotline</div>
+                    <div id="header-hotline" class="text-lg font-bold text-mudalali-green-dark">...</div>
+                </div>
+                <a href="account.html" id="desktop-account-btn" class="flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-user text-xl"></i>
+                    <span class="text-xs">Account</span>
                 </a>
-
-                <!-- Search Bar (Desktop) -->
-                <div class="hidden md:flex flex-grow max-w-xl mx-8 relative group">
-                    <input type="text" placeholder="Search for products..." class="w-full bg-gray-100 border-none rounded-full py-3 px-6 focus:ring-2 focus:ring-brand focus:bg-white transition-all">
-                    <button class="absolute right-3 top-1/2 -translate-y-1/2 bg-brand text-white w-8 h-8 rounded-full hover:bg-brand-dark transition-colors flex items-center justify-center">
-                        <i class="fa fa-search text-sm"></i>
-                    </button>
-                </div>
-
-                <!-- Icons -->
-                <div class="flex items-center gap-4 md:gap-6">
-                    <button onclick="document.getElementById('mobile-search-bar').classList.toggle('hidden')" class="md:hidden text-gray-700 text-xl"><i class="fa fa-search"></i></button>
-                    
-                    <!-- Auth Button (Triggers Left Drawer) -->
-                    <button onclick="toggleAuthDrawer()" id="auth-btn" class="hidden md:flex flex-col items-center text-gray-600 hover:text-brand transition-colors">
-                        <i class="fa-regular fa-user text-xl"></i>
-                        <span class="text-[10px] font-bold mt-1 uppercase tracking-wide">Account</span>
-                    </button>
-
-                    <!-- Cart Button (Triggers Right Drawer) -->
-                    <button onclick="document.getElementById('cart-drawer').classList.add('open')" id="cart-btn" class="relative text-gray-600 hover:text-brand transition-colors">
-                        <div class="relative">
-                            <i class="fa-solid fa-bag-shopping text-2xl"></i>
-                            <span id="cart-badge" class="absolute -top-1 -right-2 bg-brand text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white transform scale-0 transition-transform">0</span>
-                        </div>
-                    </button>
-                </div>
+                <a href="wishlist.html" class="relative flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-heart text-xl"></i>
+                    <span id="wishlist-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Wishlist</span>
+                </a>
+                <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-500 hover:text-mudalali-green relative transition-colors">
+                    <i class="fa fa-shopping-bag text-xl"></i>
+                    <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Cart</span>
+                </button>
             </div>
         </div>
-        
-        <!-- Search Mobile (Hidden by default) -->
-        <div id="mobile-search-bar" class="hidden px-4 pb-4 md:hidden animate-fade-in">
-            <input type="text" placeholder="Search..." class="w-full bg-gray-100 rounded-lg py-2 px-4 focus:ring-2 focus:ring-brand">
-        </div>
+    </header>
 
-        <!-- Category Navigation Bar -->
-        <div class="hidden md:block border-t border-gray-100 bg-brand-gray text-brand-dark">
-            <div class="container mx-auto px-4 relative">
-                <div class="flex justify-between items-center h-12">
-                    <!-- Left: Categories Dropdown Button & Quick Links -->
-                    <div class="relative h-full flex items-center w-full">
-                        <!-- Category Button -->
-                        <button onclick="toggleCategoryDropdown()" class="flex items-center gap-3 px-6 h-12 bg-brand hover:bg-brand-dark text-white transition-colors font-bold text-sm tracking-wide rounded-t-lg">
-                            <i class="fa-solid fa-bars"></i>
-                            CATEGORIES
-                            <i class="fa-solid fa-chevron-down text-xs ml-2"></i>
-                        </button>
-                        
-                        <!-- Middle: Quick Category Links -->
-                        <div id="header-categories-list" class="flex items-center gap-6 ml-6 text-sm font-semibold text-gray-600 flex-grow">
-                            <!-- Populated via JS -->
-                            <span class="animate-pulse">Loading...</span>
-                        </div>
-
-                        <!-- Right: Order Status -->
-                        <a href="#" class="bg-brand-dark hover:bg-black text-white px-4 py-1.5 rounded text-xs font-bold uppercase tracking-wide transition-colors ml-4">
-                            Order Status
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Categories Dropdown -->
-                <div id="category-dropdown-panel" class="absolute top-full left-4 w-64 bg-white shadow-xl z-50 hidden border-t-2 border-brand">
-                    <div id="dropdown-categories-content" class="flex flex-col py-2">
-                        <!-- Populated via JS -->
+    <nav class="bg-white border-b border-gray-100 shadow-sm hidden md:block">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div id="desktop-nav-links-container" class="flex space-x-6">
+                <div class="relative group">
+                    <a href="#" class="flex items-center text-gray-700 hover:text-mudalali-green px-4 py-3 font-bold uppercase text-sm tracking-wide">
+                        <i class="fa fa-bars mr-2 text-mudalali-green"></i>
+                        Shop By Category
+                    </a>
+                    <div class="dropdown-menu absolute left-0 top-full w-56 bg-white shadow-lg rounded-b-md z-40 border-t-2 border-mudalali-green">
                     </div>
                 </div>
             </div>
+            <a href="#" class="text-mudalali-green border border-mudalali-green px-4 py-1.5 rounded-full text-sm font-bold hover:bg-mudalali-green hover:text-white transition-all">
+                Track Order
+            </a>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main id="main-content" class="min-h-screen">
-        
-        <!-- Hero Section (Admin Dynamic - Boxed Layout) -->
-        <div class="bg-white pb-8">
-            <div class="container mx-auto px-4 pt-4">
-                <section id="hero-section" class="relative w-full overflow-hidden rounded-2xl shadow-lg group">
-                     <!-- Aspect Ratio: ~2.5:1 or 16:6 to match the banner style -->
-                    <div id="hero-container" class="relative w-full aspect-[16/9] md:aspect-[21/8] bg-gray-200 overflow-hidden">
-                         <!-- Banner Image will be loaded here -->
-                         <div class="absolute inset-0 flex items-center justify-center text-gray-400">
-                             <div class="text-center">
-                                <i class="fa-solid fa-image text-4xl mb-2"></i>
-                                <p class="text-sm font-medium">Loading Banners...</p>
-                             </div>
-                         </div>
-                    </div>
-                    
-                    <!-- Hero Controls -->
-                    <button id="hero-prev" class="hidden absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-brand-dark w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all z-10 transform hover:scale-110">
-                        <i class="fa-solid fa-chevron-left text-sm"></i>
-                    </button>
-                    <button id="hero-next" class="hidden absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-brand-dark w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all z-10 transform hover:scale-110">
-                        <i class="fa-solid fa-chevron-right text-sm"></i>
-                    </button>
-        
-                    <!-- Slider Dots -->
-                    <div id="hero-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                        <!-- Dots injected via JS -->
-                    </div>
-                </section>
-            </div>
+    <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
+        <button id="mobile-menu-btn" class="text-2xl text-gray-600">
+            <i class="fa fa-bars"></i>
+        </button>
+      <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
+        TU<span class="text-gray-600">TU</span>
+    </a>
+    <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
+        <i class="fa fa-user"></i>
+    </a>
+</header>
+
+    <main id="homepage-container" class="container mx-auto px-4 py-8">
+        <div class="w-full text-center py-10">
+            <svg class="animate-spin h-8 w-8 text-mudalali-green mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2 text-gray-400 font-semibold">Loading Amazing Items...</p>
         </div>
-
-        <!-- Categories Section -->
-        <div class="container mx-auto px-4 mb-12 mt-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span class="w-1 h-6 bg-brand rounded-full"></span> Top Categories
-            </h2>
-            <div id="categories-grid" class="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x">
-                <!-- Categories loaded via JS -->
-            </div>
-        </div>
-
-        <!-- New Arrivals -->
-        <div class="container mx-auto px-4 mb-16">
-            <div class="flex justify-between items-end mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Fresh Drops</h2>
-                <div class="flex items-center gap-4">
-                    <button onclick="document.getElementById('filter-drawer').classList.add('open')" class="text-gray-500 hover:text-brand flex items-center gap-2 text-sm font-semibold bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-                        <i class="fa-solid fa-filter"></i> Filters
-                    </button>
-                    <a href="#" class="text-brand font-semibold text-sm hover:underline">View All</a>
-                </div>
-            </div>
-            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                <div class="col-span-full h-40 flex items-center justify-center text-gray-400">Loading Products...</div>
-            </div>
-        </div>
-
-        <!-- Promo Banner Area -->
-        <div id="promo-banner-container" class="container mx-auto px-4 mb-16"></div>
-
     </main>
 
-    <!-- Footer (Hidden on Mobile) -->
-    <footer class="hidden md:block bg-gray-900 text-gray-300 pt-16 pb-8 rounded-t-[2rem] mt-auto">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+    <footer class="bg-gray-50 text-gray-600 pt-16 pb-8 hidden md:block border-t border-pink-100">
+        <div id="footer-container" class="container mx-auto px-4">
+            <div class="bg-mudalali-green p-8 rounded-2xl -mt-28 mb-16 relative z-10 shadow-xl flex items-center justify-between">
                 <div>
-                    <div class="text-2xl font-black text-white mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-crown text-brand"></i> MASTERKING
-                    </div>
-                    <p class="text-sm leading-relaxed text-gray-400">
-                        The ultimate destination for premium quality products. We deliver excellence right to your doorstep.
-                    </p>
+                    <h3 class="text-2xl font-bold text-white mb-2">JOIN OUR NEWSLETTER</h3>
+                    <p class="text-pink-100">Get 10% off your first order!</p>
                 </div>
-                <div>
-                    <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Shop</h4>
-                    <ul class="space-y-3 text-sm">
-                        <li><a href="#" class="hover:text-brand transition-colors">New Arrivals</a></li>
-                        <li><a href="#" class="hover:text-brand transition-colors">Best Sellers</a></li>
-                        <li><a href="#" class="hover:text-brand transition-colors">Discounts</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Support</h4>
-                    <ul class="space-y-3 text-sm">
-                        <li><a href="#" class="hover:text-brand transition-colors">Track Order</a></li>
-                        <li><a href="#" class="hover:text-brand transition-colors">Returns</a></li>
-                        <li><a href="#" class="hover:text-brand transition-colors">FAQ</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-white font-bold mb-6 uppercase tracking-wider text-sm">Stay in loop</h4>
-                    <form class="flex">
-                        <input type="email" placeholder="Email" class="bg-gray-800 border-none rounded-l-lg px-4 py-2 w-full focus:ring-1 focus:ring-brand outline-none">
-                        <button class="bg-brand hover:bg-brand-dark text-white px-4 rounded-r-lg transition-colors"><i class="fa fa-paper-plane"></i></button>
-                    </form>
-                </div>
+                <form class="flex w-full max-w-md">
+                    <input type="email" placeholder="Email Address" class="w-full px-4 py-3 rounded-l-full text-gray-800 focus:outline-none border-0">
+                    <button type="submit" class="bg-gray-900 text-white px-8 py-3 rounded-r-full font-bold hover:bg-gray-800 transition-colors">
+                        SUBSCRIBE
+                    </button>
+                </form>
             </div>
-            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-                <p>&copy; 2025 MasterKing. All rights reserved.</p>
-                <div class="flex gap-4 text-xl">
-                    <i class="fab fa-facebook hover:text-white cursor-pointer"></i>
-                    <i class="fab fa-instagram hover:text-white cursor-pointer"></i>
-                    <i class="fab fa-tiktok hover:text-white cursor-pointer"></i>
-                </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+                <div><h4 class="font-bold text-gray-800 mb-4">PINK STORE</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">INFO</h4><ul id="footer-col-info" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">QUICK LINKS</h4><ul id="footer-col-quicklinks" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">CONTACT US</h4><address id="footer-address" class="not-italic text-sm">Loading...</address><p class="mt-2 text-sm">Email: <a id="footer-email" href="#" class="hover:text-mudalali-green">...</a></p><p class="text-sm">Hotline: <a id="footer-hotline" href="#" class="hover:text-mudalali-green">...</a></p></div>
+                <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">FOLLOW US</h4><div id="footer-socials" class="flex space-x-4 mb-4 text-mudalali-green text-xl"></div><h4 class="font-bold text-gray-800 mb-4 mt-6">PAYMENTS</h4><div class="flex space-x-2 opacity-70 grayscale hover:grayscale-0 transition-all"><img src="https://i.ibb.co/fDYrL3g/visa.png" alt="Visa" class="h-6"><img src="https://i.ibb.co/7rmXz4F/mastercard.png" alt="Mastercard" class="h-6"><img src="https://i.ibb.co/C0W2LFr/amex.png" alt="Amex" class="h-6"></div></div>
+            </div>
+            <div class="border-t border-gray-200 pt-6 text-sm text-center md:flex justify-between text-gray-400">
+                <p>&copy; 2025 Pink Store. All Rights reserved.</p>
+                <div class="space-x-4 mt-4 md:mt-0"><a href="#" class="hover:text-mudalali-green">Terms</a><span>|</span><a href="#" class="hover:text-mudalali-green">Privacy</a></div>
             </div>
         </div>
     </footer>
 
-    <!-- Chat Button (Floating) - Changed to Normal Icon -->
-    <button onclick="toggleChatDrawer()" class="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-brand hover:bg-brand-dark text-white w-14 h-14 rounded-full shadow-2xl z-50 flex items-center justify-center chat-pulse transition-transform hover:scale-110">
-        <i class="fa-solid fa-comment-dots text-2xl"></i>
-    </button>
-
-    <!-- Mobile Bottom Nav -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-3 md:hidden z-40 pb-safe">
-        <a href="#" class="flex flex-col items-center text-brand">
-            <i class="fa-solid fa-house text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Home</span>
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 shadow-lg flex justify-around items-center z-40 md:hidden">
+        <a href="index.html" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-store text-xl"></i><span class="mt-1">Shop</span>
         </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 hover:text-brand" onclick="toggleCategoryDropdown()">
-            <i class="fa-solid fa-layer-group text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Cats</span>
+        <a href="stories.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-book-open text-xl"></i><span class="mt-1">Stories</span>
         </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 hover:text-brand relative" onclick="document.getElementById('cart-drawer').classList.add('open')">
-            <i class="fa-solid fa-bag-shopping text-lg mb-1"></i>
-            <span id="mobile-cart-badge" class="absolute top-0 right-4 bg-brand text-white text-[8px] font-bold h-3 w-3 rounded-full flex items-center justify-center hidden">0</span>
-            <span class="text-[10px] font-medium">Cart</span>
+        <a href="wishlist.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs relative">
+            <div class="relative"><i class="fa fa-heart text-xl"></i><span id="mobile-wishlist-badge" class="absolute -top-1 -right-2.5 bg-mudalali-green text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span></div><span class="mt-1">Wishlist</span>
         </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 hover:text-brand" onclick="toggleAuthDrawer()">
-            <i class="fa-regular fa-user text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Account</span>
-        </a>
-    </div>
+        <button id="mobile-cart-btn" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs relative">
+            <div class="relative"><i class="fa fa-shopping-bag text-xl"></i><span id="mobile-cart-badge" class="absolute -top-1 -right-2.5 bg-mudalali-green text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span></div><span class="mt-1">Cart</span>
+        </button>
+    </nav>
 
-    <!-- DRAWERS -->
-
-    <!-- 1. Mobile Menu Drawer (Left) -->
-    <div id="mobile-drawer" class="drawer left">
-        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
-        <div class="drawer-content flex flex-col p-6">
-            <div class="flex justify-between items-center mb-8">
-                <span class="text-xl font-black text-brand-dark">MENU</span>
-                <button onclick="document.getElementById('mobile-drawer').classList.remove('open')"><i class="fa fa-times text-xl"></i></button>
+    <div id="account-drawer-modal" class="drawer drawer-modal fixed inset-0 z-50 hidden">
+        <div id="account-drawer-bg" class="drawer-bg fixed inset-0 bg-black bg-opacity-50 opacity-0 transition-opacity"></div>
+        <div id="account-drawer" class="drawer-content fixed top-0 right-0 h-full bg-white shadow-xl w-full max-w-md flex flex-col">
+            <div id="account-drawer-logged-in" class="hidden flex flex-col h-full">
+                <div class="p-4 flex justify-between items-center border-b flex-shrink-0"><h2 class="text-xl font-semibold text-gray-800">My Account</h2><button id="close-account-drawer-btn-logged-in" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button></div>
+                <div class="flex-grow p-6 overflow-y-auto"><p class="text-gray-600 mb-2">Welcome back,</p><h3 id="account-drawer-user-email" class="text-lg font-semibold text-gray-800 mb-6 break-words"></h3><a href="account.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">Go to My Account</a><button id="drawer-logout-btn" class="w-full text-center bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200 font-bold text-base mt-4">Logout</button></div>
             </div>
-            <div class="flex flex-col gap-6 font-medium text-lg text-gray-700">
-                <a href="#" class="text-brand">Home</a>
-                <a href="#">Categories</a>
-                <a href="#">My Orders</a>
-                <a href="#">Contact Us</a>
-            </div>
-            <div class="mt-auto">
-                <button id="drawer-logout-btn" class="hidden w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold">Log Out</button>
+            <div id="account-drawer-logged-out" class="hidden flex flex-col h-full">
+                <div class="p-4 border-b"><div class="flex justify-between items-center"><h2 class="text-xl font-bold text-gray-700">Welcome!</h2><button id="close-account-drawer-btn-logged-out" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button></div></div>
+                <div class="p-2 bg-pink-50 flex gap-2"><button id="drawer-login-tab-btn" class="tab-button active flex-1 bg-white p-2 rounded-md font-semibold border-b-2">Login</button><button id="drawer-signup-tab-btn" class="tab-button flex-1 bg-white p-2 rounded-md font-semibold text-gray-500 border-b-2 border-transparent">Sign Up</button></div>
+                <div class="p-6" style="max-height: 80vh; overflow-y: auto;"><form id="drawer-login-form" class="space-y-4"><input type="email" id="drawer-login-email" placeholder="Email" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="password" id="drawer-login-password" placeholder="Password" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><button type="submit" class="w-full bg-mudalali-green text-white p-3 rounded-md hover:bg-mudalali-green-dark font-bold">Login</button><p id="drawer-login-error" class="text-red-500 text-sm text-center"></p></form><form id="drawer-signup-form" class="space-y-4 hidden"><div class="flex items-center"><input id="drawer-signup-is-seller" type="checkbox" class="h-4 w-4 text-mudalali-green focus:ring-mudalali-green border-gray-300 rounded"><label for="drawer-signup-is-seller" class="ml-2 block text-sm text-gray-900">I want to register as a Seller</label></div><input type="text" id="drawer-signup-name" placeholder="Full Name or Store Name" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="email" id="drawer-signup-email" placeholder="Email" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="password" id="drawer-signup-password" placeholder="Password" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><button type="submit" class="w-full bg-mudalali-green text-white p-3 rounded-md hover:bg-mudalali-green-dark font-bold">Create Account</button><p id="drawer-signup-error" class="text-red-500 text-sm text-center"></p></form></div>
             </div>
         </div>
     </div>
 
-    <!-- 2. Auth Drawer (Left) -->
-    <div id="auth-drawer" class="drawer left">
-        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
-        <div class="drawer-content flex flex-col h-full bg-white">
-            <div class="p-6 border-b flex justify-between items-center bg-brand text-white">
-                <h2 class="text-lg font-bold">Welcome</h2>
-                <button onclick="toggleAuthDrawer()" class="text-white hover:text-gray-200"><i class="fa fa-times text-xl"></i></button>
-            </div>
-            
-            <div class="p-6 flex-grow overflow-y-auto">
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-crown text-3xl text-brand"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800">MasterKing</h3>
-                    <p class="text-sm text-gray-500">Sign in to access your account</p>
-                </div>
-
-                <form id="login-form" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
-                        <input type="email" id="login-email" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand focus:border-transparent outline-none bg-gray-50" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
-                        <input type="password" id="login-password" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand focus:border-transparent outline-none bg-gray-50" required>
-                    </div>
-                    <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition-colors shadow-lg shadow-brand/20">Sign In</button>
-                </form>
-                
-                <div id="auth-message" class="mt-4 text-center text-sm text-red-500 min-h-[20px]"></div>
-
-                <div class="mt-6 text-center text-sm">
-                    <p class="text-gray-500">Don't have an account?</p>
-                    <button class="text-brand font-bold hover:underline">Register Now</button>
-                </div>
-            </div>
+    <div id="menu-drawer" class="drawer">
+        <div class="drawer-overlay" id="menu-drawer-overlay"></div>
+        <div class="drawer-content left flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold text-mudalali-green">MENU</h2><button id="menu-drawer-close" class="text-xl">&times;</button></div>
+            <div class="p-4 border-b"><form class="flex"><input type="text" placeholder="Search..." class="w-full px-4 py-2 border border-r-0 border-gray-300 rounded-l-md focus:outline-none focus:border-mudalali-green"><button type="submit" class="bg-gray-100 border border-gray-300 px-4 rounded-r-md text-gray-600 hover:text-mudalali-green"><i class="fa fa-search"></i></button></form></div>
+            <div class="flex border-b"><button id="menu-tab-menu" class="menu-tab-btn active flex-1 py-3 font-semibold border-b-2">MENU</button><button id="menu-tab-categories" class="menu-tab-btn flex-1 py-3 font-semibold text-gray-500 border-b-2 border-transparent">CATEGORIES</button></div>
+            <div id="menu-tab-menu-content" class="flex-col flex-grow overflow-y-auto"><a href="index.html" class="block p-4 border-b font-semibold text-mudalali-green">HOME</a><a href="stories.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SELLER STORIES</a><a href="shop.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SHOP</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">ABOUT US</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">CONTACT US</a><div class="p-4 bg-pink-50 font-bold text-gray-600">MY ACCOUNT</div><a href="wishlist.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-heart w-6 mr-1"></i> WISHLIST</a><a href="account.html" id="drawer-my-account-btn" class="block w-full text-left p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-user w-6 mr-1"></i> MY ACCOUNT</a></div>
+            <div id="menu-tab-categories-content" class="hidden flex-col flex-grow overflow-y-auto"></div>
         </div>
     </div>
 
-    <!-- 3. Filter Drawer (Left) -->
-    <div id="filter-drawer" class="drawer left">
-        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
-        <div class="drawer-content flex flex-col h-full">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-white">
-                <h2 class="text-lg font-bold"><i class="fa-solid fa-filter text-brand mr-2"></i> Filters</h2>
-                <button onclick="document.getElementById('filter-drawer').classList.remove('open')" class="text-gray-400 hover:text-gray-800"><i class="fa fa-times text-xl"></i></button>
-            </div>
-            <div class="p-6 space-y-6 overflow-y-auto flex-grow">
-                <div>
-                    <h3 class="font-bold text-gray-700 mb-2">Price Range</h3>
-                    <div class="flex gap-2">
-                        <input type="number" placeholder="Min" class="w-1/2 p-2 border rounded">
-                        <input type="number" placeholder="Max" class="w-1/2 p-2 border rounded">
-                    </div>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-700 mb-2">Categories</h3>
-                    <div class="space-y-2 text-sm text-gray-600">
-                        <label class="flex items-center gap-2"><input type="checkbox" class="accent-brand"> Furniture</label>
-                        <label class="flex items-center gap-2"><input type="checkbox" class="accent-brand"> Cakes</label>
-                    </div>
-                </div>
-            </div>
-            <div class="p-5 border-t bg-gray-50">
-                <button class="w-full bg-brand text-white py-3 rounded-xl font-bold">Apply Filters</button>
-            </div>
+    <div id="cart-drawer" class="drawer">
+        <div class="drawer-overlay" id="cart-drawer-overlay"></div>
+        <div class="drawer-content flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold">Shopping cart</h2><button id="cart-drawer-close" class="text-xl">&times;</button></div>
+            <div id="cart-drawer-items-container" class="flex-grow p-6 overflow-y-auto text-center"><p class="text-gray-500">Your cart is empty.</p></div>
+            <div class="p-6 border-t bg-pink-50"><div class="flex justify-between items-center mb-2"><span class="text-lg font-medium text-gray-600">Subtotal:</span><span id="cart-drawer-total" class="text-xl font-bold text-mudalali-green-dark">Rs. 0.00</span></div><p class="text-sm text-center text-gray-500 mb-4">Shipping & taxes calculated at checkout.</p><div class="flex flex-col gap-3"><a href="cart.html" class="w-full text-center bg-white border-2 border-mudalali-green text-mudalali-green p-3 rounded-lg hover:bg-gray-50 font-bold text-base">VIEW CART</a><a href="checkout.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">CHECKOUT</a></div></div>
         </div>
     </div>
 
-    <!-- 4. Chat Drawer (AI Assistant) -->
-    <div id="chat-drawer" class="drawer left">
-        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
-        <div class="drawer-content flex flex-col h-full bg-white w-full max-w-[380px]">
-            <!-- Header -->
-            <div class="p-4 bg-brand text-white shadow-md flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-robot text-xl"></i>
-                    <div>
-                        <h2 class="font-bold text-lg leading-none">MasterKing AI</h2>
-                        <p class="text-xs text-brand-light opacity-90">Online Assistant</p>
-                    </div>
-                </div>
-                <button onclick="toggleChatDrawer()" class="text-white/80 hover:text-white"><i class="fa fa-times text-lg"></i></button>
-            </div>
-
-            <!-- View 1: Language Selection -->
-            <div id="chat-language-selection" class="flex flex-col flex-grow justify-center items-center p-6 text-center">
-                <div class="w-20 h-20 bg-brand-gray rounded-full flex items-center justify-center mb-6 animate-pulse">
-                    <i class="fa-solid fa-language text-4xl text-brand"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Select your Language</h3>
-                <p class="text-sm text-gray-500 mb-8">භාෂාව / மொழி</p>
-                
-                <div class="flex flex-col gap-3 w-full max-w-xs">
-                    <button onclick="selectLanguage('en')" class="w-full py-3 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-all">English</button>
-                    <button onclick="selectLanguage('si')" class="w-full py-3 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-all">සිංහල</button>
-                    <button onclick="selectLanguage('ta')" class="w-full py-3 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-all">தமிழ்</button>
-                </div>
-            </div>
-
-            <!-- View 2: Chat Interface (Hidden Initially) -->
-            <div id="chat-interface" class="hidden flex-col flex-grow h-full">
-                <!-- Messages -->
-                <div id="chat-messages" class="flex-grow p-4 bg-gray-50 overflow-y-auto flex flex-col gap-4">
-                    <!-- Welcome message will be injected here -->
-                </div>
-
-                <!-- Input -->
-                <div class="p-3 border-t bg-white">
-                    <form id="chat-form" class="flex gap-2">
-                        <input type="text" id="chat-input" placeholder="Type your message..." class="flex-grow bg-gray-100 border-none rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand focus:bg-white transition-all outline-none">
-                        <button type="submit" class="bg-brand text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-brand-dark transition-transform active:scale-95">
-                            <i class="fa fa-paper-plane text-xs"></i>
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Change Language Link -->
-                <div class="text-center py-2 bg-gray-100 border-t border-gray-200">
-                    <button onclick="resetChatLanguage()" class="text-[10px] text-gray-500 hover:text-brand font-bold uppercase tracking-wide">Change Language</button>
-                </div>
-            </div>
+    <div id="comments-drawer" class="drawer">
+        <div class="drawer-overlay" id="comments-drawer-overlay"></div>
+        <div class="drawer-content flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold">Comments</h2><button id="comments-drawer-close" class="text-xl">&times;</button></div>
+            <div id="comments-list-container" class="flex-grow p-4 overflow-y-auto space-y-4"><p class="text-gray-500 text-center">Loading comments...</p></div>
+            <div class="p-4 border-t bg-gray-50"><div class="flex gap-2"><input type="text" id="new-comment-input" placeholder="Write a comment..." class="flex-grow p-2 border rounded-lg focus:ring-mudalali-green focus:border-mudalali-green" disabled><button id="submit-comment-btn" class="bg-mudalali-green text-white px-4 rounded-lg font-semibold hover:bg-mudalali-green-dark" disabled><i class="fa fa-paper-plane"></i></button></div><p id="comment-login-prompt" class="text-xs text-gray-500 mt-2 text-center hidden">Please <a href="#" id="comment-login-link" class="text-mudalali-green font-semibold">log in</a> to comment.</p></div>
         </div>
     </div>
 
-    <!-- 5. Cart Drawer (Right) -->
-    <div id="cart-drawer" class="drawer right">
-        <div class="drawer-overlay" onclick="this.parentElement.classList.remove('open')"></div>
-        <div class="drawer-content flex flex-col h-full">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-white z-10">
-                <h2 class="text-lg font-bold">Shopping Bag</h2>
-                <button onclick="document.getElementById('cart-drawer').classList.remove('open')" class="text-gray-400 hover:text-gray-800"><i class="fa fa-times text-xl"></i></button>
-            </div>
-            
-            <div id="cart-items" class="flex-grow overflow-y-auto p-5 space-y-4">
-                <div class="flex flex-col items-center justify-center h-full text-gray-400">
-                    <i class="fa-solid fa-basket-shopping text-4xl mb-3 opacity-20"></i>
-                    <p>Your bag is empty</p>
-                </div>
-            </div>
-
-            <div class="p-5 border-t border-gray-100 bg-gray-50">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-gray-500">Subtotal</span>
-                    <span id="cart-total" class="text-xl font-bold text-brand-dark">Rs. 0.00</span>
-                </div>
-                <button class="w-full bg-brand hover:bg-brand-dark text-white py-4 rounded-xl font-bold shadow-lg shadow-brand/20 transition-all transform active:scale-95">
-                    Checkout Now
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN SCRIPT (MODULE) -->
     <script type="module">
-        // --- FIREBASE CONFIGURATION (MASTERKING) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, onSnapshot, query, limit, orderBy, setDoc, updateDoc, increment, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-            authDomain: "masterking-fa629.firebaseapp.com",
-            projectId: "masterking-fa629",
-            storageBucket: "masterking-fa629.firebasestorage.app",
-            messagingSenderId: "680021576286",
-            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-            measurementId: "G-9443L8L88Q"
-        };
-
+     const firebaseConfig = {
+  apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+  authDomain: "masterking-fa629.firebaseapp.com",
+  projectId: "masterking-fa629",
+  storageBucket: "masterking-fa629.firebasestorage.app",
+  messagingSenderId: "680021576286",
+  appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+  measurementId: "G-9443L8L88Q"
+};
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        const appId = 'default-app-id'; 
+        const auth = getAuth(app); 
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`;
+        const usersPath = `/users`; 
+
         let currentUser = null;
+        let currentUserData = null;
+        let currentStoryIdForComment = null;
+        let unsubscribeCommentsListener = null;
+        const pageLoader = document.getElementById('page-loader');
 
-        // --- GEMINI API KEY ---
-        const apiKey = ""; // Filled by environment
-
-        // --- UI UTILS ---
-        window.toggleAuthDrawer = () => {
-            const drawer = document.getElementById('auth-drawer');
-            if(currentUser) {
-                if(confirm("Do you want to logout?")) {
-                    signOut(auth);
-                }
-            } else {
-                drawer.classList.toggle('open');
-            }
-        };
-
-        window.toggleCategoryDropdown = () => {
-            const dropdown = document.getElementById('category-dropdown-panel');
-            dropdown.classList.toggle('hidden');
-        };
-
-        window.toggleChatDrawer = () => {
-            document.getElementById('chat-drawer').classList.toggle('open');
-        };
-
-        window.imgError = (image) => {
-            image.onerror = null;
-            image.src = "https://placehold.co/400x400/f3f4f6/C2185B?text=MasterKing";
-        };
-
-        // --- CHAT AI LOGIC (WITH GEMINI API) ---
-        let currentLang = null;
-        const chatHistory = [];
-
-        const langConfig = {
-            en: { welcome: "Hello! I'm your MasterKing AI assistant. How can I help you today?", placeholder: "Type your question here..." },
-            si: { welcome: "ආයුබෝවන්! මම MasterKing AI සහායකයා. මට ඔබට උදව් කළ හැක්කේ කෙසේද?", placeholder: "ඔබේ ප්‍රශ්නය මෙහි ලියන්න..." },
-            ta: { welcome: "வணக்கம்! நான் MasterKing AI உதவியாளர். இன்று நான் உங்களுக்கு எவ்வாறு உதவ முடியும்?", placeholder: "உங்கள் கேள்வியை இங்கே தட்டச்சு செய்க..." }
-        };
-
-        window.selectLanguage = (lang) => {
-            currentLang = lang;
-            document.getElementById('chat-language-selection').classList.add('hidden');
-            document.getElementById('chat-interface').classList.remove('hidden');
-            document.getElementById('chat-interface').classList.add('flex');
-            
-            // Update Placeholder
-            document.getElementById('chat-input').placeholder = langConfig[lang].placeholder;
-
-            // Add Welcome Message
-            addMessageToChat(langConfig[lang].welcome, 'ai');
-        };
-
-        window.resetChatLanguage = () => {
-            currentLang = null;
-            document.getElementById('chat-messages').innerHTML = '';
-            document.getElementById('chat-interface').classList.add('hidden');
-            document.getElementById('chat-interface').classList.remove('flex');
-            document.getElementById('chat-language-selection').classList.remove('hidden');
-        };
-
-        function addMessageToChat(text, sender) {
-            const container = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            
-            if (sender === 'user') {
-                div.className = "self-end bg-brand text-white p-3 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm animate-fade-in";
-            } else {
-                div.className = "self-start bg-white p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm border border-gray-100 animate-fade-in";
-            }
-            
-            div.innerHTML = `<p>${text}</p>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function showTypingIndicator() {
-            const container = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            div.id = "typing-indicator";
-            div.className = "self-start bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 w-16 flex items-center justify-center gap-1";
-            div.innerHTML = `<div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div><div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function removeTypingIndicator() {
-            document.getElementById('typing-indicator')?.remove();
-        }
-
-        async function callGeminiAPI(prompt) {
-            if (!apiKey) {
-                return "API Key is missing. Please configure it.";
-            }
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
-            // Context instructions based on language
-            let systemInstruction = "You are a helpful customer support AI for 'MasterKing', a premium online store in Sri Lanka. You sell electronics, fashion, and home items. Be polite, concise, and helpful.";
-            if (currentLang === 'si') systemInstruction += " Reply in Sinhala.";
-            if (currentLang === 'ta') systemInstruction += " Reply in Tamil.";
-            
-            const payload = {
-                contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Question: ${prompt}` }] }]
-            };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble connecting right now. Please try again.";
-            } catch (error) {
-                console.error("Gemini Error:", error);
-                return "Sorry, I encountered an error. Please try again later.";
-            }
-        }
-
-        document.getElementById('chat-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if(!msg) return;
-
-            // 1. Show User Message
-            addMessageToChat(msg, 'user');
-            input.value = '';
-
-            // 2. Show Typing
-            showTypingIndicator();
-
-            // 3. Call API
-            const reply = await callGeminiAPI(msg);
-
-            // 4. Show Response
-            removeTypingIndicator();
-            addMessageToChat(reply, 'ai');
-        });
-
-
-        // --- CORE FUNCTIONS & AUTH ---
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            const authBtn = document.getElementById('auth-btn');
-            const drawerLogout = document.getElementById('drawer-logout-btn');
-            
-            if (user) {
-                authBtn.innerHTML = `<i class="fa-solid fa-user-check text-xl text-brand"></i><span class="text-[10px] font-bold mt-1 uppercase tracking-wide">My Profile</span>`;
-                drawerLogout.classList.remove('hidden');
-                document.getElementById('auth-drawer').classList.remove('open');
-                listenToCart(user.uid);
-            } else {
-                authBtn.innerHTML = `<i class="fa-regular fa-user text-xl"></i><span class="text-[10px] font-bold mt-1 uppercase tracking-wide">Sign In</span>`;
-                drawerLogout.classList.add('hidden');
-                updateCartUI([]);
-            }
-        });
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const msg = document.getElementById('auth-message');
-            try {
-                msg.textContent = "Authenticating...";
-                await signInWithEmailAndPassword(auth, email, password);
-                msg.textContent = "";
-            } catch (error) {
-                msg.textContent = "Invalid Credentials.";
-            }
-        });
-
-        document.getElementById('drawer-logout-btn').addEventListener('click', () => signOut(auth));
-
-        // --- LOAD CONTENT ---
-
-        async function loadHero() {
-            const container = document.getElementById('hero-container');
-            const dotsContainer = document.getElementById('hero-dots');
-            const prevBtn = document.getElementById('hero-prev');
-            const nextBtn = document.getElementById('hero-next');
-            
-            const bannerIds = ['heroBannerMain', 'heroBanner1', 'heroBanner2', 'heroBanner3'];
-            let slides = [];
-
-            for (const id of bannerIds) {
-                try {
-                    const docSnap = await getDoc(doc(db, publicDataPath, 'siteContent', id));
-                    if(docSnap.exists()) {
-                         const data = docSnap.data();
-                         const img = data.imageUrl_pc || data.imageUrl; 
-                         if(img) slides.push({ imageUrl: img, linkUrl: data.linkUrl || '#' });
+        function setupAutoScroll(containerElement) {
+            if (!containerElement) return;
+            let scrollInterval;
+            const startScroll = () => {
+                clearInterval(scrollInterval);
+                scrollInterval = setInterval(() => {
+                    if (containerElement.children.length === 0) return;
+                    const itemWidth = containerElement.children[0].offsetWidth;
+                    const gap = parseInt(window.getComputedStyle(containerElement).gap) || 16; 
+                    const scrollAmount = itemWidth + gap;
+                    let nextScrollLeft = containerElement.scrollLeft + scrollAmount;
+                    if (nextScrollLeft + containerElement.clientWidth > containerElement.scrollWidth - (itemWidth / 2)) {
+                        containerElement.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        containerElement.scrollTo({ left: nextScrollLeft, behavior: 'smooth' });
                     }
-                } catch(e) {}
-            }
-
-            if(slides.length === 0) {
-                slides.push({ 
-                    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1000&auto=format&fit=crop', 
-                    linkUrl: '#' 
-                });
-            }
-
-            let currentSlide = 0;
-            
-            const renderSlide = (idx) => {
-                const slide = slides[idx];
-                container.innerHTML = `
-                    <a href="${slide.linkUrl}" class="block w-full h-full relative hero-fade">
-                        <img src="${slide.imageUrl}" class="w-full h-full object-cover object-center" alt="Hero Banner">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                    </a>
-                `;
-                
-                // Update Dots
-                dotsContainer.innerHTML = slides.map((_, i) => 
-                    `<button onclick="changeSlide(${i})" class="w-2.5 h-2.5 rounded-full transition-all ${i === idx ? 'bg-brand w-6' : 'bg-white/60 hover:bg-white'}"></button>`
-                ).join('');
+                }, 3000); 
             };
-
-            window.changeSlide = (i) => {
-                currentSlide = i;
-                renderSlide(currentSlide);
-            };
-
-            renderSlide(0);
-
-            if(slides.length > 1) {
-                prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
-                prevBtn.onclick = () => changeSlide((currentSlide - 1 + slides.length) % slides.length);
-                nextBtn.onclick = () => changeSlide((currentSlide + 1) % slides.length);
-                setInterval(() => changeSlide((currentSlide + 1) % slides.length), 6000);
-            }
-        }
-
-        function loadCategories() {
-            const gridContainer = document.getElementById('categories-grid');
-            const headerList = document.getElementById('header-categories-list');
-            const dropdownContent = document.getElementById('dropdown-categories-content');
-
-            onSnapshot(collection(db, publicDataPath, 'categories'), (snap) => {
-                if(snap.empty) { headerList.innerHTML = ''; return; }
-                gridContainer.innerHTML = ''; headerList.innerHTML = ''; dropdownContent.innerHTML = '';
-
-                let count = 0;
-                snap.forEach(d => {
-                    const cat = d.data();
-                    if(count < 5) {
-                        headerList.innerHTML += `<a href="#" class="hover:text-brand-dark hover:underline transition-colors cursor-pointer whitespace-nowrap">${cat.name}</a>`;
-                        count++;
-                    }
-                    dropdownContent.innerHTML += `<a href="#" class="px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 hover:text-brand transition-colors block border-b border-gray-50 last:border-0">${cat.name}</a>`;
-                    gridContainer.innerHTML += `
-                        <a href="#" class="group flex flex-col items-center gap-2 cursor-pointer snap-start flex-shrink-0">
-                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden border border-gray-200 shadow-sm group-hover:border-brand group-hover:shadow-glow transition-all duration-300">
-                                <img src="${cat.imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="window.imgError(this)">
-                            </div>
-                            <span class="text-[11px] sm:text-xs font-bold text-gray-600 group-hover:text-brand uppercase tracking-wide text-center max-w-[100px] truncate">${cat.name}</span>
-                        </a>
-                    `;
-                });
-            });
-        }
-
-        function loadProducts() {
-            const container = document.getElementById('products-grid');
-            const q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(10));
-            
-            onSnapshot(q, (snap) => {
-                if(snap.empty) { container.innerHTML = '<p>No products found.</p>'; return; }
-                container.innerHTML = '';
-                snap.forEach(d => {
-                    const p = d.data();
-                    const price = p.price ? `Rs. ${parseFloat(p.price).toFixed(2)}` : 'N/A';
-                    
-                    container.innerHTML += `
-                        <div class="bg-white rounded-2xl p-3 shadow-soft hover:shadow-2xl transition-all duration-300 group relative border border-transparent hover:border-gray-100">
-                            ${p.saleTag ? `<span class="absolute top-3 left-3 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">SALE</span>` : ''}
-                            <div class="relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3">
-                                <img src="${p.imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="window.imgError(this)">
-                                <button onclick="addToCart('${d.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.imageUrl}')" class="absolute bottom-2 right-2 bg-white text-brand w-10 h-10 rounded-full shadow-lg flex items-center justify-center transform translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-brand hover:text-white">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-                            </div>
-                            <div class="px-1">
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 truncate">${p.category || 'General'}</p>
-                                <h3 class="text-sm font-bold text-gray-800 leading-tight mb-2 line-clamp-2 h-10">${p.name}</h3>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-brand font-black text-sm">${price}</span>
-                                    <div class="flex text-yellow-400 text-[10px]"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-        }
-
-        window.addToCart = async (pid, name, price, img) => {
-            if(!currentUser) { toggleAuthDrawer(); return; }
-            try {
-                await setDoc(doc(db, usersPath, currentUser.uid, 'cart', pid), {
-                    name: name, price: price, imageUrl: img, quantity: increment(1), addedAt: serverTimestamp()
-                }, { merge: true });
-                document.getElementById('cart-drawer').classList.add('open');
-            } catch(e) { console.error(e); }
-        };
-
-        function listenToCart(uid) {
-            const container = document.getElementById('cart-items');
-            const totalEl = document.getElementById('cart-total');
-            const badges = [document.getElementById('cart-badge'), document.getElementById('mobile-cart-badge')];
-
-            onSnapshot(collection(db, usersPath, uid, 'cart'), (snap) => {
-                const items = []; let total = 0; let count = 0;
-                snap.forEach(d => {
-                    const data = d.data(); items.push({ id: d.id, ...data });
-                    total += (data.price || 0) * (data.quantity || 1); count += (data.quantity || 0);
-                });
-
-                badges.forEach(b => { b.textContent = count; count > 0 ? b.classList.remove('hidden', 'scale-0') : b.classList.add('hidden', 'scale-0'); });
-                totalEl.textContent = `Rs. ${total.toFixed(2)}`;
-
-                if(items.length === 0) {
-                    container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-400"><i class="fa-solid fa-basket-shopping text-4xl mb-3 opacity-20"></i><p>Your bag is empty</p></div>`;
-                } else {
-                    container.innerHTML = '';
-                    items.forEach(item => {
-                        container.innerHTML += `
-                            <div class="flex gap-4 items-center bg-gray-50 p-3 rounded-xl relative group">
-                                <img src="${item.imageUrl}" class="w-16 h-16 rounded-lg object-cover bg-white" onerror="window.imgError(this)">
-                                <div class="flex-grow">
-                                    <h4 class="text-sm font-bold text-gray-800 line-clamp-1">${item.name}</h4>
-                                    <p class="text-xs text-brand font-semibold mt-1">Rs. ${(item.price * item.quantity).toFixed(2)}</p>
-                                    <div class="flex items-center gap-3 mt-2">
-                                        <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 rounded bg-white shadow flex items-center justify-center text-xs hover:bg-brand hover:text-white">-</button>
-                                        <span class="text-xs font-bold">${item.quantity}</span>
-                                        <button onclick="updateQty('${item.id}', 1)" class="w-6 h-6 rounded bg-white shadow flex items-center justify-center text-xs hover:bg-brand hover:text-white">+</button>
-                                    </div>
-                                </div>
-                                <button onclick="removeItem('${item.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors"><i class="fa fa-times"></i></button>
-                            </div>
-                        `;
-                    });
-                }
-            });
-        }
-
-        window.updateQty = async (id, change) => {
-            if(!currentUser) return;
-            const ref = doc(db, usersPath, currentUser.uid, 'cart', id);
-            if (change === 1) await updateDoc(ref, { quantity: increment(1) });
-            else await updateDoc(ref, { quantity: increment(-1) });
-        };
-
-        window.removeItem = async (id) => {
-            if(!currentUser) return;
-            await deleteDoc(doc(db, usersPath, currentUser.uid, 'cart', id));
-        };
-
-        function updateCartUI(items) {
-             document.getElementById('cart-items').innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-400"><i class="fa-solid fa-lock text-4xl mb-3 opacity-20"></i><p>Login to view cart</p></div>`;
+            containerElement.addEventListener('touchstart', () => clearInterval(scrollInterval), { passive: true });
+            containerElement.addEventListener('touchend', startScroll);
+            containerElement.addEventListener('touchcancel', startScroll);
+            containerElement.addEventListener('mouseenter', () => clearInterval(scrollInterval));
+            containerElement.addEventListener('mouseleave', startScroll);
+            startScroll(); 
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const loader = document.getElementById('page-loader');
-            loadHero(); loadCategories(); loadProducts();
-            
-            document.getElementById('mobile-menu-btn').addEventListener('click', () => document.getElementById('mobile-drawer').classList.add('open'));
-            document.getElementById('cart-btn').addEventListener('click', () => document.getElementById('cart-drawer').classList.add('open'));
-
-            loader.style.width = '100%';
-            setTimeout(() => { loader.classList.add('opacity-0'); setTimeout(() => loader.remove(), 300); }, 800);
+            if (pageLoader) pageLoader.style.width = '30%';
+            localStorage.setItem('selectedCurrency', 'LKR');
+            loadSiteConfig();
+            buildHomepage();
+            loadDesktopNavCategories();
+            loadFooter();
+            setupMobileDrawers(); 
+            updateWishlistCountBadge();
+            setupCommentDrawer();
         });
-    </script>
+
+        function getSelectedCurrency() { return localStorage.getItem('selectedCurrency') || 'LKR'; }
+
+        function formatPrice(product) {
+            const currency = getSelectedCurrency();
+            let prices = {
+                price: `Rs. ${parseFloat(product.price).toFixed(2)}`,
+                originalPrice: product.originalPrice ? `Rs. ${parseFloat(product.originalPrice).toFixed(2)}` : null,
+                priceClass: 'text-mudalali-green-dark'
+            };
+            if (currency === 'USDT') {
+                if (product.priceUSDT) {
+                    prices.price = `$${parseFloat(product.priceUSDT).toFixed(2)}`;
+                    if (product.originalPriceUSDT) {
+                        prices.originalPrice = `$${parseFloat(product.originalPriceUSDT).toFixed(2)}`;
+                    }
+                } else {
+                    prices.price = 'USDT N/A';
+                }
+            }
+            if (prices.originalPrice) {
+                prices.priceClass = 'text-red-600';
+            }
+            
+            const priceHtml = `
+                <p class="text-sm font-bold ${prices.priceClass} md:hidden">${prices.price}</p>
+                <div class="hidden md:flex justify-center items-baseline gap-2">
+                    <p class="text-lg font-bold ${prices.priceClass}">${prices.price}</p>
+                    ${prices.originalPrice ? `<p class="text-sm text-gray-400 line-through">${prices.originalPrice}</p>` : ''}
+                </div>
+            `;
+            return priceHtml;
+        }
+
+        async function loadSiteConfig() {
+            const docRef = doc(db, publicDataPath, 'siteContent', 'config');
+            try {
+                const docSnap = await getDoc(docRef);
+                let config = {};
+                if (docSnap.exists()) config = docSnap.data();
+                
+                const logoImg = document.getElementById('logo-img');
+                const mobileLogoImg = document.getElementById('mobile-logo-img');
+                const logoLink = document.getElementById('logo-link');
+                const mobileLogoLink = document.getElementById('mobile-logo-link');
+
+                if (config.logoImageUrl && logoImg && mobileLogoImg) {
+                    logoImg.src = config.logoImageUrl;
+                    mobileLogoImg.src = config.logoImageUrl;
+                } else {
+                    if (logoLink) {
+                        if(logoImg) logoImg.style.display = 'none';
+                        logoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
+                    }
+                    if (mobileLogoLink) {
+                        if(mobileLogoImg) mobileLogoImg.style.display = 'none';
+                        mobileLogoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
+                    }
+                }
+                if(document.getElementById('header-hotline')) {
+                    document.getElementById('header-hotline').textContent = config.headerHotline || '011 234 5678';
+                }
+            } catch (e) { console.error("Error loading site config: ", e); }
+        }
+        
+        function updateCartCounters(count) {
+            const countStr = String(count);
+            const badges = [document.getElementById('cart-count-badge'), document.getElementById('mobile-cart-badge')];
+            badges.forEach(badge => {
+                if(badge) {
+                    badge.textContent = countStr;
+                    badge.classList.add('pop');
+                    setTimeout(() => badge.classList.remove('pop'), 200);
+                }
+            });
+        }
+
+        function attachCartDrawerListener(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            const totalEl = document.getElementById('cart-drawer-total');
+            if (!container || !totalEl) return;
+            
+            if (!userId) {
+                container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
+                totalEl.textContent = 'Rs. 0.00';
+                updateCartCounters(0);
+                return;
+            }
+
+            const cartRef = collection(db, usersPath, userId, 'cart');
+            onSnapshot(cartRef, (snapshot) => {
+                updateCartCounters(snapshot.size); 
+                let subtotalLKR = 0;
+                let subtotalUSDT = 0;
+                let cartHasUSDT = false;
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
+                } else {
+                    container.innerHTML = ''; 
+                    snapshot.forEach(doc => {
+                        const item = { id: doc.id, ...doc.data() };
+                        const quantity = parseInt(item.quantity) || 1;
+                        const priceLKR = parseFloat(item.price) || 0;
+                        const itemTotalLKR = priceLKR * quantity;
+                        subtotalLKR += itemTotalLKR;
+                        let priceString = `Rs. ${itemTotalLKR.toFixed(2)}`;
+                        if (item.priceUSDT) {
+                            cartHasUSDT = true;
+                            const priceUSDT = parseFloat(item.priceUSDT) || 0;
+                            const itemTotalUSDT = priceUSDT * quantity;
+                            subtotalUSDT += itemTotalUSDT;
+                            priceString = `Rs. ${itemTotalLKR.toFixed(2)} / $${itemTotalUSDT.toFixed(2)}`;
+                        }
+                        container.innerHTML += `
+                        <div class="flex items-center gap-4 py-4 border-b">
+                            <img src="${item.imageUrl || 'https://placehold.co/64'}" alt="${item.name}" class="w-16 h-16 rounded object-contain border p-1">
+                            <div class="flex-grow text-left">
+                                <h4 class="font-semibold text-sm text-slate-800">${item.name}</h4>
+                                <div class="flex items-center gap-2 my-1">
+                                    <button data-id="${item.id}" class="cart-qty-decrease w-6 h-6 font-bold rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center">-</button>
+                                    <span class="w-6 text-center font-bold text-sm text-slate-700">${quantity}</span>
+                                    <button data-id="${item.id}" class="cart-qty-increase w-6 h-6 font-bold rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center">+</button>
+                                </div>
+                                <p class="text-sm text-mudalali-green-dark font-bold">${priceString}</p>
+                            </div>
+                            <button data-id="${item.id}" class="cart-remove-item text-slate-400 hover:text-red-500" title="Remove Item"><i class="fas fa-times text-lg"></i></button>
+                        </div>`;
+                    });
+                }
+                let totalString = `Rs. ${subtotalLKR.toFixed(2)}`;
+                if (cartHasUSDT) { totalString += ` / $${subtotalUSDT.toFixed(2)}`; }
+                totalEl.textContent = totalString;
+                addCartDrawerButtonListeners(userId);
+            }, (error) => {
+                console.error("Error in cart drawer listener: ", error);
+                container.innerHTML = '<p class="text-red-500">Error loading cart.</p>';
+            });
+        }
+
+        function addCartDrawerButtonListeners(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            if (!container) return;
+            container.querySelectorAll('.cart-qty-decrease, .cart-qty-increase, .cart-remove-item').forEach(button => {
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                newButton.addEventListener('click', async (e) => {
+                    const itemId = newButton.dataset.id;
+                    const itemRef = doc(db, usersPath, userId, 'cart', itemId);
+                    try {
+                        if (newButton.classList.contains('cart-remove-item')) {
+                            await deleteDoc(itemRef);
+                        } else if (newButton.classList.contains('cart-qty-increase')) {
+                            await updateDoc(itemRef, { quantity: increment(1) });
+                        } else if (newButton.classList.contains('cart-qty-decrease')) {
+                            const docSnap = await getDoc(itemRef);
+                            if (docSnap.exists() && docSnap.data().quantity > 1) {
+                                await updateDoc(itemRef, { quantity: increment(-1) });
+                            } else {
+                                await deleteDoc(itemRef);
+                            }
+                        }
+                    } catch (error) { console.error("Error updating cart item: ", error); }
+                });
+            });
+        }
+
+        const updateWishlistCountBadge = () => {
+            const desktopBadge = document.getElementById('wishlist-count-badge');
+            const mobileBadge = document.getElementById('mobile-wishlist-badge');
+            if (desktopBadge) desktopBadge.textContent = '0';
+            if (mobileBadge) mobileBadge.textContent = '0';
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            const loggedInView = document.getElementById('account-drawer-logged-in');
+            const loggedOutView = document.getElementById('account-drawer-logged-out');
+            const desktopAccountBtn = document.getElementById('desktop-account-btn');
+            const mobileAccountBtn = document.getElementById('mobile-account-btn');
+            const drawerMyAccountBtn = document.getElementById('drawer-my-account-btn');
+
+            if (user) {
+                const userDocRef = doc(db, usersPath, user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) { currentUserData = userDocSnap.data(); }
+
+                loggedInView.classList.remove('hidden');
+                loggedInView.classList.add('flex');
+                loggedOutView.classList.add('hidden');
+                loggedOutView.classList.remove('flex');
+                document.getElementById('account-drawer-user-email').textContent = user.email;
+                attachCartDrawerListener(user.uid);
+
+                desktopAccountBtn.href = "account.html";
+                desktopAccountBtn.addEventListener('click', (e) => { 
+                    e.preventDefault();
+                    document.getElementById('account-drawer-modal')?.classList.remove('hidden');
+                });
+                drawerMyAccountBtn.href = "#";
+
+                if (currentUserData && currentUserData.isSeller) {
+                    mobileAccountBtn.href = 'seller-profile.html';
+                } else {
+                    mobileAccountBtn.href = 'customer-account.html';
+                }
+                document.getElementById('new-comment-input').disabled = false;
+                document.getElementById('submit-comment-btn').disabled = false;
+                document.getElementById('comment-login-prompt').classList.add('hidden');
+            } else {
+                currentUserData = null;
+                loggedInView.classList.add('hidden');
+                loggedInView.classList.remove('flex');
+                loggedOutView.classList.remove('hidden');
+                loggedOutView.classList.add('flex');
+                attachCartDrawerListener(null); 
+                
+                desktopAccountBtn.href = "account.html";
+                mobileAccountBtn.href = "account.html";
+                drawerMyAccountBtn.href = "account.html";
+                desktopAccountBtn.replaceWith(desktopAccountBtn.cloneNode(true)); 
+
+                document.getElementById('new-comment-input').disabled = true;
+                document.getElementById('submit-comment-btn').disabled = true;
+                document.getElementById('comment-login-prompt').classList.remove('hidden');
+            }
+        });
+
+        async function buildHomepage() {
+            const mainContainer = document.getElementById('homepage-container');
+            if (pageLoader) pageLoader.style.width = '60%';
+            mainContainer.innerHTML = ''; 
+            const layoutRef = doc(db, publicDataPath, 'siteContent', 'homepageLayout');
+            const defaultLayout = [
+                { id: 'hero', type: 'hero', visible: true },
+                { id: 'popularCategories', type: 'popularCategories', visible: true },
+                { id: 'smallBanners', type: 'smallBanners', visible: true },
+                { id: 'newArrivals', type: 'newArrivals', visible: true },
+                { id: 'promo_1', type: 'productPromoArea', visible: true },
+                { id: 'stories', type: 'sellerStories', visible: true }, 
+                { id: 'shopByCategory', type: 'shopByCategory', visible: true },
+                { id: 'promo_2', type: 'productPromoArea', visible: true },
+            ];
+            let layout = [];
+            try {
+                const layoutSnap = await getDoc(layoutRef);
+                if (layoutSnap.exists() && layoutSnap.data().layout) {
+                    layout = layoutSnap.data().layout;
+                } else {
+                    layout = defaultLayout;
+                }
+                for (const item of layout) {
+                    if (!item.visible) continue; 
+                    switch (item.type) {
+                        case 'hero': await buildHeroSlider(mainContainer, item); break;
+                        case 'popularCategories': await buildPopularCategories(mainContainer, item); break;
+                        case 'smallBanners': await buildSmallBanners(mainContainer, item); break;
+                        case 'newArrivals': await buildNewArrivals(mainContainer, item); break;
+                        case 'shopByCategory': await buildShopByCategory(mainContainer, item); break;
+                        case 'productPromoArea': await buildProductPromoArea(mainContainer, item); break;
+                        case 'sellerStories': await buildSellerStories(mainContainer, item); break;
+                    }
+                }
+            } catch (error) {
+                console.error("Error building homepage layout:", error);
+                mainContainer.innerHTML = '<p class="text-center text-red-500">Error loading homepage. Please try again later.</p>';
+            } finally {
+                if (pageLoader) {
+                    pageLoader.style.width = '100%';
+                    setTimeout(() => { pageLoader.classList.add('hidden'); }, 500);
+                }
+            }
+        }
+
+        async function buildHeroSlider(mainContainer, layoutItem) {
+            // (Same implementation as previous code)
+            const section = document.createElement('section');
+            section.id = 'hero-slider';
+            section.className = 'mb-8 relative rounded-2xl shadow-lg overflow-hidden aspect-[3/4] sm:aspect-[4/3] md:aspect-[16/9] lg:aspect-[3/1]';
+            section.innerHTML = `<div id="slider-container" class="w-full h-full"><div class="w-full h-full bg-pink-100 flex items-center justify-center"><p class="text-gray-500">Loading Banners...</p></div></div><button id="slider-prev" class="absolute top-1/2 left-2 md:left-4 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-2 w-10 h-10 shadow-md z-20 transition-colors text-mudalali-green"><i class="fa fa-chevron-left"></i></button><button id="slider-next" class="absolute top-1/2 right-2 md:right-4 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-2 w-10 h-10 shadow-md z-20 transition-colors text-mudalali-green"><i class="fa fa-chevron-right"></i></button><div id="slider-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20"></div>`;
+            mainContainer.appendChild(section);
+            const sliderContainer = section.querySelector('#slider-container');
+            const dotsContainer = section.querySelector('#slider-dots');
+            const nextBtn = section.querySelector('#slider-next');
+            const prevBtn = section.querySelector('#slider-prev');
+            const bannerNames = ['heroBanner1', 'heroBanner2', 'heroBanner3'];
+            const banners = [];
+            for (const name of bannerNames) {
+                const docRef = doc(db, publicDataPath, 'siteContent', name);
+                try { const docSnap = await getDoc(docRef); if (docSnap.exists()) { banners.push(docSnap.data()); } } catch (e) { console.error(`Error loading ${name}: `, e); }
+            }
+            sliderContainer.innerHTML = ''; dotsContainer.innerHTML = '';
+            if (banners.length === 0) {
+                sliderContainer.innerHTML = '<div class="w-full h-full bg-pink-100 flex items-center justify-center"><p class="text-gray-500">No banners found.</p></div>';
+                nextBtn.classList.add('hidden'); prevBtn.classList.add('hidden'); return;
+            }
+            banners.forEach((banner, index) => {
+                const defaultImg = 'https://placehold.co/1200x400/fbcfe8/be185d?text=Pink+Store+Banner';
+                const pcImg = banner.imageUrl_pc || banner.imageUrl || defaultImg;
+                const tabImg = banner.imageUrl_tab || pcImg;
+                const mobImg = banner.imageUrl_mob || pcImg;
+                const pictureHtml = `<picture><source media="(min-width: 1024px)" srcset="${pcImg}"><source media="(min-width: 768px)" srcset="${tabImg}"><img src="${mobImg}" alt="Hero Banner ${index + 1}" class="w-full h-full object-cover object-center"></picture>`;
+                sliderContainer.innerHTML += `<a href="${banner.linkUrl || '#'}" class="hero-slide ${index === 0 ? 'active' : ''}">${pictureHtml}</a>`;
+                dotsContainer.innerHTML += `<button class="slider-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></button>`;
+            });
+            const slides = sliderContainer.querySelectorAll('.hero-slide');
+            const dots = dotsContainer.querySelectorAll('.slider-dot');
+            let currentIndex = 0; let slideInterval;
+            const showSlide = (index) => {
+                if (slides.length === 0 || !slides[currentIndex] || !dots[currentIndex]) return;
+                slides[currentIndex].classList.remove('active'); dots[currentIndex].classList.remove('active');
+                currentIndex = index;
+                slides[currentIndex].classList.add('active'); dots[currentIndex].classList.add('active');
+            };
+            const nextSlide = () => showSlide((currentIndex + 1) % slides.length);
+            const prevSlide = () => showSlide((currentIndex - 1 + slides.length) % slides.length);
+            nextBtn.onclick = nextSlide; prevBtn.onclick = prevSlide;
+            dots.forEach(dot => { dot.onclick = () => showSlide(parseInt(dot.dataset.index)); });
+            const startAutoplay = () => { clearInterval(slideInterval); slideInterval = setInterval(nextSlide, 5000); };
+            sliderContainer.onmouseenter = () => clearInterval(slideInterval); sliderContainer.onmouseleave = startAutoplay; startAutoplay(); 
+        }
+        
+        async function buildSmallBanners(mainContainer, layoutItem) {
+            const section = document.createElement('section');
+            section.id = 'dynamic-ad-banners';
+            section.className = 'flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:gap-6 mb-8 scroll-snap-type-x-mandatory no-scrollbar';
+            const bannerIds = ['smallBanner1', 'smallBanner2', 'smallBanner3'];
+            for (let i = 0; i < bannerIds.length; i++) {
+                const id = bannerIds[i];
+                const docRef = doc(db, publicDataPath, 'siteContent', id);
+                let link = '#'; let img = `https://placehold.co/400x200/fce7f3/db2777?text=Ad+Banner+${i+1}`;
+                try { const docSnap = await getDoc(docRef); if (docSnap.exists()) { link = docSnap.data().linkUrl || '#'; img = docSnap.data().imageUrl || img; } } catch (e) { console.error(`Error loading ${id}: `, e); }
+                section.innerHTML += `<a href="${link}" class="block rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow w-[80vw] flex-shrink-0 md:w-auto scroll-snap-align-start border border-pink-100"><img src="${img}" alt="Banner ${i+1}" class="w-full object-cover"></a>`;
+            }
+            mainContainer.appendChild(section);
+            if (window.innerWidth < 768) { setupAutoScroll(section); }
+        }
+
+        async function buildPopularCategories(mainContainer, layoutItem) {
+            const section = document.createElement('section');
+            section.id = 'popular-categories';
+            section.className = 'mb-8';
+            const grid = document.createElement('div');
+            grid.className = 'flex gap-4 overflow-x-auto text-center no-scrollbar scroll-snap-type-x-mandatory';
+            grid.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading categories...</p>';
+            section.appendChild(grid);
+            mainContainer.appendChild(section);
+            const collRef = collection(db, publicDataPath, 'categories');
+            onSnapshot(collRef, (querySnapshot) => {
+                grid.innerHTML = ''; 
+                if (querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full text-gray-500 text-center">No categories found.</p>'; return; }
+                querySnapshot.forEach((doc) => {
+                    const category = doc.data();
+                    const bgColor = category.color || '#f3f4f6'; // Use db color or gray
+                    
+                    grid.innerHTML += `
+                    <a href="shop.html?category=${encodeURIComponent(category.name)}" class="group w-[22vw] md:w-[14vw] lg:w-[10vw] flex-shrink-0">
+                        <div class="rounded-full p-4 shadow-md group-hover:shadow-lg transform group-hover:scale-105 transition-all" style="background-color: ${bgColor};">
+                            <img src="${category.imageUrl}" alt="${category.name}" class="w-full h-auto object-contain aspect-square">
+                        </div>
+                        <span class="mt-2 block font-semibold text-sm text-gray-700 group-hover:text-mudalali-green">${category.name}</span>
+                    </a>`;
+                });
+                setupAutoScroll(grid);
+            }, (error) => { console.error("Error loading categories: ", error); grid.innerHTML = '<p class="col-span-full text-red-500 text-center">Error loading categories.</p>'; });
+        }
+        
+        async function buildProductCarousel(mainContainer, carouselId, showTitle = true) {
+            const section = document.createElement('div');
+            section.id = `product-carousel-${carouselId}`;
+            section.className = 'product-carousel-container';
+            const titleEl = document.createElement('h2');
+            if(showTitle) {
+                titleEl.className = 'text-2xl font-bold text-gray-800 mb-4 pl-2 border-l-4 border-mudalali-green';
+                titleEl.textContent = 'Loading...';
+                section.appendChild(titleEl);
+            }
+            // CHANGED FOR MOBILE: Added grid classes and removed horizontal scroll classes for small screens
+            const gridEl = document.createElement('div');
+            gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4'; 
+            gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading products...</p>';
+            section.appendChild(gridEl);
+            
+            const mobileViewAllBtn = document.createElement('a');
+            mobileViewAllBtn.href = 'stories.html';
+            mobileViewAllBtn.className = 'block sm:hidden text-center w-full mt-2 px-5 py-3 rounded-full text-md font-medium text-mudalali-green border border-mudalali-green hover:bg-mudalali-green hover:text-white transition-colors duration-200';
+            mobileViewAllBtn.textContent = 'View All';
+            section.appendChild(mobileViewAllBtn);
+            mainContainer.appendChild(section);
+
+            try {
+                if(showTitle) {
+                    const carouselDocRef = doc(db, publicDataPath, 'productCarousels', carouselId);
+                    const carouselSnap = await getDoc(carouselDocRef);
+                    if (carouselSnap.exists()) { titleEl.textContent = carouselSnap.data().title || 'Products'; } else { titleEl.textContent = 'Products'; }
+                }
+                const productsRef = collection(db, publicDataPath, 'products');
+                const q = query(productsRef, where("carousels", "array-contains", carouselId), limit(60));
+                
+                onSnapshot(q, (querySnapshot) => {
+                    gridEl.innerHTML = '';
+                    if (querySnapshot.empty) { gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">No products found.</p>'; return; }
+                    querySnapshot.forEach((doc) => {
+                        const product = doc.data();
+                        const productId = doc.id;
+                        let badgeHtml = product.saleTag ? `<div class="absolute top-4 left-4 z-10 rounded-full bg-mudalali-green px-3 py-1 text-xs font-bold text-white shadow-md">${product.saleTag}</div>` : `<div class="absolute top-4 left-4 z-10 rounded-full bg-pink-400 px-3 py-1 text-xs font-bold text-white shadow-md">NEW</div>`;
+                        let priceHtml = formatPrice(product); 
+                        const imageUrl = product.imageUrl || 'https://placehold.co/400x400';
+                        const imageHtml = `<img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />`;
+                        
+                        const productEl = document.createElement('a');
+                        productEl.href = `product.html?id=${productId}`;
+                        // CHANGED FOR MOBILE: Removed fixed width classes (w-[45vw], flex-shrink-0)
+                        productEl.className = "group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg w-full block cursor-pointer";
+                        
+                        productEl.innerHTML = `
+                            <div class="relative h-48 md:h-64 overflow-hidden bg-gray-50">
+                                ${imageHtml} ${badgeHtml}
+                                <div class="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-center">
+                                     <span class="bg-white text-gray-700 rounded-full p-2 shadow-lg mx-1 text-xs font-bold uppercase px-4">View</span>
+                                </div>
+                            </div>
+                            <div class="p-4 text-center">
+                                <p class="text-xs text-gray-400 uppercase tracking-wide hidden md:block">${product.categories || 'Pink Store'}</p>
+                                <h3 class="my-1 text-sm font-semibold text-gray-800 hover:text-mudalali-green md:text-base line-clamp-2">${product.name}</h3>
+                                ${priceHtml}
+                            </div>
+                        `;
+                        gridEl.appendChild(productEl);
+                    });
+                });
+            } catch (error) {
+                console.error(`Error loading carousel ${carouselId}: `, error);
+                if(showTitle) titleEl.textContent = 'Error';
+                gridEl.innerHTML = '<p class="col-span-full text-red-500 text-center">Error loading products.</p>';
+            }
+        }
+
+ async function buildShopByCategory(mainContainer, layoutItem) {
+            const section = document.createElement('section');
+            section.id = 'shop-by-category';
+            section.className = 'mb-8';
+            const titleEl = document.createElement('h2');
+            titleEl.className = 'text-2xl font-bold text-gray-800 mb-4 pl-2 border-l-4 border-mudalali-green';
+            titleEl.textContent = 'COLLECTIONS';
+            section.appendChild(titleEl);
+            const gridEl = document.createElement('div');
+            gridEl.className = 'flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:gap-6 scroll-snap-type-x-mandatory no-scrollbar';
+            gridEl.innerHTML = '<p class="text-gray-500 text-center w-full">Loading...</p>';
+            section.appendChild(gridEl);
+            mainContainer.appendChild(section);
+            const collRef = collection(db, publicDataPath, 'shopByCategoryBanners');
+            const q = query(collRef, limit(3)); 
+            onSnapshot(q, (querySnapshot) => {
+                gridEl.innerHTML = ''; 
+                if (querySnapshot.empty) { gridEl.innerHTML = '<p class="text-gray-500 text-center w-full">No banners.</p>'; return; }
+                querySnapshot.forEach((doc) => {
+                    const banner = doc.data();
+                    const link = banner.linkUrl || '#';
+                    const img = banner.imageUrl || 'https://placehold.co/400x200/fbcfe8/be185d?text=Collection';
+                    gridEl.innerHTML += `<a href="${link}" class="block rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all w-[80vw] flex-shrink-0 md:w-auto scroll-snap-align-start group"><div class="relative overflow-hidden"><img src="${img}" alt="Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"><div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all"></div></div></a>`;
+                });
+                setupAutoScroll(gridEl);
+            }, (error) => { console.error("Error loading banners: ", error); });
+        }
+        
+        async function buildProductPromoArea(mainContainer, layoutItem) {
+            const section = document.createElement('section');
+            section.id = `promo-area-${layoutItem.id}`;
+            section.className = 'mb-8 product-promo-area';
+            const titleEl = document.createElement('h2');
+            titleEl.className = 'text-2xl font-bold text-gray-800 mb-4 pl-2 border-l-4 border-mudalali-green';
+            titleEl.textContent = '...';
+            section.appendChild(titleEl);
+            const bannerEl = document.createElement('a');
+            bannerEl.href = '#';
+            bannerEl.className = 'block rounded-xl shadow-md overflow-hidden hover:opacity-95 mb-6 border-4 border-white';
+            bannerEl.innerHTML = `<img src="https://placehold.co/1200x250/fbcfe8/be185d?text=Loading..." alt="Promo" class="w-full object-cover">`;
+            section.appendChild(bannerEl);
+            mainContainer.appendChild(section);
+            try {
+                const docRef = doc(db, publicDataPath, 'productPromoAreas', layoutItem.id);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    titleEl.textContent = data.title || 'Featured';
+                    bannerEl.href = data.bannerLink || '#';
+                    bannerEl.querySelector('img').src = data.bannerImageUrl || 'https://placehold.co/1200x250/fbcfe8/be185d?text=Promo';
+                    if (data.productCarouselId) { await buildProductCarousel(section, data.productCarouselId, false); }
+                } else { titleEl.textContent = 'Promo Area'; }
+            } catch (e) { console.error(`Error loading promo area: `, e); }
+        }
+
+        async function buildNewArrivals(mainContainer, layoutItem) {
+            const section = document.createElement('section'); 
+            section.id = 'product-carousel-new-arrivals';
+            section.className = 'product-carousel-container mb-8'; 
+            const titleEl = document.createElement('h2');
+            titleEl.className = 'text-2xl font-bold text-gray-800 mb-4 pl-2 border-l-4 border-mudalali-green';
+            titleEl.textContent = 'Fresh Arrivals'; 
+            section.appendChild(titleEl);
+            // CHANGED FOR MOBILE: Grid layout
+            const gridEl = document.createElement('div');
+            gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4';
+            gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading...</p>';
+            section.appendChild(gridEl);
+            mainContainer.appendChild(section);
+            try {
+                const productsRef = collection(db, publicDataPath, 'products');
+                const q = query(productsRef, orderBy("createdAt", "desc"), limit(60)); 
+                onSnapshot(q, (querySnapshot) => {
+                    gridEl.innerHTML = '';
+                    if (querySnapshot.empty) { gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">No new products.</p>'; return; }
+                    querySnapshot.forEach((doc) => {
+                        const product = doc.data();
+                        const productId = doc.id;
+                        let badgeHtml = product.saleTag ? `<div class="absolute top-4 left-4 z-10 rounded-full bg-mudalali-green px-3 py-1 text-xs font-bold text-white shadow-sm">${product.saleTag}</div>` : `<div class="absolute top-4 left-4 z-10 rounded-full bg-pink-400 px-3 py-1 text-xs font-bold text-white shadow-sm">NEW</div>`;
+                        let priceHtml = formatPrice(product); 
+                        const imageUrl = product.imageUrl || 'https://placehold.co/400x400';
+                        
+                        const productEl = document.createElement('a'); 
+                        productEl.href = `product.html?id=${productId}`;
+                        // CHANGED FOR MOBILE: Removed fixed width classes
+                        productEl.className = "group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg w-full block cursor-pointer";
+                        
+                        productEl.innerHTML = `
+                            <div class="relative h-48 md:h-64 overflow-hidden bg-gray-50">
+                                <img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                ${badgeHtml}
+                            </div>
+                            <div class="p-4 text-center">
+                                <p class="text-xs text-gray-400 uppercase tracking-wide hidden md:block">${product.categories || 'New Item'}</p>
+                                <h3 class="my-1 text-sm font-semibold text-gray-800 hover:text-mudalali-green md:text-base line-clamp-2">${product.name}</h3>
+                                ${priceHtml}
+                            </div>
+                        `;
+                        gridEl.appendChild(productEl);
+                    });
+                });
+            } catch (error) { console.error(`Error loading new arrivals: `, error); }
+        }
+
+        async function buildSellerStories(mainContainer, layoutItem) {
+            // (Same as before)
+            const section = document.createElement('section');
+            section.id = 'seller-stories';
+            section.className = 'mb-8 seller-stories-container bg-pink-50 p-6 rounded-3xl';
+            section.innerHTML = `<div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6"><div><h2 class="text-2xl font-bold text-gray-800 mb-1">Our Community</h2><p class="text-sm text-gray-500">Stories from the people behind the products.</p></div><a href="stories.html" class="hidden sm:block mt-4 sm:mt-0 px-6 py-2 rounded-full text-sm font-bold text-mudalali-green bg-white shadow-sm hover:bg-mudalali-green hover:text-white transition-all">View All</a></div>`;
+            const gridEl = document.createElement('div');
+            gridEl.className = 'flex gap-4 overflow-x-auto scroll-snap-type-x-mandatory no-scrollbar pb-4';
+            gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading stories...</p>';
+            section.appendChild(gridEl);
+            mainContainer.appendChild(section);
+            try {
+                const storiesRef = collection(db, publicDataPath, 'stories'); 
+                const q = query(storiesRef, orderBy("createdAt", "desc"));
+                onSnapshot(q, async (querySnapshot) => {
+                    gridEl.innerHTML = '';
+                    if (querySnapshot.empty) { gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">No stories yet.</p>'; return; }
+                    for (const storyDoc of querySnapshot.docs) {
+                        const story = storyDoc.data();
+                        const storyId = storyDoc.id;
+                        const sellerUid = story.sellerUid;
+                        let sellerName = 'Pink Store';
+                        let sellerProfilePic = 'https://placehold.co/40x40/db2777/ffffff?text=PS';
+                        if (sellerUid) {
+                            try {
+                                const storeRef = doc(db, publicDataPath, 'stores', sellerUid);
+                                const storeSnap = await getDoc(storeRef);
+                                if(storeSnap.exists()) { sellerName = storeSnap.data().storeName || sellerName; sellerProfilePic = storeSnap.data().profileUrl || sellerProfilePic; }
+                            } catch (e) { console.error("Error fetching store data: ", e); }
+                        }
+                        const likeCount = story.likeCount || 0;
+                        const commentCount = story.commentCount || 0;
+                        let likeBtnClass = "like-button flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-100 rounded-full transition-colors";
+                        if (currentUser) {
+                            try {
+                                const likeRef = doc(db, publicDataPath, 'storyInteractions', `${storyId}_${currentUser.uid}`);
+                                const likeSnap = await getDoc(likeRef);
+                                if (likeSnap.exists() && likeSnap.data().type === 'like') { likeBtnClass += " liked text-mudalali-green"; }
+                            } catch (e) { console.error("Error checking like: ", e); }
+                        }
+                        const storyCard = document.createElement('div');
+                        storyCard.className = "bg-white rounded-2xl shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col w-[80vw] flex-shrink-0 scroll-snap-align-start md:w-[300px]";
+                        let taggedProductHtml = '';
+                        if (story.taggedProductId && story.taggedProductName) {
+                            taggedProductHtml = `<a href="product.html?id=${story.taggedProductId}" class="block p-3 bg-pink-50 hover:bg-pink-100 transition-colors border-t border-pink-100"><div class="flex items-center gap-3"><img src="${story.taggedProductImageUrl || 'https://placehold.co/60x60'}" class="w-10 h-10 object-cover rounded-md border flex-shrink-0"><div class="flex-grow min-w-0"><p class="text-[10px] text-gray-400 font-bold uppercase">Featured</p><p class="text-xs font-bold text-gray-800 truncate">${story.taggedProductName}</p></div><button class="bg-mudalali-green text-white text-[10px] font-bold px-3 py-1.5 rounded-full hover:bg-mudalali-green-dark">Shop</button></div></a>`;
+                        }
+                        storyCard.innerHTML = `<div class="p-4 flex items-center justify-between"><div class="flex items-center"><img class="h-8 w-8 rounded-full object-cover ring-2 ring-pink-100" src="${sellerProfilePic}" alt="${sellerName}"><div class="ml-2"><h4 class="text-xs font-bold text-gray-800">${sellerName}</h4></div></div></div><a href="story-detail.html?id=${storyId}" class="block relative w-full aspect-square bg-gray-100"><img class="w-full h-full object-cover" src="${story.imageUrl || 'https://placehold.co/400x400'}" alt="Story"></a><div class="p-3"><p class="text-gray-600 text-xs leading-relaxed line-clamp-2 mb-3">${story.content || '...'}</p></div>${taggedProductHtml}<div class="p-2 flex justify-around items-center border-t border-gray-50"><button class="${likeBtnClass} flex items-center justify-center gap-1" data-story-id="${storyId}"><i class="fa fa-heart"></i> <span class="like-count-text text-xs">${likeCount}</span></button><button class="comment-btn flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-100 rounded-full flex items-center justify-center gap-1 transition-colors" data-story-id="${storyId}" data-seller-id="${sellerUid}"><i class="fa fa-comment"></i><span class="text-xs">${commentCount}</span></button><button class="share-story-btn flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-100 rounded-full transition-colors" data-story-id="${storyId}" data-content="${story.content ? story.content.replace(/"/g, '&quot;') : ''}"><i class="fa fa-share"></i></button></div>`;
+                        gridEl.appendChild(storyCard);
+                        storyCard.querySelector('.like-button').addEventListener('click', (e) => toggleLike(storyId, e.currentTarget));
+                        storyCard.querySelector('.comment-btn').addEventListener('click', (e) => openCommentsDrawer(e.currentTarget.dataset.storyId, e.currentTarget.dataset.sellerId));
+                        storyCard.querySelector('.share-story-btn').addEventListener('click', (e) => shareStory(e.currentTarget.dataset.storyId, e.currentTarget, e.currentTarget.dataset.content));
+                    }
+                });
+            } catch (error) { console.error("Error loading stories: ", error); }
+        }
+
+        async function toggleLike(storyId, buttonEl) { /* Same as previous */
+            if (!currentUser) { document.getElementById('account-drawer-modal').classList.remove('hidden'); return; }
+            buttonEl.disabled = true;
+            const storyRef = doc(db, publicDataPath, 'stories', storyId);
+            const likeRef = doc(db, publicDataPath, 'storyInteractions', `${storyId}_${currentUser.uid}`);
+            let newLikeCount = 0;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const likeSnap = await transaction.get(likeRef);
+                    const storySnap = await transaction.get(storyRef);
+                    if (!storySnap.exists()) { throw "Story does not exist!"; }
+                    newLikeCount = storySnap.data().likeCount || 0;
+                    if (likeSnap.exists()) { transaction.delete(likeRef); newLikeCount = Math.max(0, newLikeCount - 1); } 
+                    else { transaction.set(likeRef, { storyId: storyId, userId: currentUser.uid, type: 'like', createdAt: serverTimestamp() }); newLikeCount += 1; }
+                    transaction.update(storyRef, { likeCount: newLikeCount });
+                });
+                const likeCountSpan = buttonEl.closest('.bg-white').querySelector('.like-count-text');
+                if (likeCountSpan) { likeCountSpan.innerHTML = `${newLikeCount}`; }
+                buttonEl.classList.toggle('liked'); buttonEl.classList.toggle('text-mudalali-green');
+            } catch (e) { console.error("Transaction failed: ", e); } finally { buttonEl.disabled = false; }
+        }
+
+        async function shareStory(storyId, buttonEl, storyContent) { /* Same as previous */
+            const storyUrl = `${window.location.origin}/story-detail.html?id=${storyId}`; 
+            const shareData = { title: `Check this out from Pink Store`, text: storyContent ? storyContent.substring(0, 100) + '...' : 'Check out this story!', url: storyUrl };
+            try { if (navigator.share) { await navigator.share(shareData); } else { throw new Error('Web Share not supported'); } } 
+            catch (err) { try { await navigator.clipboard.writeText(storyUrl); buttonEl.innerHTML = '<i class="fa fa-check text-green-500"></i>'; buttonEl.disabled = true; setTimeout(() => { buttonEl.innerHTML = '<i class="fa fa-share"></i>'; buttonEl.disabled = false; }, 2000); } catch (copyErr) { alert('Failed to copy link.'); } }
+        }
+
+        function formatTimestamp(date) { /* Same as previous */
+            const now = new Date(); const seconds = Math.floor((now - date) / 1000);
+            let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + "y";
+            interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + "mo";
+            interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + "d";
+            interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + "h";
+            interval = seconds / 60; if (interval > 1) return Math.floor(interval) + "m";
+            return Math.floor(seconds) + "s";
+        }
+
+        function setupCommentDrawer() { /* Same as previous */
+            const drawer = document.getElementById('comments-drawer');
+            const closeBtn = document.getElementById('comments-drawer-close');
+            const overlay = document.getElementById('comments-drawer-overlay');
+            const closeDrawer = () => { drawer.classList.remove('open'); if (unsubscribeCommentsListener) { unsubscribeCommentsListener(); unsubscribeCommentsListener = null; } currentStoryIdForComment = null; };
+            closeBtn.addEventListener('click', closeDrawer); overlay.addEventListener('click', closeDrawer);
+            document.getElementById('submit-comment-btn').addEventListener('click', async () => {
+                if (!currentUser || !currentStoryIdForComment) return;
+                const input = document.getElementById('new-comment-input');
+                const commentText = input.value.trim();
+                if (!commentText) return;
+                const btn = document.getElementById('submit-comment-btn');
+                btn.disabled = true; input.disabled = true;
+                try {
+                    const storyRef = doc(db, publicDataPath, 'stories', currentStoryIdForComment);
+                    const interactionRef = collection(db, publicDataPath, 'storyInteractions');
+                    await addDoc(interactionRef, { storyId: currentStoryIdForComment, userId: currentUser.uid, type: 'comment', commentText: commentText, createdAt: serverTimestamp() });
+                    await updateDoc(storyRef, { commentCount: increment(1) });
+                    input.value = '';
+                } catch (e) { console.error("Error adding comment: ", e); } finally { btn.disabled = false; input.disabled = false; }
+            });
+        }
+
+        function openCommentsDrawer(storyId, sellerUid) { /* Same as previous */
+            if (unsubscribeCommentsListener) { unsubscribeCommentsListener(); }
+            currentStoryIdForComment = storyId;
+            const drawer = document.getElementById('comments-drawer');
+            const container = document.getElementById('comments-list-container');
+            container.innerHTML = '<p class="text-gray-500 text-center">Loading...</p>';
+            drawer.classList.add('open');
+            const commentsRef = collection(db, publicDataPath, 'storyInteractions');
+            const q = query(commentsRef, where("storyId", "==", storyId), where("type", "==", "comment"), orderBy("createdAt", "asc"));
+            unsubscribeCommentsListener = onSnapshot(q, async (snapshot) => {
+                container.innerHTML = '';
+                if (snapshot.empty) { container.innerHTML = '<p class="text-gray-400 text-center text-sm">No comments yet.</p>'; return; }
+                for (const doc of snapshot.docs) {
+                    const comment = doc.data();
+                    let userName = 'User'; let userPic = 'https://placehold.co/40x40/fce7f3/db2777?text=U';
+                    try { const userRef = doc(db, usersPath, comment.userId); const userSnap = await getDoc(userRef); if (userSnap.exists()) { userName = userSnap.data().name || 'User'; } } catch (e) { console.error("Error getting user", e); }
+                    const commentDate = comment.createdAt ? formatTimestamp(comment.createdAt.toDate()) : '';
+                    const isCreator = comment.userId === sellerUid;
+                    const creatorBadge = isCreator ? '<span class="ml-2 bg-mudalali-green text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Seller</span>' : '';
+                    container.innerHTML += `<div class="flex gap-3"><img src="${userPic}" class="h-8 w-8 rounded-full object-cover flex-shrink-0 border border-pink-100"><div class="bg-gray-50 rounded-2xl p-3 px-4"><div class="flex items-center mb-1"><span class="font-bold text-xs text-gray-800 mr-2">${userName}</span>${creatorBadge}<span class="text-[10px] text-gray-400 ml-auto">${commentDate}</span></div><p class="text-sm text-gray-600">${comment.commentText}</p></div></div>`;
+                }
+            });
+        }
+
+        async function loadDesktopNavCategories() { /* Same as previous */
+            const container = document.getElementById('desktop-nav-links-container'); if (!container) return;
+            const collRef = collection(db, publicDataPath, 'categories');
+            onSnapshot(collRef, (querySnapshot) => {
+                const dropdownContainer = container.querySelector('.dropdown-menu'); if (dropdownContainer) dropdownContainer.innerHTML = '';
+                const existingLinks = container.querySelectorAll('a:not(.group > a)'); existingLinks.forEach(link => link.remove());
+                if (querySnapshot.empty) return;
+                let count = 0;
+                querySnapshot.forEach((doc) => {
+                    const category = doc.data();
+                    if (count < 6) { const linkHtml = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green px-3 py-2.5 hidden md:block">${category.name}</a>`; container.insertAdjacentHTML('beforeend', linkHtml); count++; }
+                    if (dropdownContainer) { const dropdownLink = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green hover:bg-pink-50 px-4 py-3 block border-b border-gray-100 last:border-0">${category.name}</a>`; dropdownContainer.innerHTML += dropdownLink; }
+                });
+            }, (error) => { console.error("Error loading nav categories: ", error); });
+        }
+
+</script>
 </body>
 </html>

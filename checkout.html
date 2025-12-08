@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Pink Store</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        // === Pink Theme Colors ===
+                        'mudalali-green': {
+                            light: '#fbcfe8',       /* Light Pink */
+                            DEFAULT: '#db2777',     /* Hot Pink */
+                            dark: '#be185d',        /* Dark Pink */
+                        },
+                        'mudalali-gold': '#fce7f3', 
+                        'mudalali-red': '#e11d48',
+                        'mudalali-bg': '#ffffff',   
+                        'mm-gray': { 
+                            light: '#fff1f2',
+                            DEFAULT: '#f3f4f6',      
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            @apply font-sans text-gray-800 bg-mudalali-bg;
+        }
+        .drawer-overlay {
+            @apply fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity opacity-0 pointer-events-none;
+        }
+        .drawer-content {
+            @apply fixed top-0 right-0 h-full bg-white shadow-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out;
+            width: 90%;
+            max-width: 400px;
+        }
+        .drawer-content.left {
+            @apply left-0 right-auto transform -translate-x-full;
+        }
+        .drawer.open .drawer-overlay {
+            @apply opacity-100 pointer-events-auto;
+        }
+        .drawer.open .drawer-content {
+            @apply transform translate-x-0;
+        }
+        .mobile-nav-link.active {
+            @apply text-mudalali-green;
+        }
+        .tab-button.active { 
+            border-color: #db2777; 
+            color: #db2777; 
+        }
+        .menu-tab-btn.active {
+            @apply border-mudalali-green text-mudalali-green;
+        }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .pop { animation: pop 0.2s ease-out; }
+        
+        /* Radio button custom style (Pink Theme) */
+        .payment-option {
+            @apply border border-pink-100 rounded-lg p-4 cursor-pointer transition-all bg-white hover:border-mudalali-green/50;
+        }
+        .payment-option.selected {
+            @apply border-mudalali-green ring-2 ring-mudalali-green bg-pink-50;
+        }
+        .payment-option input:checked + div {
+            @apply border-mudalali-green;
+        }
+    </style>
+</head>
+<body class="pb-20 md:pb-0"> 
+    
+    <div id="page-loader" class="fixed top-0 left-0 w-0 h-1 bg-mudalali-green z-[9999] transition-all duration-300 ease-linear"></div>
+    
+    <header class="bg-white shadow-sm sticky top-0 z-40 hidden md:block border-b border-pink-100">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html" id="logo-link" class="flex items-center gap-2">
+                <img id="logo-img" src="https://i.ibb.co/1tCywvyP/logo.png" class="h-10" alt="Logo">
+            </a>
+            <div class="flex items-center space-x-6">
+                <a href="account.html" id="desktop-account-btn" class="flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-user text-xl"></i>
+                    <span class="text-xs">Account</span>
+                </a>
+                <a href="wishlist.html" class="relative flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-heart text-xl"></i>
+                    <span id="wishlist-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Wishlist</span>
+                </a>
+                <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-500 hover:text-mudalali-green relative transition-colors">
+                    <i class="fa fa-shopping-cart text-xl"></i>
+                    <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
+                    <span class="text-xs">Cart</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
+        <button id="mobile-menu-btn" class="text-2xl text-gray-600">
+            <i class="fa fa-bars"></i>
+        </button>
+         <a href="index.html" id="mobile-logo-link" class="text-3xl font-bold text-mudalali-green-dark">
+              <img id="mobile-logo-img" src="https://i.ibb.co/1tCywvyP/logo.png" class="h-8" alt="Logo">
+            </a>
+        <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
+            <i class="fa fa-user"></i>
+        </a>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8" style="min-height: calc(100vh - 200px);">
+        
+        <div id="checkout-loader" class="w-full text-center py-20 hidden">
+            <svg class="animate-spin h-10 w-10 text-mudalali-green mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-gray-500 font-semibold">Loading Checkout...</p>
+        </div>
+
+        <div id="checkout-content" class="lg:grid lg:grid-cols-12 lg:gap-12">
+            
+            <div class="lg:col-span-7">
+                <form id="checkout-form">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-pink-100">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b border-pink-100 pb-3">Billing Details</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="billing-name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                                <input type="text" id="billing-name" required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <div>
+                                <label for="billing-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                <input type="tel" id="billing-phone" required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <div>
+                                <label for="billing-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                                <input type="email" id="billing-email" required class="mt-1 block w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500" disabled>
+                            </div>
+                            <div>
+                                <label for="billing-address" class="block text-sm font-medium text-gray-700">Address Line</label>
+                                <input type="text" id="billing-address" placeholder="Street Address, House No." required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="billing-city" placeholder="City" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                                <input type="text" id="billing-district" placeholder="District" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <input type="text" id="billing-postal-code" placeholder="Postal Code" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            
+                            <div>
+                                <label for="order-notes" class="block text-sm font-medium text-gray-700">Order Notes (Optional)</label>
+                                <textarea id="order-notes" rows="3" class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20" placeholder="Notes about your order, e.g. special notes for delivery."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-lg p-6 border border-pink-100">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b border-pink-100 pb-3">Payment Method</h2>
+                        <div class="space-y-4">
+                            
+                            <label class="payment-option flex items-center group">
+                                <input type="radio" name="payment-method" value="cod" class="h-4 w-4 text-mudalali-green focus:ring-mudalali-green accent-mudalali-green" checked>
+                                <div class="ml-3">
+                                    <span class="font-semibold text-gray-800 group-hover:text-mudalali-green transition-colors">Cash on Delivery</span>
+                                    <p class="text-sm text-gray-600">Pay with cash upon delivery.</p>
+                                </div>
+                            </label>
+                            
+                            <label class="payment-option flex items-center group">
+                                <input type="radio" name="payment-method" value="bank_transfer" class="h-4 w-4 text-mudalali-green focus:ring-mudalali-green accent-mudalali-green">
+                                <div class="ml-3">
+                                    <span class="font-semibold text-gray-800 group-hover:text-mudalali-green transition-colors">Bank Transfer / Pre-Order</span>
+                                    <p class="text-sm text-gray-600">Place your order now. The seller will contact you with payment details.</p>
+                                </div>
+                            </label>
+
+                            <label class="payment-option flex items-center opacity-50 cursor-not-allowed bg-gray-50 border-gray-200">
+                                <input type="radio" name="payment-method" value="card" class="h-4 w-4" disabled>
+                                <div class="ml-3">
+                                    <span class="font-semibold text-gray-500">Online Card Payment</span>
+                                    <p class="text-sm text-gray-400">Pay with Visa/Mastercard (Coming Soon)</p>
+                                </div>
+                            </label>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-5 mt-8 lg:mt-0">
+                <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24 border border-pink-100">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b border-pink-100 pb-3">Your Order</h2>
+                    
+                    <div id="order-summary-items" class="divide-y divide-pink-50 max-h-64 overflow-y-auto pr-2">
+                        <p class="text-gray-500 py-4">Loading your cart...</p>
+                    </div>
+                    
+                    <div class="border-t border-pink-100 pt-4 mt-4 space-y-2">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Subtotal</span>
+                            <span id="summary-subtotal" class="font-medium">Rs. 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Shipping</span>
+                            <span id="summary-shipping" class="font-medium">Rs. 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Platform Fee (4%)</span>
+                            <span id="summary-fee" class="font-medium">Rs. 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-800 font-bold text-xl pt-4 border-t border-pink-100 mt-2">
+                            <span>Total</span>
+                            <span id="summary-total" class="text-mudalali-green">Rs. 0.00</span>
+                        </div>
+                    </div>
+                    
+                    <p id="checkout-error" class="text-red-500 text-sm text-center my-4"></p>
+                    
+                    <button id="place-order-btn" type="submit" form="checkout-form" class="w-full bg-mudalali-green text-white p-4 rounded-full hover:bg-mudalali-green-dark font-bold text-lg transition-all shadow-md hover:shadow-lg">
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-50 text-gray-600 pt-16 pb-8 hidden md:block border-t border-pink-100">
+        <div id="footer-container" class="container mx-auto px-4">
+            <div class="bg-mudalali-green p-8 rounded-2xl -mt-28 mb-16 relative z-10 shadow-xl flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2">JOIN OUR NEWSLETTER</h3>
+                    <p class="text-pink-100">Get 10% off your first order!</p>
+                </div>
+                <form class="flex w-full max-w-md">
+                    <input type="email" placeholder="Email Address" class="w-full px-4 py-3 rounded-l-full text-gray-800 focus:outline-none border-0">
+                    <button type="submit" class="bg-gray-900 text-white px-8 py-3 rounded-r-full font-bold hover:bg-gray-800 transition-colors">
+                        SUBSCRIBE
+                    </button>
+                </form>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+                <div><h4 class="font-bold text-gray-800 mb-4">PINK STORE</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">INFO</h4><ul id="footer-col-info" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">QUICK LINKS</h4><ul id="footer-col-quicklinks" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">CONTACT US</h4><address id="footer-address" class="not-italic text-sm">Loading...</address><p class="mt-2 text-sm">Email: <a id="footer-email" href="#" class="hover:text-mudalali-green">...</a></p><p class="text-sm">Hotline: <a id="footer-hotline" href="#" class="hover:text-mudalali-green">...</a></p></div>
+                <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">FOLLOW US</h4><div id="footer-socials" class="flex space-x-4 mb-4 text-mudalali-green text-xl"></div><h4 class="font-bold text-gray-800 mb-4 mt-6">PAYMENTS</h4><div class="flex space-x-2 opacity-70 grayscale hover:grayscale-0 transition-all"><img src="https://i.ibb.co/fDYrL3g/visa.png" alt="Visa" class="h-6"><img src="https://i.ibb.co/7rmXz4F/mastercard.png" alt="Mastercard" class="h-6"><img src="https://i.ibb.co/C0W2LFr/amex.png" alt="Amex" class="h-6"></div></div>
+            </div>
+            <div class="border-t border-gray-200 pt-6 text-sm text-center md:flex justify-between text-gray-400">
+                <p>&copy; 2025 Pink Store. All Rights reserved.</p>
+                <div class="space-x-4 mt-4 md:mt-0"><a href="#" class="hover:text-mudalali-green">Terms</a><span>|</span><a href="#" class="hover:text-mudalali-green">Privacy</a></div>
+            </div>
+        </div>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 shadow-lg flex justify-around items-center z-40 md:hidden">
+        <a href="index.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-store text-xl"></i><span class="mt-1">Shop</span>
+        </a>
+        <a href="stories.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-book-open text-xl"></i><span class="mt-1">Stories</span>
+        </a>
+        <a href="wishlist.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs relative">
+            <div class="relative"><i class="fa fa-heart text-xl"></i><span id="mobile-wishlist-badge" class="absolute -top-1 -right-2.5 bg-mudalali-green text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span></div>
+            <span class="mt-1">Wishlist</span>
+        </a>
+        <button id="mobile-cart-btn" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs relative">
+            <div class="relative"><i class="fa fa-shopping-bag text-xl"></i><span id="mobile-cart-badge" class="absolute -top-1 -right-2.5 bg-mudalali-green text-white text-xs font-semibold rounded-full h-4 w-4 flex items-center justify-center">0</span></div>
+            <span class="mt-1">Cart</span>
+        </button>
+        <a href="account.html" id="mobile-account-btn" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-mudalali-green text-xs">
+            <i class="fa fa-user text-xl"></i><span class="mt-1">Account</span>
+        </a>
+    </nav>
+
+    <div id="account-drawer-modal" class="drawer drawer-modal fixed inset-0 z-50 hidden">
+        <div id="account-drawer-bg" class="drawer-bg fixed inset-0 bg-black bg-opacity-50 opacity-0 transition-opacity"></div>
+        <div id="account-drawer" class="drawer-content fixed top-0 right-0 h-full bg-white shadow-xl w-full max-w-md flex flex-col">
+            <div id="account-drawer-logged-in" class="hidden flex flex-col h-full">
+                <div class="p-4 flex justify-between items-center border-b flex-shrink-0"><h2 class="text-xl font-semibold text-gray-800">My Account</h2><button id="close-account-drawer-btn-logged-in" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button></div>
+                <div class="flex-grow p-6 overflow-y-auto"><p class="text-gray-600 mb-2">Welcome back,</p><h3 id="account-drawer-user-email" class="text-lg font-semibold text-gray-800 mb-6 break-words"></h3><a href="customer-account.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">Go to My Account</a><button id="drawer-logout-btn" class="w-full text-center bg-gray-100 text-gray-700 p-3 rounded-lg hover:bg-gray-200 font-bold text-base mt-4">Logout</button></div>
+            </div>
+            <div id="account-drawer-logged-out" class="hidden flex flex-col h-full">
+                <div class="p-4 border-b"><div class="flex justify-between items-center"><h2 class="text-xl font-bold text-gray-700">Welcome!</h2><button id="close-account-drawer-btn-logged-out" class="text-gray-500 hover:text-gray-800 text-sm flex items-center gap-1"><i class="fas fa-times"></i> Close</button></div></div>
+                <div class="p-2 bg-pink-50 flex gap-2"><button id="drawer-login-tab-btn" class="tab-button active flex-1 bg-white p-2 rounded-md font-semibold border-b-2">Login</button><button id="drawer-signup-tab-btn" class="tab-button flex-1 bg-white p-2 rounded-md font-semibold text-gray-500 border-b-2 border-transparent">Sign Up</button></div>
+                <div class="p-6" style="max-height: 80vh; overflow-y: auto;"><form id="drawer-login-form" class="space-y-4"><input type="email" id="drawer-login-email" placeholder="Email" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="password" id="drawer-login-password" placeholder="Password" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><button type="submit" class="w-full bg-mudalali-green text-white p-3 rounded-md hover:bg-mudalali-green-dark font-bold">Login</button><p id="drawer-login-error" class="text-red-500 text-sm text-center"></p></form><form id="drawer-signup-form" class="space-y-4 hidden"><div class="flex items-center"><input id="drawer-signup-is-seller" type="checkbox" class="h-4 w-4 text-mudalali-green focus:ring-mudalali-green border-gray-300 rounded"><label for="drawer-signup-is-seller" class="ml-2 block text-sm text-gray-900">I want to register as a Seller</label></div><input type="text" id="drawer-signup-name" placeholder="Full Name or Store Name" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="email" id="drawer-signup-email" placeholder="Email" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><input type="password" id="drawer-signup-password" placeholder="Password" required class="w-full p-3 border rounded-md focus:ring-mudalali-green focus:border-mudalali-green"><button type="submit" class="w-full bg-mudalali-green text-white p-3 rounded-md hover:bg-mudalali-green-dark font-bold">Create Account</button><p id="drawer-signup-error" class="text-red-500 text-sm text-center"></p></form></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-drawer" class="drawer">
+        <div class="drawer-overlay" id="menu-drawer-overlay"></div>
+        <div class="drawer-content left flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold text-mudalali-green">MENU</h2><button id="menu-drawer-close" class="text-xl">&times;</button></div>
+            <div class="p-4 border-b"><form class="flex"><input type="text" placeholder="Search..." class="w-full px-4 py-2 border border-r-0 border-gray-300 rounded-l-md focus:outline-none focus:border-mudalali-green"><button type="submit" class="bg-gray-100 border border-gray-300 px-4 rounded-r-md text-gray-600 hover:text-mudalali-green"><i class="fa fa-search"></i></button></form></div>
+            <div class="flex border-b"><button id="menu-tab-menu" class="menu-tab-btn active flex-1 py-3 font-semibold border-b-2">MENU</button><button id="menu-tab-categories" class="menu-tab-btn flex-1 py-3 font-semibold text-gray-500 border-b-2 border-transparent">CATEGORIES</button></div>
+            <div id="menu-tab-menu-content" class="flex-col flex-grow overflow-y-auto"><a href="index.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">HOME</a><a href="stories.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SELLER STORIES</a><a href="shop.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SHOP</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">ABOUT US</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">CONTACT US</a><div class="p-4 bg-pink-50 font-bold text-gray-600">MY ACCOUNT</div><a href="wishlist.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-heart w-6 mr-1"></i> WISHLIST</a><a href="account.html" id="drawer-my-account-btn" class="block w-full text-left p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-user w-6 mr-1"></i> MY ACCOUNT</a></div>
+            <div id="menu-tab-categories-content" class="hidden flex-col flex-grow overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="cart-drawer" class="drawer">
+        <div class="drawer-overlay" id="cart-drawer-overlay"></div>
+        <div class="drawer-content flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold">Shopping cart</h2><button id="cart-drawer-close" class="text-xl">&times;</button></div>
+            <div id="cart-drawer-items-container" class="flex-grow p-6 overflow-y-auto text-center"><p class="text-gray-500">Your cart is empty.</p></div>
+            <div class="p-6 border-t bg-pink-50"><div class="flex justify-between items-center mb-2"><span class="text-lg font-medium text-gray-600">Subtotal:</span><span id="cart-drawer-total" class="text-xl font-bold text-mudalali-green-dark">Rs. 0.00</span></div><p class="text-sm text-center text-gray-500 mb-4">Shipping & taxes calculated at checkout.</p><div class="flex flex-col gap-3"><a href="cart.html" class="w-full text-center bg-white border-2 border-mudalali-green text-mudalali-green p-3 rounded-lg hover:bg-gray-50 font-bold text-base">VIEW CART</a><a href="checkout.html" class="w-full text-center bg-mudalali-green text-white p-3 rounded-lg hover:bg-mudalali-green-dark font-bold text-base">CHECKOUT</a></div></div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            getDocs,
+            collection, 
+            onSnapshot,
+            query,
+            where,
+            orderBy,
+            limit,
+            setDoc,
+            addDoc,
+            updateDoc, 
+            deleteDoc, 
+            increment, 
+            serverTimestamp,
+            writeBatch,
+            collectionGroup
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIbu2qT53iGPqMCx5UdU6XY8wvXkb3ZF4",
+            authDomain: "mudalali-mama.firebaseapp.com",
+            projectId: "mudalali-mama",
+            storageBucket: "mudalali-mama.firebasestorage.app",
+            messagingSenderId: "296597428969",
+            appId: "1:296597428969:web:684668be9c0eaeecb4ae78",
+            measurementId: "G-GC1CP1LRFD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const publicDataPath = `/artifacts/${appId}/public/data`;
+        const usersPath = `/users`; 
+
+        let currentUser = null;
+        let currentUserData = null;
+        let currentCart = [];
+        let wishlistUnsubscribe = null;
+
+        const pageLoader = document.getElementById('page-loader');
+        const checkoutLoader = document.getElementById('checkout-loader');
+        const checkoutContent = document.getElementById('checkout-content');
+        
+        // --- AFFILIATE CAPTURE FUNCTION (ALUTH) ---
+        function captureAffiliateRef() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const affiliateId = urlParams.get('ref');
+            if (affiliateId) {
+                // ID ekak URL eke thibboth, eka browser eke save karanawa
+                console.log(`Affiliate ID captured: ${affiliateId}`);
+                localStorage.setItem('affiliateRef', affiliateId);
+            }
+        }
+        // --- END AFFILIATE CAPTURE FUNCTION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Pink Store Checkout Page Initialized");
+            
+            if (pageLoader) pageLoader.style.width = '30%';
+
+            // --- AFFILIATE ---
+            captureAffiliateRef(); // <-- Page load weddima call karanna
+            // --- END AFFILIATE ---
+
+            loadSiteConfig();
+            setupMobileDrawers(); 
+            loadFooter();
+
+            // Payment option style handler
+            document.querySelectorAll('.payment-option input').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    document.querySelectorAll('.payment-option').forEach(label => {
+                        label.classList.remove('selected');
+                    });
+                    if (radio.checked) {
+                        radio.closest('.payment-option').classList.add('selected');
+                    }
+                });
+            });
+            
+            document.querySelector('.payment-option input:checked').closest('.payment-option').classList.add('selected');
+
+            document.getElementById('checkout-form').addEventListener('submit', onPlaceOrder);
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            const loggedInView = document.getElementById('account-drawer-logged-in');
+            const loggedOutView = document.getElementById('account-drawer-logged-out');
+            
+            if (user) {
+                checkoutLoader.classList.remove('hidden');
+                checkoutContent.classList.add('hidden');
+                
+                const userDocRef = doc(db, usersPath, user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                currentUserData = userDocSnap.exists() ? userDocSnap.data() : {};
+                
+                document.getElementById('billing-name').value = currentUserData.name || '';
+                document.getElementById('billing-email').value = user.email || '';
+                
+                try {
+                    const q = query(collection(db, usersPath, user.uid, 'addresses'), where("isDefault", "==", true), limit(1));
+                    const addressSnap = await getDocs(q);
+                    if (!addressSnap.empty) {
+                        const defaultAddress = addressSnap.docs[0].data();
+                        document.getElementById('billing-phone').value = defaultAddress.phone || '';
+                        document.getElementById('billing-address').value = defaultAddress.address || '';
+                        document.getElementById('billing-city').value = defaultAddress.city || '';
+                        document.getElementById('billing-district').value = defaultAddress.district || '';
+                        document.getElementById('billing-postal-code').value = defaultAddress.postalCode || '';
+                    } else if (currentUserData.phone) {
+                        document.getElementById('billing-phone').value = currentUserData.phone || '';
+                    }
+                } catch (e) {
+                    console.error("Error loading default address: ", e);
+                    if (currentUserData.phone) {
+                         document.getElementById('billing-phone').value = currentUserData.phone || '';
+                    }
+                }
+
+                loggedInView.classList.remove('hidden');
+                loggedInView.classList.add('flex');
+                loggedOutView.classList.add('hidden');
+                loggedOutView.classList.remove('flex');
+                document.getElementById('account-drawer-user-email').textContent = user.email;
+                
+                attachCartDrawerListener(user.uid);
+                attachWishlistBadgeListener(user.uid);
+                loadOrderSummary(user.uid); // <--- shipping logic eka methana thiyenne
+
+            } else {
+                window.location.href = `account.html?redirect=checkout.html`;
+                
+                loggedInView.classList.add('hidden');
+                loggedInView.classList.remove('flex');
+                loggedOutView.classList.remove('hidden');
+                loggedOutView.classList.add('flex');
+                attachCartDrawerListener(null);
+                updateWishlistCountBadge(0);
+            }
+        });
+        
+        /**
+         * (වෙනස් කළා) 
+         * Shipping cost එක cart එකේ තියෙන හැම item එකකම product document එකෙන් 
+         * 'shipping' field එක අරන් calculate කරනවා.
+         */
+        async function loadOrderSummary(userId) {
+            const summaryContainer = document.getElementById('order-summary-items');
+            const subtotalEl = document.getElementById('summary-subtotal');
+            const shippingEl = document.getElementById('summary-shipping');
+            const feeEl = document.getElementById('summary-fee');
+            const totalEl = document.getElementById('summary-total');
+            
+            const cartRef = collection(db, usersPath, userId, 'cart');
+            
+            try {
+                const snapshot = await getDocs(cartRef);
+                
+                if (snapshot.empty) {
+                    summaryContainer.innerHTML = '<p class="text-gray-500 py-4">Your cart is empty.</p>';
+                    document.getElementById('place-order-btn').disabled = true;
+                    alert("Your cart is empty. Redirecting to shop...");
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                summaryContainer.innerHTML = ''; 
+                let subtotalLKR = 0;
+                let totalShipping = 0; // <-- අලුත් shipping total variable එක
+                currentCart = []; 
+
+                // Use Promise.all to fetch all product data in parallel
+                const cartItemPromises = snapshot.docs.map(async (doc) => {
+                    const item = { id: doc.id, ...doc.data() };
+                    const quantity = parseInt(item.quantity) || 1;
+                    const priceLKR = parseFloat(item.price) || 0;
+                    const itemTotalLKR = priceLKR * quantity;
+                    
+                    subtotalLKR += itemTotalLKR;
+                    
+                    // --- අලුත් Shipping Logic එක ---
+                    let itemShipping = 0;
+                    if (item.productId) {
+                        try {
+                            const productRef = doc(db, publicDataPath, 'products', item.productId);
+                            const productSnap = await getDoc(productRef);
+                            if (productSnap.exists()) {
+                                const productData = productSnap.data();
+                                // 'shipping' field එකෙන් ගාණ අරන් quantity එකෙන් වැඩි කරනවා
+                                itemShipping = (parseFloat(productData.shipping) || 0) * quantity;
+                                // Seller ගෙ data එකත් cart item එකට add කරගන්නවා order එකේ save කරන්න
+                                item.sellerUid = productData.sellerUid || null; 
+                                item.shippingCost = itemShipping; // Item එකේ shipping cost එක save කරගන්නවා
+                            }
+                        } catch (e) {
+                            console.error(`Could not fetch product ${item.productId} for shipping:`, e);
+                            itemShipping = 0; // Product එක හම්බුනේ නැත්නම් 0
+                        }
+                    }
+                    totalShipping += itemShipping; // මුළු shipping total එකට එකතු කරනවා
+                    // --- Shipping Logic ඉවරයි ---
+
+                    currentCart.push(item); // Order එකට save කරන්න cart එක හදාගන්නවා
+                    
+                    return `
+                        <div class="flex justify-between items-center py-3">
+                            <div class="flex items-center gap-3">
+                                <img src="${item.imageUrl || 'https://placehold.co/64'}" alt="${item.name}" class="w-12 h-12 rounded object-contain border p-1">
+                                <div>
+                                    <p class="font-semibold text-sm text-gray-800">${item.name}</p>
+                                    <p class="text-xs text-gray-500">Qty: ${quantity}</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-semibold">Rs. ${itemTotalLKR.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+                
+                const summaryHtml = await Promise.all(cartItemPromises);
+                summaryContainer.innerHTML = summaryHtml.join('');
+                
+                // --- අලුත් Total Calculation ---
+                const platformFee = subtotalLKR * 0.04; // 4% Platform Fee
+                const totalCost = subtotalLKR + totalShipping + platformFee; 
+                
+                subtotalEl.textContent = `Rs. ${subtotalLKR.toFixed(2)}`;
+                shippingEl.textContent = `Rs. ${totalShipping.toFixed(2)}`; // Hardcoded 350 වෙනුවට අලුත් total එක
+                feeEl.textContent = `Rs. ${platformFee.toFixed(2)}`;
+                totalEl.textContent = `Rs. ${totalCost.toFixed(2)}`;
+
+                checkoutLoader.classList.add('hidden');
+                checkoutContent.classList.remove('hidden');
+                if (pageLoader) {
+                    pageLoader.style.width = '100%';
+                    setTimeout(() => { pageLoader.classList.add('hidden'); }, 500);
+                }
+
+            } catch (error) {
+                console.error("Error loading cart summary: ", error);
+                summaryContainer.innerHTML = '<p class="text-red-500 py-4">Error loading cart.</p>';
+            }
+        }
+        
+        // ====================================================================
+        // ===== ALUTHIN HADAPU `onPlaceOrder` FUNCTION EKA (AFFILIATE SAMAGA) =====
+        // ====================================================================
+        
+        async function onPlaceOrder(e) {
+            e.preventDefault();
+            if (!currentUser || currentCart.length === 0) {
+                alert("You must be logged in and have items in your cart.");
+                return;
+            }
+            
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            const errorP = document.getElementById('checkout-error');
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Placing Order...';
+            errorP.textContent = '';
+            
+            // --- 1. AFFILIATE ID EKA BROWSER EKEN GANNAWA ---
+            const affiliateId = localStorage.getItem('affiliateRef');
+            
+            const customerInfo = {
+                name: document.getElementById('billing-name').value,
+                phone: document.getElementById('billing-phone').value,
+                email: document.getElementById('billing-email').value,
+                address: document.getElementById('billing-address').value,
+                city: document.getElementById('billing-city').value,
+                district: document.getElementById('billing-district').value,
+                postalCode: document.getElementById('billing-postal-code').value
+            };
+            
+            const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+            const orderNotes = document.getElementById('order-notes').value;
+            
+            // --- Calculation Logic (re-calculate from currentCart) ---
+            const subtotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const totalShipping = currentCart.reduce((sum, item) => sum + (item.shippingCost || 0), 0); 
+            const platformFee = subtotal * 0.04;
+            const totalAmount = subtotal + totalShipping + platformFee;
+            // --- End Calculation ---
+            
+            let orderStatus = "Pending"; 
+            if (paymentMethod === 'cod') {
+                orderStatus = "Processing";
+            } else if (paymentMethod === 'bank_transfer') {
+                orderStatus = "Pending Payment";
+            }
+            
+            const newOrder = {
+                userId: currentUser.uid,
+                customerInfo: customerInfo,
+                items: currentCart, // Cart eke shippingCost, sellerUid data thiyenawa
+                paymentMethod: paymentMethod,
+                orderNotes: orderNotes,
+                subtotal: subtotal,
+                shipping: totalShipping, // Shipping calculation eken gaththa total eka
+                platformFee: platformFee, 
+                totalAmount: totalAmount, 
+                status: orderStatus,
+                createdAt: serverTimestamp(),
+                affiliateId: affiliateId || null // <-- 2. ID EKA ORDER EKATA ADD KARANAWA
+            };
+            
+            try {
+                // "orders" collection ekata order eka add karanawa
+                const newOrderRef = await addDoc(collection(db, "orders"), newOrder);
+                
+                // Cart eka clear karanawa
+                const cartRef = collection(db, usersPath, currentUser.uid, 'cart');
+                const batch = writeBatch(db);
+                currentCart.forEach(item => {
+                    const itemRef = doc(cartRef, item.id);
+                    batch.delete(itemRef);
+                });
+                await batch.commit();
+                
+                // --- 3. AFFILIATE ID EKA CLEAR KIRIMA ---
+                // Order eka dapu gaman, ID eka browser eken ain karanawa
+                localStorage.removeItem('affiliateRef');
+                
+                console.log("Order placed successfully! ID:", newOrderRef.id);
+                window.location.href = `order-success.html?id=${newOrderRef.id}`;
+                
+            } catch (error) {
+                console.error("Error placing order: ", error);
+                errorP.textContent = "Could not place order. Please try again.";
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = 'Place Order';
+            }
+        }
+        
+        // --- All supporting functions (Header, Footer, Drawers, etc.) ---
+
+        async function loadSiteConfig() {
+            try {
+                const docRef = doc(db, publicDataPath, 'siteContent', 'config');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().logoImageUrl) {
+                    const url = docSnap.data().logoImageUrl;
+                    if(document.getElementById('logo-img')) document.getElementById('logo-img').src = url;
+                    if(document.getElementById('mobile-logo-img')) document.getElementById('mobile-logo-img').src = url;
+                }
+            } catch (e) { console.error("Error loading site config: ", e); }
+        }
+        
+        async function loadFooter() {
+            try {
+                const contactRef = doc(db, publicDataPath, 'siteContent', 'footerContact');
+                const contactSnap = await getDoc(contactRef);
+                if (contactSnap.exists()) {
+                    const data = contactSnap.data();
+                    document.getElementById('footer-address').textContent = data.address || '...';
+                    document.getElementById('footer-email').textContent = data.email || '...';
+                    document.getElementById('footer-hotline').textContent = data.hotline || '...';
+                }
+            } catch(e) { console.error("Error loading footer contact", e); }
+            
+            const linksRef = collection(db, publicDataPath, 'footerLinks');
+            onSnapshot(linksRef, (querySnapshot) => {
+                const lists = {
+                    col_tsmgroup: document.getElementById('footer-col-tsmgroup'),
+                    col_info: document.getElementById('footer-col-info'),
+                    col_quicklinks: document.getElementById('footer-col-quicklinks')
+                };
+                Object.values(lists).forEach(list => { if(list) list.innerHTML = ''; }); 
+                querySnapshot.forEach((doc) => {
+                    const link = doc.data();
+                    if (lists[link.column]) {
+                        lists[link.column].innerHTML += `<li><a href="${link.url}" class="hover:text-white">${link.text}</a></li>`;
+                    }
+                });
+            });
+        }
+
+        function setupMobileDrawers() {
+            const menuDrawer = document.getElementById('menu-drawer');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const menuDrawerClose = document.getElementById('menu-drawer-close');
+            const menuDrawerOverlay = document.getElementById('menu-drawer-overlay');
+            
+            mobileMenuBtn?.addEventListener('click', () => menuDrawer?.classList.add('open'));
+            menuDrawerClose?.addEventListener('click', () => menuDrawer?.classList.remove('open'));
+            menuDrawerOverlay?.addEventListener('click', () => menuDrawer?.classList.remove('open'));
+
+            const cartDrawer = document.getElementById('cart-drawer');
+            const mobileCartBtn = document.getElementById('mobile-cart-btn');
+            const desktopCartBtn = document.getElementById('desktop-cart-btn');
+            const cartDrawerClose = document.getElementById('cart-drawer-close');
+            const cartDrawerOverlay = document.getElementById('cart-drawer-overlay');
+
+            const openCart = () => cartDrawer?.classList.add('open');
+            const closeCart = () => cartDrawer?.classList.remove('open');
+
+            mobileCartBtn?.addEventListener('click', openCart);
+            desktopCartBtn?.addEventListener('click', openCart);
+            cartDrawerClose?.addEventListener('click', closeCart);
+            cartDrawerOverlay?.addEventListener('click', closeCart);
+            
+            const authDrawer = document.getElementById('account-drawer-modal');
+            const authDrawerBg = document.getElementById('account-drawer-bg');
+            const closeAuthBtn1 = document.getElementById('close-account-drawer-btn-logged-in');
+            const closeAuthBtn2 = document.getElementById('close-account-drawer-btn-logged-out');
+            
+            document.getElementById('desktop-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                if(currentUser) {
+                    window.location.href = 'customer-account.html';
+                } else {
+                    window.location.href = 'account.html';
+                }
+            });
+            document.getElementById('mobile-account-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                if(currentUser) {
+                    window.location.href = 'customer-account.html';
+                } else {
+                    window.location.href = 'account.html';
+                }
+            });
+            
+            const closeAuthDrawer = () => authDrawer?.classList.add('hidden');
+            authDrawerBg?.addEventListener('click', closeAuthDrawer);
+            closeAuthBtn1?.addEventListener('click', closeAuthDrawer);
+            closeAuthBtn2?.addEventListener('click', closeAuthDrawer);
+
+            document.getElementById('drawer-logout-btn')?.addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    closeAuthDrawer();
+                    window.location.href = 'account.html';
+                });
+            });
+        }
+        
+        function attachWishlistBadgeListener(userId) {
+            if (wishlistUnsubscribe) {
+                wishlistUnsubscribe();
+            }
+            const wishlistRef = collection(db, usersPath, userId, 'wishlist');
+            wishlistUnsubscribe = onSnapshot(wishlistRef, (snapshot) => {
+                updateWishlistCountBadge(snapshot.size);
+            }, (error) => {
+                console.error("Error updating wishlist badge: ", error);
+                updateWishlistCountBadge(0);
+            });
+        }
+        
+        function updateWishlistCountBadge(count) {
+            const desktopBadge = document.getElementById('wishlist-count-badge');
+            const mobileBadge = document.getElementById('mobile-wishlist-badge');
+            const countStr = String(count);
+
+            if (desktopBadge) {
+                desktopBadge.textContent = countStr;
+                if (count > 0) {
+                    desktopBadge.classList.add('pop');
+                    setTimeout(() => desktopBadge.classList.remove('pop'), 200);
+                }
+            }
+            if (mobileBadge) {
+                mobileBadge.textContent = countStr;
+            }
+        };
+
+        function updateCartCounters(count) {
+            const countStr = String(count);
+            const badges = [
+                document.getElementById('cart-count-badge'),
+                document.getElementById('mobile-cart-badge')
+            ];
+            badges.forEach(badge => {
+                if(badge) {
+                    badge.textContent = countStr;
+                    badge.classList.add('pop');
+                    setTimeout(() => badge.classList.remove('pop'), 200);
+                }
+            });
+        }
+
+        function attachCartDrawerListener(userId) {
+            const container = document.getElementById('cart-drawer-items-container');
+            const totalEl = document.getElementById('cart-drawer-total');
+            if (!container || !totalEl) return;
+            
+            if (!userId) {
+                container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
+                totalEl.textContent = 'Rs. 0.00';
+                updateCartCounters(0);
+                return;
+            }
+
+            const cartRef = collection(db, usersPath, userId, 'cart');
+            
+            onSnapshot(cartRef, (snapshot) => {
+                updateCartCounters(snapshot.size); 
+            });
+        }
+
+    </script>
+</body>
+</html>
