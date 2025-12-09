@@ -22,7 +22,6 @@
                     },
                     colors: {
                         // === Pink Theme Colors ===
-                        // Class names 'mudalali-green' are kept for compatibility but mapped to PINK colors
                         'mudalali-green': {
                             light: '#fbcfe8',       /* Light Pink */
                             DEFAULT: '#db2777',     /* Hot Pink */
@@ -95,8 +94,8 @@
     
     <header class="bg-white shadow-sm sticky top-0 z-40 hidden md:block border-b border-pink-100">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-             <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green">
-              <img id="logo-img" src="https://i.ibb.co/1tCywvyP/logo.png" class="h-10" alt="Logo">
+             <a href="/" id="logo-link" class="text-3xl font-bold uppercase tracking-wider">
+              <span class="text-mudalali-green">TU</span><span class="text-black">TU</span>
             </a>
             <div class="flex-grow max-w-xl mx-4">
                 <form class="flex">
@@ -134,9 +133,9 @@
         <button id="mobile-menu-btn" class="text-2xl text-gray-600">
             <i class="fa fa-bars"></i>
         </button>
-         <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green">
-              <img id="mobile-logo-img" src="https://i.ibb.co/1tCywvyP/logo.png" class="h-8" alt="Logo">
-            </a>
+         <a href="/" id="mobile-logo-link" class="text-3xl font-bold uppercase tracking-wider">
+            <span class="text-mudalali-green">TU</span><span class="text-black">TU</span>
+        </a>
         <div class="w-8"></div> 
     </header>
 
@@ -223,19 +222,7 @@
                     </div>
                 </div>
 
-                <div class="hidden md:flex flex-col items-center justify-center bg-mudalali-green text-white p-10">
-                    <div class="text-center">
-                        <div class="w-32 h-32 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                             <i class="fa fa-users text-5xl text-white"></i>
-                        </div>
-                        <h1 class="text-3xl font-bold mb-3">අනාගතයට අපෙන් දෙයක්</h1>
-                        <p class="text-lg text-pink-100">One stop platform for all Sri Lankan entrepreneurs.</p>
-                        
-                        <div class="w-full h-48 bg-white/10 rounded-2xl flex items-center justify-center mt-10 backdrop-blur-sm border border-white/20">
-                            <i class="fa fa-shopping-basket text-7xl text-white/50"></i>
-                        </div>
-                    </div>
-                </div>
+              
             </div>
         </div>
     </main>
@@ -356,13 +343,13 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
        const firebaseConfig = {
-  apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-  authDomain: "masterking-fa629.firebaseapp.com",
-  projectId: "masterking-fa629",
-  storageBucket: "masterking-fa629.firebasestorage.app",
-  messagingSenderId: "680021576286",
-  appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-  measurementId: "G-9443L8L88Q"
+ apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+ authDomain: "masterking-fa629.firebaseapp.com",
+ projectId: "masterking-fa629",
+ storageBucket: "masterking-fa629.firebasestorage.app",
+ messagingSenderId: "680021576286",
+ appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+ measurementId: "G-9443L8L88Q"
 };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -568,16 +555,19 @@
                 let config = {};
                 if (docSnap.exists()) config = docSnap.data();
                 
-                const logoText = config.logoText || 'Pink Store';
                 const logoImg = document.getElementById('logo-img');
                 const mobileLogoImg = document.getElementById('mobile-logo-img');
                 const logoLink = document.getElementById('logo-link');
+                const mobileLogoLink = document.getElementById('mobile-logo-link');
 
                 if (config.logoImageUrl && logoImg) {
                     logoImg.src = config.logoImageUrl;
                     if(mobileLogoImg) mobileLogoImg.src = config.logoImageUrl;
                 } else {
-                    if (logoLink && !logoImg) logoLink.textContent = logoText;
+                    // Force the colored text even if config exists but no image
+                    // Using innerHTML to keep the spans
+                    if (logoLink && !logoImg) logoLink.innerHTML = '<span class="text-mudalali-green">TU</span><span class="text-black">TU</span>';
+                    if (mobileLogoLink) mobileLogoLink.innerHTML = '<span class="text-mudalali-green">TU</span><span class="text-black">TU</span>';
                 }
                 
                 if (document.getElementById('header-hotline')) {
