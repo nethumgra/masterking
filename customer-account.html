@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Account - Pink Store</title>
+    <title>My Account - TUTU Fashion</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -153,11 +153,10 @@
 </head>
 <body class="pb-20 md:pb-0"> 
     
-    <!-- Pink Store Header -->
     <header class="bg-white shadow-sm sticky top-0 z-40 hidden md:block border-b border-pink-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green">
-                <span class="text-gray-800">PINK</span>STORE
+            <a href="index.html" id="logo-link" class="text-3xl font-bold text-mudalali-green">
+                <span class="text-gray-800">TU</span>TU
             </a>
             <div class="flex-grow max-w-xl mx-4">
                 <form class="flex">
@@ -213,7 +212,7 @@
             <i class="fa fa-bars"></i>
         </button>
         <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
-            PINK<span class="text-gray-600">STORE</span>
+            TU<span class="text-gray-600">TU</span>
         </a>
         <a href="account.html" id="mobile-account-btn" class="text-2xl text-mudalali-green w-8 text-right">
             <i class="fa fa-user"></i>
@@ -269,7 +268,6 @@
         </div>
     </div>
 
-    <!-- Menu Drawer (From Index) -->
     <div id="menu-drawer" class="drawer">
         <div class="drawer-overlay" id="menu-drawer-overlay"></div>
         <div class="drawer-content left flex flex-col">
@@ -281,7 +279,6 @@
         </div>
     </div>
 
-    <!-- Cart Drawer (From Index) -->
     <div id="cart-drawer" class="drawer">
         <div class="drawer-overlay" id="cart-drawer-overlay"></div>
         <div class="drawer-content flex flex-col">
@@ -291,7 +288,6 @@
         </div>
     </div>
     
-    <!-- Address Modal (Pink Theme) -->
     <div id="address-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-lg m-4 overflow-hidden">
             <div class="p-4 border-b bg-pink-50">
@@ -340,7 +336,6 @@
          <div id="account-container" class="hidden">
              <div class="flex flex-col md:flex-row gap-8">
                  
-                <!-- Sidebar -->
                 <aside class="w-full md:w-1/4 self-start">
                      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                          <div class="p-6 bg-pink-50 border-b border-pink-100">
@@ -357,7 +352,6 @@
                      </div>
                  </aside>
 
-                 <!-- Content Area -->
                  <div class="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
                      
                     <div id="profile-loading" class="text-center p-12"> 
@@ -365,7 +359,6 @@
                         <p class="mt-4 text-gray-600">Loading your profile...</p> 
                      </div>
                      
-                    <!-- View: Dashboard -->
                     <div id="dashboard-view" class="account-view hidden">
                           <div id="profile-notification" class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded-r-md mb-6 hidden"> 
                             <h4 class="font-bold">Complete Your Profile!</h4> 
@@ -384,7 +377,6 @@
                           </div>
                      </div>
                      
-                    <!-- View: Orders -->
                     <div id="orders-view" class="account-view hidden">
                          <div class="mb-6 pb-4 border-b border-gray-100"> 
                             <h3 class="text-2xl font-bold text-gray-800">My Orders</h3> 
@@ -395,7 +387,6 @@
                          </div>
                      </div>
                      
-                    <!-- View: Addresses -->
                     <div id="addresses-view" class="account-view hidden">
                          <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100"> 
                             <div> 
@@ -411,7 +402,6 @@
                          </div>
                      </div>
                      
-                    <!-- View: Account Details -->
                     <div id="account-details-view" class="account-view hidden">
                          <div class="mb-8 pb-4 border-b border-gray-100"> 
                             <h3 class="text-2xl font-bold text-gray-800">Account Details</h3> 
@@ -449,7 +439,6 @@
                          </div>
                      </div>
 
-                     <!-- View: Wishlist -->
                      <div id="wishlist-view" class="account-view hidden">
                          <div class="mb-6 pb-4 border-b border-gray-100"> 
                             <h3 class="text-2xl font-bold text-gray-800">My Wishlist</h3> 
@@ -625,7 +614,7 @@
         
         // --- Page Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("Mudalali Mama Account Page Initialized");
+            console.log("TUTU Account Page Initialized");
             loadSiteConfig();
             loadSiteTheme();
             loadDesktopNavCategories();
@@ -1158,7 +1147,7 @@
                 let config = {};
                 if (docSnap.exists()) config = docSnap.data();
                 
-                const logoText = config.logoText || 'මුදලාලි මාමා';
+                const logoText = config.logoText || 'TUTU';
                 const logoImg = document.getElementById('logo-img');
                 const mobileLogoImg = document.getElementById('mobile-logo-img');
                 const logoLink = document.getElementById('logo-link');
