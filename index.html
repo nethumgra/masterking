@@ -128,6 +128,10 @@
         .product-card-link {
             @apply cursor-pointer block h-full;
         }
+        /* Rotated chevron for dropdown */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body class="pb-20 md:pb-0"> 
@@ -668,16 +672,73 @@
                     return;
                 }
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const name = data.name || "Unnamed";
-                    
-                    const link = document.createElement('a');
-                    link.href = `shop.html?category=${encodeURIComponent(name)}`;
-                    link.className = 'menu-item flex justify-between items-center';
-                    link.innerHTML = `<span>${name}</span> <i class="fas fa-chevron-right text-xs text-pink-300"></i>`;
-                    list.appendChild(link);
+                // 1. Process categories into Main and Sub
+                const allCats = [];
+                querySnapshot.forEach(doc => {
+                    allCats.push({ id: doc.id, ...doc.data() });
                 });
+
+                const mainCategories = allCats.filter(c => !c.parentId);
+                const subCategories = allCats.filter(c => c.parentId);
+
+                list.innerHTML = '';
+
+                // 2. Render Main Categories with Dropdown Logic
+                mainCategories.forEach(main => {
+                    const children = subCategories.filter(sub => sub.parentId === main.id);
+                    
+                    const itemContainer = document.createElement('div');
+                    itemContainer.className = 'border-b border-gray-100 last:border-0';
+
+                    // Main Category Row
+                    const mainRow = document.createElement('div');
+                    mainRow.className = 'flex justify-between items-center py-3 px-4 hover:bg-pink-50 transition-colors';
+                    
+                    // Link to Shop Page
+                    const link = document.createElement('a');
+                    link.href = `shop.html?category=${encodeURIComponent(main.name)}`;
+                    link.className = 'font-medium text-gray-700 hover:text-mudalali-green flex-grow';
+                    link.textContent = main.name;
+                    
+                    mainRow.appendChild(link);
+
+                    // Dropdown Toggle (Only if children exist)
+                    if (children.length > 0) {
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.className = 'p-2 text-gray-400 hover:text-mudalali-green focus:outline-none transition-transform duration-300';
+                        toggleBtn.innerHTML = '<i class="fas fa-chevron-down text-xs"></i>';
+                        
+                        const subContainer = document.createElement('div');
+                        subContainer.className = 'hidden bg-gray-50 pl-8 pr-4 pb-2 space-y-2';
+
+                        // Render Children
+                        children.forEach(child => {
+                            const childLink = document.createElement('a');
+                            childLink.href = `shop.html?category=${encodeURIComponent(child.name)}`;
+                            childLink.className = 'block py-2 text-sm text-gray-500 hover:text-mudalali-green';
+                            childLink.textContent = child.name;
+                            subContainer.appendChild(childLink);
+                        });
+
+                        // Toggle Event
+                        toggleBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            subContainer.classList.toggle('hidden');
+                            toggleBtn.classList.toggle('rotate-180');
+                        });
+
+                        mainRow.appendChild(toggleBtn);
+                        itemContainer.appendChild(mainRow);
+                        itemContainer.appendChild(subContainer);
+                    } else {
+                        // No children, just render simple row without toggle
+                        itemContainer.appendChild(mainRow);
+                    }
+
+                    list.appendChild(itemContainer);
+                });
+
             } catch (error) {
                 console.error("Error loading categories for drawer:", error);
                 if(loader) loader.innerHTML = '<p class="text-red-400 text-sm">Failed to load.</p>';
@@ -809,6 +870,10 @@
                 if (querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full text-gray-500 text-center">No categories found.</p>'; return; }
                 querySnapshot.forEach((doc) => {
                     const category = doc.data();
+                    
+                    // Filter: Only show Main Categories (those without parentId)
+                    if (category.parentId) return;
+
                     const bgColor = category.color || '#f3f4f6';
                     
                     grid.innerHTML += `
@@ -1152,8 +1217,7 @@
         }
 
         async function loadFooter() {
-            // Placeholder for Footer logic if dynamic, currently static in HTML structure
-            // In a real scenario, this would fetch from publicDataPath/siteContent/footerConfig
+            // Placeholder for Footer logic if dynamic
         }
 
         function setupMobileDrawers() {

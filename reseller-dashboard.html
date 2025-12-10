@@ -18,10 +18,10 @@
                         sans: ['Poppins', 'sans-serif'],
                     },
                     colors: {
-                        'sidebar-dark': '#0f172a', /* Dark Navy */
-                        'rose-primary': '#e11d48', /* Main Rose Color */
-                        'rose-light': '#fff1f2',   /* Light Pink BG */
-                        'rose-dark': '#be123c',    /* Darker Rose */
+                        'sidebar-dark': '#0f172a',
+                        'rose-primary': '#e11d48',
+                        'rose-light': '#fff1f2',
+                        'rose-dark': '#be123c',
                     }
                 }
             }
@@ -60,7 +60,7 @@
                 <a href="reseller-team.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
                     <i class="fa fa-wallet w-5"></i> My Team
                 </a>
-                <a href="customer-account.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                <a href="reseller-profile.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
                     <i class="fa fa-user-circle w-5"></i> Profile
                 </a>
             </nav>
@@ -125,8 +125,9 @@
             <div class="flex-1 overflow-y-auto p-5">
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="md:w-5/12">
-                        <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-center h-64">
+                        <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-center h-64 relative">
                             <img id="modalImg" src="" class="max-h-full max-w-full object-contain mix-blend-multiply">
+                            <span id="modalWeightBadge" class="absolute top-2 left-2 bg-sidebar-dark text-white text-[10px] font-bold px-2 py-1 rounded"></span>
                         </div>
                     </div>
                     <div class="md:w-7/12 space-y-5">
@@ -137,14 +138,15 @@
                             </button>
                         </div>
                         
-                        <div class="flex items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-4">
                             <div class="bg-rose-50 px-4 py-2 rounded-xl border border-rose-100">
                                 <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Wholesale Price</p>
                                 <p class="text-2xl font-extrabold text-rose-700">LKR <span id="modalBasePrice">0</span></p>
                             </div>
-                            <div class="h-10 w-px bg-gray-200"></div>
-                            <div class="text-sm text-gray-500">
-                                <p>Stock: <span class="font-bold text-gray-800">Available</span></p>
+                            
+                            <div class="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-wider">Delivery Cost</p>
+                                <p class="text-lg font-bold text-blue-700">LKR <span id="modalDeliveryCost">0</span></p>
                             </div>
                         </div>
 
@@ -164,7 +166,7 @@
                                     <input type="number" id="modalQty" value="1" min="1" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-center font-bold text-gray-700 focus:ring-2 focus:ring-rose-200 outline-none">
                                 </div>
                                 <div class="w-2/3">
-                                    <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Selling Price (To Customer)</label>
+                                    <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Selling Price (Item Only)</label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-2.5 text-gray-400 text-sm">Rs.</span>
                                         <input type="number" id="modalSellingPrice" placeholder="0.00" oninput="calcModalProfit()" class="w-full bg-white border-2 border-rose-200 rounded-lg p-2.5 pl-10 font-bold text-gray-800 focus:border-rose-500 focus:ring-0 outline-none">
@@ -175,6 +177,7 @@
                                 <span class="text-xs font-bold text-green-700">Your Net Profit:</span>
                                 <span class="text-lg font-extrabold text-green-600">LKR <span id="modalProfitDisplay">0</span></span>
                             </div>
+                            <p class="text-[10px] text-gray-400 mt-2 text-center">*Customer pays Item Price + Delivery Fee separately.</p>
                         </div>
                     </div>
                 </div>
@@ -258,19 +261,23 @@
             <div id="cartFooter" class="p-5 bg-white border-t shadow-[0_-5px_20px_rgba(0,0,0,0.05)] hidden shrink-0 z-10">
                 <div class="space-y-2 mb-4 text-sm">
                     <div class="flex justify-between text-gray-500">
-                        <span>Wholesale Cost:</span>
-                        <span>LKR <span id="cartWholesaleTotal">0</span></span>
+                        <span>Items Total (Selling):</span>
+                        <span>LKR <span id="cartItemsTotal">0</span></span>
                     </div>
-                     <div class="flex justify-between text-gray-500">
+                    <div class="flex justify-between text-gray-500">
+                        <span>Total Weight:</span>
+                        <span class="font-bold text-xs"><span id="cartTotalWeight">0</span> KG</span>
+                    </div>
+                     <div class="flex justify-between text-blue-600">
                         <span>Delivery Fee:</span>
-                        <span id="deliveryFeeDisplay" class="font-medium">Rs. 350</span>
+                        <span id="deliveryFeeDisplay" class="font-bold">Rs. 0</span>
                     </div>
                     <div class="flex justify-between font-bold text-green-600 text-base bg-green-50 p-2 rounded-lg border border-green-100">
                         <span>Your Profit:</span>
                         <span>Rs. <span id="cartProfitTotal">0</span></span>
                     </div>
                     <div class="flex justify-between font-extrabold text-gray-800 text-lg pt-2 border-t border-gray-100">
-                        <span>Customer Total:</span>
+                        <span>Customer Pays:</span>
                         <span>Rs. <span id="cartGrandTotal">0</span></span>
                     </div>
                 </div>
@@ -354,6 +361,11 @@
         let hasMoreProducts = true;
         let currentCategory = 'all';
         let searchQuery = '';
+        
+        // --- CALCULATION VARIABLES ---
+        let finalCartWeight = 0;
+        let finalDeliveryFee = 0;
+        let finalGrandTotal = 0;
 
         // 1. AUTH
         onAuthStateChanged(auth, async (user) => {
@@ -441,10 +453,15 @@
 
                         const pid = doc.id;
                         const price = parseFloat(p.price) || 0;
+                        const weight = parseFloat(p.weight) || 0;
+                        const delivery = parseFloat(p.deliveryPrice) || 350; // Default or fetched
                         
                         // ROSE THEME CARD
                         const card = `
-                        <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden border border-rose-50 flex flex-col h-full group">
+                        <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden border border-rose-50 flex flex-col h-full group relative">
+                            <div class="absolute top-2 right-2 z-10 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md backdrop-blur-sm">
+                                ${weight} KG
+                            </div>
                             <div class="relative aspect-square bg-gray-50">
                                 <img src="${p.imageUrl || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -457,7 +474,13 @@
                                         <p class="text-lg font-black text-rose-600">LKR ${price.toLocaleString()}</p>
                                     </div>
                                     <button class="w-full bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-xs font-bold py-2.5 rounded-xl transition-all btn-earn flex justify-center items-center gap-1 border border-rose-100 hover:border-rose-600"
-                                        data-id="${pid}" data-title="${p.name}" data-price="${price}" data-img="${p.imageUrl}" data-desc="${p.description || ''}">
+                                        data-id="${pid}" 
+                                        data-title="${p.name}" 
+                                        data-price="${price}" 
+                                        data-weight="${weight}"
+                                        data-delivery="${delivery}"
+                                        data-img="${p.imageUrl}" 
+                                        data-desc="${p.description || ''}">
                                         Start Selling <i class="fa fa-arrow-right"></i>
                                     </button>
                                 </div>
@@ -494,17 +517,31 @@
 
         function reattachListeners() {
             document.querySelectorAll('.btn-earn').forEach(btn => {
-                btn.onclick = () => openModal(btn.dataset.id, btn.dataset.title, parseFloat(btn.dataset.price), btn.dataset.img, btn.dataset.desc);
+                btn.onclick = () => openModal(
+                    btn.dataset.id, 
+                    btn.dataset.title, 
+                    parseFloat(btn.dataset.price), 
+                    btn.dataset.img, 
+                    btn.dataset.desc,
+                    parseFloat(btn.dataset.weight),
+                    parseFloat(btn.dataset.delivery)
+                );
             });
         }
 
         // 4. MODAL
-        window.openModal = (id, title, basePrice, img, desc) => {
-            currentModalProduct = { id, title, basePrice, img, desc };
+        window.openModal = (id, title, basePrice, img, desc, weight, delivery) => {
+            currentModalProduct = { id, title, basePrice, img, desc, weight, delivery };
+            
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalBasePrice').innerText = basePrice.toLocaleString();
             document.getElementById('modalImg').src = img || 'https://via.placeholder.com/300';
             document.getElementById('modalDesc').innerText = desc;
+            
+            // New Fields Display
+            document.getElementById('modalWeightBadge').innerText = `${weight} KG`;
+            document.getElementById('modalDeliveryCost').innerText = delivery.toLocaleString();
+
             document.getElementById('modalSellingPrice').value = '';
             document.getElementById('modalProfitDisplay').innerText = '0';
             document.getElementById('productModal').classList.remove('hidden');
@@ -548,6 +585,8 @@
                     sellingPrice: sellingPrice,
                     profitPerUnit: profitPerUnit,
                     imageUrl: currentModalProduct.img,
+                    weight: currentModalProduct.weight, // Store Weight
+                    deliveryPrice: currentModalProduct.delivery, // Store Unit Delivery (for ref)
                     quantity: docSnap.exists() ? increment(qty) : qty,
                     addedAt: serverTimestamp()
                 };
@@ -559,7 +598,7 @@
             finally { btn.innerHTML = 'ADD TO CART <i class="fa fa-cart-plus"></i>'; btn.disabled = false; }
         };
 
-        // 5. CART
+        // 5. CART LOGIC (With Weight Calc)
         function listenToCart(uid) {
             onSnapshot(collection(db, usersPath, uid, 'cart'), (snap) => {
                 const container = document.getElementById('cartItemsContainer');
@@ -582,17 +621,18 @@
                 container.innerHTML = '';
                 currentCartData = [];
 
-                let wholesale = 0, profit = 0, total = 0;
+                let profit = 0, itemsTotal = 0, totalWeight = 0;
 
                 snap.forEach(doc => {
                     const item = doc.data();
                     const itemTotal = item.sellingPrice * item.quantity;
                     const itemProfit = item.profitPerUnit * item.quantity;
-                    const itemWholesale = item.basePrice * item.quantity;
+                    const itemWeight = (item.weight || 0) * item.quantity;
 
-                    wholesale += itemWholesale;
                     profit += itemProfit;
-                    total += itemTotal;
+                    itemsTotal += itemTotal;
+                    totalWeight += itemWeight;
+                    
                     currentCartData.push({...item, id: doc.id});
 
                     container.innerHTML += `
@@ -604,26 +644,53 @@
                                 <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded font-bold">Qty: ${item.quantity}</span>
                                 <span class="text-xs font-bold text-gray-800">Rs. ${itemTotal.toLocaleString()}</span>
                             </div>
-                            <p class="text-[10px] text-green-600 font-bold mt-1">My Profit: Rs. ${itemProfit.toLocaleString()}</p>
+                            <div class="flex justify-between mt-1">
+                                <p class="text-[10px] text-green-600 font-bold">Profit: Rs. ${itemProfit.toLocaleString()}</p>
+                                <p class="text-[10px] text-gray-400">${(item.weight * item.quantity).toFixed(2)} KG</p>
+                            </div>
                         </div>
                         <button class="cart-del absolute top-2 right-2 text-gray-300 hover:text-red-500 p-1" data-id="${doc.id}"><i class="fa fa-trash-alt"></i></button>
                     </div>`;
                 });
 
                 document.querySelectorAll('.cart-del').forEach(b => b.onclick = () => deleteDoc(doc(db, usersPath, uid, 'cart', b.dataset.id)));
-                document.getElementById('cartWholesaleTotal').innerText = wholesale.toLocaleString();
+                
+                // Update Globals for Calc
+                window.tempItemsTotal = itemsTotal;
+                finalCartWeight = totalWeight;
+                document.getElementById('cartItemsTotal').innerText = itemsTotal.toLocaleString();
                 document.getElementById('cartProfitTotal').innerText = profit.toLocaleString();
-                window.tempCartTotal = total;
+                document.getElementById('cartTotalWeight').innerText = totalWeight.toFixed(2);
+                
                 handlePaymentChange(); 
             });
         }
 
+        // AUTO-CALCULATE DELIVERY FEE
         window.handlePaymentChange = () => {
             const method = document.querySelector('input[name="payment"]:checked').value;
             document.getElementById('slipUploadDiv').classList.toggle('hidden', method !== 'bank_transfer');
-            const deliveryFee = method === 'store_pickup' ? 0 : 350;
-            document.getElementById('deliveryFeeDisplay').innerText = method === 'store_pickup' ? "Free" : "Rs. 350";
-            if(window.tempCartTotal) document.getElementById('cartGrandTotal').innerText = (window.tempCartTotal + deliveryFee).toLocaleString();
+            
+            let deliveryFee = 0;
+
+            if (method === 'store_pickup') {
+                deliveryFee = 0;
+            } else {
+                // LOGIC: 0kg - 1kg = 350 LKR, +100 per extra KG
+                if (finalCartWeight > 0) {
+                    deliveryFee = 350;
+                    if (finalCartWeight > 1) {
+                        const extra = Math.ceil(finalCartWeight - 1);
+                        deliveryFee += (extra * 100);
+                    }
+                }
+            }
+
+            finalDeliveryFee = deliveryFee;
+            finalGrandTotal = window.tempItemsTotal + deliveryFee;
+
+            document.getElementById('deliveryFeeDisplay').innerText = method === 'store_pickup' ? "Free" : `Rs. ${deliveryFee.toLocaleString()}`;
+            document.getElementById('cartGrandTotal').innerText = finalGrandTotal.toLocaleString();
         };
 
         // 6. GENERATE INVOICE (With Download)
@@ -635,10 +702,8 @@
             const invDate = document.getElementById('invDate');
             
             invItems.innerHTML = '';
-            let total = 0;
             currentCartData.forEach(item => {
                 const lineTotal = item.sellingPrice * item.quantity;
-                total += lineTotal;
                 invItems.innerHTML += `
                     <div class="flex justify-between border-b border-dashed border-gray-100 pb-2">
                         <span>${item.name} <span class="text-xs text-gray-400">x${item.quantity}</span></span>
@@ -646,17 +711,15 @@
                     </div>`;
             });
 
-            const method = document.querySelector('input[name="payment"]:checked').value;
-            const delivery = method === 'store_pickup' ? 0 : 350;
-            if(delivery > 0) invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-xs"><span>Delivery Fee</span><span>${delivery}</span></div>`;
+            if(finalDeliveryFee > 0) {
+                invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-xs"><span>Delivery Fee (${finalCartWeight} KG)</span><span>${finalDeliveryFee}</span></div>`;
+            }
             
-            total += delivery;
-            invTotal.innerText = total.toLocaleString();
+            invTotal.innerText = finalGrandTotal.toLocaleString();
             invDate.innerText = new Date().toLocaleDateString();
             document.getElementById('invoiceModal').classList.remove('hidden');
         };
 
-        // NEW: Download Invoice Logic
         window.downloadInvoice = () => {
             const element = document.getElementById('invoiceContent');
             html2canvas(element).then(canvas => {
@@ -681,28 +744,30 @@
             btn.innerHTML = 'Sending...'; btn.disabled = true;
 
             try {
-                let subtotal = 0, profit = 0, total = 0;
+                let subtotal = 0, profit = 0;
                 currentCartData.forEach(d => {
                     subtotal += d.basePrice * d.quantity;
                     profit += d.profitPerUnit * d.quantity;
-                    total += d.sellingPrice * d.quantity;
                 });
-                const delivery = method === 'store_pickup' ? 0 : 350;
-                total += delivery;
 
                 const orderData = {
-                    resellerId: currentUser.uid, // Track Reseller
+                    resellerId: currentUser.uid, 
                     resellerEmail: currentUser.email,
                     customer: { name, phone, address: method === 'store_pickup' ? 'Pickup' : address },
                     items: currentCartData,
                     method,
-                    financials: { subtotal, profit, delivery, total },
+                    financials: { 
+                        subtotal, 
+                        profit, 
+                        delivery: finalDeliveryFee, 
+                        totalWeight: finalCartWeight,
+                        total: finalGrandTotal 
+                    },
                     status: 'Pending',
-                    type: 'reseller_order', // Filter Flag for Admin
+                    type: 'reseller_order', 
                     createdAt: serverTimestamp()
                 };
 
-                // Saving to NEW Collection 'reseller_orders' for Admin Separation
                 await addDoc(collection(db, 'reseller_orders'), orderData);
                 
                 const batch = writeBatch(db);

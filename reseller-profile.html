@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Tutu Reseller</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        'sidebar-dark': '#0f172a',
+                        'rose-primary': '#e11d48',
+                        'rose-light': '#fff1f2',
+                        'rose-dark': '#be123c',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #e11d48; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background-color: #e11d48; border-radius: 4px; }
+        
+        /* Drawer Animation */
+        .drawer-content { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+        .drawer-open .drawer-content { transform: translateX(0); }
+    </style>
+</head>
+<body class="bg-rose-light text-gray-800 font-sans antialiased overflow-hidden">
+
+    <div class="flex h-screen">
+
+        <aside class="w-64 bg-sidebar-dark text-white hidden md:flex flex-col flex-shrink-0 transition-all duration-300 shadow-xl" id="sidebar">
+            <div class="p-6 flex items-center gap-3 border-b border-gray-700">
+                <img id="sidebar-user-img" src="https://via.placeholder.com/50" class="w-12 h-12 rounded-full border-2 border-rose-primary object-cover">
+                <div>
+                    <h4 id="sidebar-user-name" class="font-bold text-sm">Loading...</h4>
+                    <span class="text-[10px] bg-rose-primary/20 text-rose-400 px-2 py-0.5 rounded-full border border-rose-primary/30">Reseller</span>
+                </div>
+            </div>
+
+           <nav class="flex-1 overflow-y-auto px-3 space-y-2 text-sm font-medium py-6">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-rose-primary to-rose-dark text-white rounded-xl shadow-lg shadow-rose-900/50">
+                    <i class="fa fa-store w-5"></i> Marketplace
+                </a>
+                <a href="reseller-orders.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                    <i class="fa fa-box-open w-5"></i> Reseller Orders
+                </a>
+                <a href="reseller-team.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                    <i class="fa fa-wallet w-5"></i> My Team
+                </a>
+                <a href="reseller-profile.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                    <i class="fa fa-user-circle w-5"></i> Profile
+                </a>
+            </nav>
+
+            </nav>
+        </aside>
+
+        <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+            
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center md:hidden z-10 shrink-0">
+                <button onclick="document.getElementById('sidebar').classList.toggle('hidden'); document.getElementById('sidebar').classList.toggle('absolute'); document.getElementById('sidebar').classList.toggle('z-50'); document.getElementById('sidebar').classList.toggle('h-full');" class="text-gray-600 text-xl">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <h1 class="font-bold text-xl text-rose-primary">My Profile</h1>
+                <div class="w-6"></div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-rose-light/50">
+                <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <div class="lg:col-span-1 space-y-6">
+                        
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center relative overflow-hidden">
+                            <div class="h-24 bg-gradient-to-r from-rose-400 to-rose-600 absolute top-0 left-0 right-0"></div>
+                            
+                            <div class="relative z-10 mt-8 mb-4">
+                                <div class="w-28 h-28 mx-auto relative group">
+                                    <img id="main-profile-img" src="https://via.placeholder.com/150" class="w-full h-full rounded-full border-4 border-white shadow-lg object-cover bg-white">
+                                    <label class="absolute bottom-1 right-1 bg-gray-800 text-white p-2 rounded-full cursor-pointer hover:bg-rose-600 transition-colors shadow-md">
+                                        <i class="fa fa-camera text-xs"></i>
+                                        <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="uploadImage('profile')">
+                                    </label>
+                                    <div id="profile-loader" class="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center hidden">
+                                        <div class="loader"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h2 id="display-name" class="text-xl font-bold text-gray-800">Loading...</h2>
+                            <p id="display-email" class="text-sm text-gray-500 mb-4">user@example.com</p>
+                            
+                            <div class="flex justify-center gap-2">
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200">
+                                    <i class="fa fa-check-circle"></i> Active Reseller
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                                <i class="fa fa-headset text-rose-500"></i> Admin Support
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase">Topic</label>
+                                    <select id="req-topic" class="w-full border border-gray-200 rounded-xl p-2 text-sm outline-none focus:border-rose-500 bg-gray-50">
+                                        <option value="General Inquiry">General Inquiry</option>
+                                        <option value="Order Issue">Order Issue</option>
+                                        <option value="Payment / Commission">Payment / Commission</option>
+                                        <option value="Technical Bug">Technical Bug</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase">Message</label>
+                                    <textarea id="req-msg" rows="3" class="w-full border border-gray-200 rounded-xl p-2 text-sm outline-none focus:border-rose-500 bg-gray-50 resize-none" placeholder="Describe your issue..."></textarea>
+                                </div>
+                                <button onclick="sendAdminRequest()" id="btn-send-req" class="w-full bg-gray-800 text-white py-2 rounded-xl text-sm font-bold hover:bg-black transition-colors">
+                                    Send Request
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-6">
+                        
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="font-bold text-lg text-gray-800">Personal Details</h3>
+                                <button onclick="saveProfile()" id="btn-save-profile" class="bg-rose-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-rose-600 transition-colors">
+                                    Save Changes
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Full Name</label>
+                                    <div class="relative">
+                                        <i class="fa fa-user absolute left-3 top-3 text-gray-400"></i>
+                                        <input type="text" id="input-name" class="w-full border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-500 transition-all">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Phone Number</label>
+                                    <div class="relative">
+                                        <i class="fa fa-phone absolute left-3 top-3 text-gray-400"></i>
+                                        <input type="text" id="input-phone" class="w-full border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-500 transition-all">
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
+                                    <div class="relative">
+                                        <i class="fa fa-envelope absolute left-3 top-3 text-gray-400"></i>
+                                        <input type="email" id="input-email" disabled class="w-full border border-gray-200 bg-gray-50 rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-500 cursor-not-allowed">
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 mt-1 ml-1">Email cannot be changed manually.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-lg text-gray-800 mb-1">Identity Verification</h3>
+                            <p class="text-xs text-gray-500 mb-6">Manage your National Identity Card photos.</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                
+                                <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:border-rose-300 transition-colors bg-gray-50 relative group">
+                                    <p class="text-xs font-bold text-gray-500 mb-3 uppercase">NIC Front Side</p>
+                                    <div class="h-40 w-full bg-white rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center relative">
+                                        <img id="nic-front-img" src="https://via.placeholder.com/300x200?text=No+Image" class="w-full h-full object-contain">
+                                        <div id="loader-nic-front" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden"><div class="loader"></div></div>
+                                    </div>
+                                    <button onclick="document.getElementById('upload-nic-front').click()" class="mt-3 text-xs font-bold text-rose-500 bg-white border border-rose-200 px-4 py-2 rounded-lg hover:bg-rose-50 w-full transition-colors">
+                                        <i class="fa fa-upload mr-1"></i> Update Front
+                                    </button>
+                                    <input type="file" id="upload-nic-front" class="hidden" accept="image/*" onchange="uploadImage('nic_front')">
+                                </div>
+
+                                <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:border-rose-300 transition-colors bg-gray-50 relative group">
+                                    <p class="text-xs font-bold text-gray-500 mb-3 uppercase">NIC Back Side</p>
+                                    <div class="h-40 w-full bg-white rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center relative">
+                                        <img id="nic-back-img" src="https://via.placeholder.com/300x200?text=No+Image" class="w-full h-full object-contain">
+                                        <div id="loader-nic-back" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden"><div class="loader"></div></div>
+                                    </div>
+                                    <button onclick="document.getElementById('upload-nic-back').click()" class="mt-3 text-xs font-bold text-rose-500 bg-white border border-rose-200 px-4 py-2 rounded-lg hover:bg-rose-50 w-full transition-colors">
+                                        <i class="fa fa-upload mr-1"></i> Update Back
+                                    </button>
+                                    <input type="file" id="upload-nic-back" class="hidden" accept="image/*" onchange="uploadImage('nic_back')">
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button onclick="toggleChat()" class="fixed bottom-6 right-6 bg-gradient-to-r from-rose-500 to-rose-700 text-white w-14 h-14 rounded-full shadow-2xl hover:scale-110 transition-transform z-40 flex items-center justify-center border-4 border-white">
+        <i class="fa fa-comment-dots text-2xl"></i>
+    </button>
+
+    <div id="chatDrawer" class="fixed inset-0 z-50 pointer-events-none">
+        <div id="chatOverlay" onclick="toggleChat()" class="absolute inset-0 bg-black/50 opacity-0 transition-opacity pointer-events-none"></div>
+        
+        <div id="chatContent" class="drawer-content absolute top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl flex flex-col pointer-events-auto">
+            
+            <div class="p-4 bg-gradient-to-r from-sidebar-dark to-gray-900 text-white flex justify-between items-center shadow-md shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=random" class="w-10 h-10 rounded-full border-2 border-green-400">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">Admin Support</h4>
+                        <p class="text-[10px] text-gray-300">Typically replies in 1h</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-gray-400 hover:text-white"><i class="fa fa-times text-xl"></i></button>
+            </div>
+
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 chat-scroll">
+                <div class="text-center text-xs text-gray-400 my-4">Chat Started</div>
+                </div>
+
+            <div class="p-3 bg-white border-t border-gray-200 shrink-0">
+                <form onsubmit="sendMessage(event)" class="flex gap-2">
+                    <input type="text" id="chat-input" class="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none" placeholder="Type a message...">
+                    <button type="submit" class="bg-rose-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-rose-700 transition-colors shadow-md">
+                        <i class="fa fa-paper-plane text-xs"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+            authDomain: "masterking-fa629.firebaseapp.com",
+            projectId: "masterking-fa629",
+            storageBucket: "masterking-fa629.firebasestorage.app",
+            messagingSenderId: "680021576286",
+            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+            measurementId: "G-9443L8L88Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const usersPath = `/users`;
+        const imgbbApiKey = 'f068295c19803c448665a0ea48bcc2fc'; // Reused from your products.html
+
+        let currentUser = null;
+
+        // 1. AUTH & LOAD
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                loadProfileData(user.uid);
+                initChat(user.uid);
+            } else {
+                window.location.href = 'account.html';
+            }
+        });
+
+        async function loadProfileData(uid) {
+            try {
+                const docRef = doc(db, usersPath, uid);
+                const snap = await getDoc(docRef);
+                
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // Sidebar
+                    document.getElementById('sidebar-user-name').innerText = data.name || currentUser.email;
+                    if(data.photoURL) document.getElementById('sidebar-user-img').src = data.photoURL;
+
+                    // Main Content
+                    document.getElementById('display-name').innerText = data.name || "No Name";
+                    document.getElementById('display-email').innerText = data.email;
+                    document.getElementById('input-name').value = data.name || "";
+                    document.getElementById('input-phone').value = data.phone || "";
+                    document.getElementById('input-email').value = data.email;
+
+                    if(data.photoURL) document.getElementById('main-profile-img').src = data.photoURL;
+                    if(data.nicFront) document.getElementById('nic-front-img').src = data.nicFront;
+                    if(data.nicBack) document.getElementById('nic-back-img').src = data.nicBack;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // 2. SAVE PROFILE DETAILS
+        window.saveProfile = async () => {
+            const btn = document.getElementById('btn-save-profile');
+            const name = document.getElementById('input-name').value;
+            const phone = document.getElementById('input-phone').value;
+
+            if(!name || !phone) return Swal.fire("Error", "Name and Phone are required", "error");
+
+            btn.innerText = "Saving...";
+            try {
+                await updateDoc(doc(db, usersPath, currentUser.uid), {
+                    name: name,
+                    phone: phone,
+                    updatedAt: serverTimestamp()
+                });
+                Swal.fire("Success", "Profile updated!", "success");
+                loadProfileData(currentUser.uid); // Refresh UI
+            } catch(e) {
+                Swal.fire("Error", e.message, "error");
+            } finally {
+                btn.innerText = "Save Changes";
+            }
+        };
+
+        // 3. IMAGE UPLOAD (Profile, NIC Front, NIC Back)
+        window.uploadImage = async (type) => {
+            let inputId, loaderId, imgId, fieldName;
+
+            if(type === 'profile') {
+                inputId = 'profile-upload'; loaderId = 'profile-loader'; imgId = 'main-profile-img'; fieldName = 'photoURL';
+            } else if(type === 'nic_front') {
+                inputId = 'upload-nic-front'; loaderId = 'loader-nic-front'; imgId = 'nic-front-img'; fieldName = 'nicFront';
+            } else if(type === 'nic_back') {
+                inputId = 'upload-nic-back'; loaderId = 'loader-nic-back'; imgId = 'nic-back-img'; fieldName = 'nicBack';
+            }
+
+            const file = document.getElementById(inputId).files[0];
+            if(!file) return;
+
+            document.getElementById(loaderId).classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if(data.success) {
+                    const url = data.data.url;
+                    
+                    // Update Firestore
+                    await updateDoc(doc(db, usersPath, currentUser.uid), {
+                        [fieldName]: url
+                    });
+
+                    // Update UI
+                    document.getElementById(imgId).src = url;
+                    if(type === 'profile') document.getElementById('sidebar-user-img').src = url;
+                    
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Image updated', timer: 2000, showConfirmButton: false });
+                } else {
+                    throw new Error("Upload failed");
+                }
+            } catch(e) {
+                console.error(e);
+                Swal.fire("Upload Error", "Failed to upload image.", "error");
+            } finally {
+                document.getElementById(loaderId).classList.add('hidden');
+            }
+        };
+
+        // 4. ADMIN REQUEST
+        window.sendAdminRequest = async () => {
+            const topic = document.getElementById('req-topic').value;
+            const msg = document.getElementById('req-msg').value;
+            const btn = document.getElementById('btn-send-req');
+
+            if(!msg.trim()) return Swal.fire("Empty Message", "Please type your request.", "warning");
+
+            btn.innerText = "Sending...";
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, 'admin_requests'), {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    topic: topic,
+                    message: msg,
+                    status: 'Pending',
+                    createdAt: serverTimestamp()
+                });
+                document.getElementById('req-msg').value = '';
+                Swal.fire("Sent!", "Your request has been sent to Admin.", "success");
+            } catch(e) {
+                Swal.fire("Error", "Could not send request.", "error");
+            } finally {
+                btn.innerText = "Send Request";
+                btn.disabled = false;
+            }
+        };
+
+        // 5. CHAT SYSTEM
+        window.toggleChat = () => {
+            const drawer = document.getElementById('chatDrawer');
+            const overlay = document.getElementById('chatOverlay');
+            if(drawer.classList.contains('drawer-open')) {
+                drawer.classList.remove('drawer-open');
+                overlay.classList.remove('opacity-100', 'pointer-events-auto');
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => drawer.classList.add('pointer-events-none'), 300);
+            } else {
+                drawer.classList.remove('pointer-events-none');
+                setTimeout(() => {
+                    drawer.classList.add('drawer-open');
+                    overlay.classList.remove('opacity-0', 'pointer-events-none');
+                    overlay.classList.add('opacity-100', 'pointer-events-auto');
+                }, 10);
+                scrollToBottom();
+            }
+        };
+
+        function initChat(uid) {
+            // Chat path: users/{uid}/chats/admin_chat/messages
+            const chatRef = collection(db, usersPath, uid, 'chats', 'admin_chat', 'messages');
+            const q = query(chatRef, orderBy('createdAt', 'asc'), limit(50));
+
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('chat-messages');
+                container.innerHTML = '<div class="text-center text-xs text-gray-400 my-4">Chat Started</div>';
+                
+                snapshot.forEach(doc => {
+                    const msg = doc.data();
+                    const isMe = msg.sender === 'user';
+                    
+                    const html = `
+                    <div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[75%] px-4 py-2 rounded-2xl text-sm ${isMe ? 'bg-rose-500 text-white rounded-br-none' : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-none'}">
+                            <p>${msg.text}</p>
+                            <span class="text-[10px] ${isMe ? 'text-rose-200' : 'text-gray-400'} block text-right mt-1 opacity-80">
+                                ${msg.createdAt ? new Date(msg.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...'}
+                            </span>
+                        </div>
+                    </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+                scrollToBottom();
+            });
+        }
+
+        window.sendMessage = async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            input.value = '';
+            try {
+                // Ensure parent doc exists (optional but good practice)
+                // await setDoc(doc(db, usersPath, currentUser.uid, 'chats', 'admin_chat'), { lastMessage: text, updatedAt: serverTimestamp() }, { merge: true });
+
+                await addDoc(collection(db, usersPath, currentUser.uid, 'chats', 'admin_chat', 'messages'), {
+                    text: text,
+                    sender: 'user',
+                    createdAt: serverTimestamp()
+                });
+                scrollToBottom();
+            } catch(e) { console.error(e); }
+        };
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+    </script>
+</body>
+</html>

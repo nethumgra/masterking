@@ -54,20 +54,21 @@
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto px-3 space-y-2 text-sm font-medium py-6">
-                <a href="reseller-dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+           <nav class="flex-1 overflow-y-auto px-3 space-y-2 text-sm font-medium py-6">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-rose-primary to-rose-dark text-white rounded-xl shadow-lg shadow-rose-900/50">
                     <i class="fa fa-store w-5"></i> Marketplace
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-rose-primary to-rose-dark text-white rounded-xl shadow-lg shadow-rose-900/50">
-                    <i class="fa fa-box-open w-5"></i> My Orders
+                <a href="reseller-orders.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                    <i class="fa fa-box-open w-5"></i> Reseller Orders
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
-                    <i class="fa fa-wallet w-5"></i> My Earnings
+                <a href="reseller-team.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                    <i class="fa fa-wallet w-5"></i> My Team
                 </a>
-                <a href="customer-account.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+                <a href="reseller-profile.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
                     <i class="fa fa-user-circle w-5"></i> Profile
                 </a>
             </nav>
+
         </aside>
 
         <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
@@ -76,7 +77,7 @@
                 <button onclick="document.getElementById('sidebar').classList.toggle('hidden'); document.getElementById('sidebar').classList.toggle('absolute'); document.getElementById('sidebar').classList.toggle('z-50'); document.getElementById('sidebar').classList.toggle('h-full');" class="text-gray-600 text-xl">
                     <i class="fa fa-bars"></i>
                 </button>
-                <h1 class="font-bold text-xl text-rose-primary">Orders</h1>
+                <h1 class="font-bold text-xl text-rose-primary">My Orders</h1>
                 <div class="w-6"></div>
             </header>
 
@@ -167,6 +168,9 @@
                             <span class="font-black text-2xl text-gray-800">LKR <span id="invTotal">0</span></span>
                         </div>
                     </div>
+                    <div class="mt-8 text-center">
+                        <p class="text-[10px] text-gray-400">Thank you for shopping with us!</p>
+                    </div>
                 </div>
             </div>
             <div class="p-4 bg-white border-t border-gray-100">
@@ -207,7 +211,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, updateDoc, Timestamp, getCountFromServer, getAggregateFromServer, sum } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, updateDoc, Timestamp, getCountFromServer } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
@@ -224,7 +228,6 @@
         const auth = getAuth(app);
         const usersPath = `/users`;
 
-        // STATE
         let currentUser = null;
         let lastVisible = null;
         let isLoading = false;
@@ -238,23 +241,18 @@
             search: ''
         };
 
-        // SETUP DATE FILTERS (Default to Current Date)
+        // SETUP DATE FILTERS
         function setupDateFilters() {
             const today = new Date();
             const yearSelect = document.getElementById('filterYear');
             const monthSelect = document.getElementById('filterMonth');
-            
-            // Populate Years
             const currentYear = today.getFullYear();
             yearSelect.innerHTML = `<option value="all">All Years</option>`;
             for(let i = 0; i < 3; i++) {
                 yearSelect.innerHTML += `<option value="${currentYear - i}">${currentYear - i}</option>`;
             }
-
-            // Set Defaults (Current Year & Current Month)
             yearSelect.value = currentYear;
-            monthSelect.value = today.getMonth(); // 0-indexed matches option values
-            
+            monthSelect.value = today.getMonth(); 
             currentFilters.year = currentYear.toString();
             currentFilters.month = today.getMonth().toString();
         }
@@ -264,7 +262,7 @@
                 currentUser = user;
                 loadUserProfile(user.uid);
                 setupDateFilters();
-                applyFilters(); // Load with defaults
+                applyFilters();
             } else {
                 window.location.href = 'account.html';
             }
@@ -281,7 +279,6 @@
             } catch (e) { console.error(e); }
         }
 
-        // --- FILTER & LOAD LOGIC ---
         window.applyFilters = async () => {
             currentFilters.year = document.getElementById('filterYear').value;
             currentFilters.month = document.getElementById('filterMonth').value;
@@ -313,11 +310,9 @@
                     constraints.push(where('status', '==', currentFilters.status));
                 }
 
-                // Default logic handles All Years/All Months too
                 if (currentFilters.year !== 'all') {
                     const year = parseInt(currentFilters.year);
                     let start, end;
-
                     if (currentFilters.month !== 'all') {
                         const month = parseInt(currentFilters.month);
                         start = new Date(year, month, 1);
@@ -326,7 +321,6 @@
                         start = new Date(year, 0, 1);
                         end = new Date(year, 11, 31, 23, 59, 59);
                     }
-                    
                     constraints.push(where('createdAt', '>=', Timestamp.fromDate(start)));
                     constraints.push(where('createdAt', '<=', Timestamp.fromDate(end)));
                 }
@@ -352,15 +346,14 @@
                     renderOrders(snapshot.docs);
                 }
 
-            } catch (e) {
-                console.error("Load error:", e);
-            } finally {
+            } catch (e) { console.error("Load error:", e); } 
+            finally {
                 isLoading = false;
                 document.getElementById('loadingSpinner').classList.add('hidden');
             }
         }
 
-        // --- RENDER ---
+        // --- RENDER (Updated with Total & Profit) ---
         function renderOrders(docs) {
             const container = document.getElementById('ordersContainer');
             
@@ -368,7 +361,6 @@
                 const order = doc.data();
                 const oid = doc.id;
                 
-                // Client side search filter
                 if (currentFilters.search) {
                     const str = (oid + order.customer.name).toLowerCase();
                     if (!str.includes(currentFilters.search)) return;
@@ -377,7 +369,6 @@
                 const status = order.status || 'Pending';
                 const date = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
                 
-                // Status Styles
                 let statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
                 let icon = 'fa-clock';
                 if (status === 'Shipped') { statusClass = 'bg-blue-100 text-blue-700 border-blue-200'; icon = 'fa-truck'; }
@@ -386,14 +377,9 @@
 
                 const itemsSummary = order.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
 
-                // Cancel Button Logic (Only if Pending)
                 let cancelButton = '';
                 if(status === 'Pending') {
-                    cancelButton = `
-                        <button onclick="initCancel('${oid}')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                            <i class="fa fa-ban"></i> Cancel
-                        </button>
-                    `;
+                    cancelButton = `<button onclick="initCancel('${oid}')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><i class="fa fa-ban"></i> Cancel</button>`;
                 }
 
                 const html = `
@@ -418,7 +404,10 @@
 
                         <div class="flex flex-col items-end justify-between gap-3 min-w-[150px] border-t md:border-t-0 border-gray-100 pt-3 md:pt-0">
                             <div class="text-right">
-                                <p class="text-[10px] text-gray-400 font-bold uppercase">Profit</p>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">Cust. Pay</p>
+                                <p class="text-sm font-bold text-gray-800">LKR ${(order.financials?.total || 0).toLocaleString()}</p>
+                                
+                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">My Profit</p>
                                 <p class="text-lg font-black ${status==='Cancelled'?'text-gray-400 line-through':'text-green-600'}">+ LKR ${(order.financials?.profit || 0).toLocaleString()}</p>
                             </div>
                             <div class="flex gap-2">
@@ -430,12 +419,10 @@
                         </div>
                     </div>
                 </div>`;
-                
                 container.insertAdjacentHTML('beforeend', html);
             });
         }
 
-        // --- CANCELLATION LOGIC ---
         window.initCancel = (oid) => {
             orderToCancelId = oid;
             document.getElementById('cancelModal').classList.remove('hidden');
@@ -449,11 +436,8 @@
         window.confirmCancel = async () => {
             if (!orderToCancelId) return;
             const reason = document.getElementById('cancelReason').value;
-            
             try {
                 const orderRef = doc(db, 'reseller_orders', orderToCancelId);
-                
-                // Double check status before cancelling (Security)
                 const docSnap = await getDoc(orderRef);
                 if (docSnap.exists() && docSnap.data().status === 'Pending') {
                     await updateDoc(orderRef, {
@@ -461,31 +445,22 @@
                         cancellationReason: reason,
                         cancelledAt: Timestamp.now()
                     });
-                    
                     alert('Order Cancelled.');
                     closeCancelModal();
-                    applyFilters(); // Refresh list
+                    applyFilters(); 
                 } else {
                     alert('Cannot cancel. Order is already processed or does not exist.');
                     closeCancelModal();
                 }
-            } catch (e) {
-                console.error(e);
-                alert("Error cancelling order.");
-            }
+            } catch (e) { console.error(e); alert("Error cancelling order."); }
         };
 
-        // --- STATS ---
         async function updateStats() {
             try {
-                // Simplified Stats (Counting loaded might be expensive for all history, 
-                // but essential for filtered view accuracy)
                 let constraints = [
                     collection(db, 'reseller_orders'),
                     where('resellerId', '==', currentUser.uid)
                 ];
-                
-                // Re-apply same filters for stats query
                 if (currentFilters.status !== 'all') constraints.push(where('status', '==', currentFilters.status));
                 if (currentFilters.year !== 'all') {
                     const year = parseInt(currentFilters.year);
@@ -501,16 +476,9 @@
                     constraints.push(where('createdAt', '>=', Timestamp.fromDate(start)));
                     constraints.push(where('createdAt', '<=', Timestamp.fromDate(end)));
                 }
-
                 const q = query(...constraints);
                 const snapshot = await getCountFromServer(q);
                 document.getElementById('totalOrders').innerText = snapshot.data().count;
-
-                // For profit, we ideally aggregate only non-cancelled orders. 
-                // Firestore doesn't support != in aggregate query easily with other filters.
-                // Simple approach: show count here, profit logic might need Cloud Functions for accuracy.
-                document.getElementById('totalProfit').innerText = "..."; // Placeholder or complex logic
-
             } catch (e) { console.error(e); }
         }
 
@@ -521,7 +489,7 @@
             }
         });
 
-        // --- INVOICE UTILS ---
+        // --- INVOICE WITH WEIGHT ---
         window.viewSlip = (order) => {
             const invItems = document.getElementById('invItems');
             const invTotal = document.getElementById('invTotal');
@@ -538,7 +506,9 @@
             });
 
             if(order.financials?.delivery > 0) {
-                invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-xs"><span>Delivery Fee</span><span>${order.financials.delivery}</span></div>`;
+                // Show Weight if available
+                const weightText = order.financials.totalWeight ? `(${order.financials.totalWeight} KG)` : '';
+                invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-xs"><span>Delivery Fee ${weightText}</span><span>${order.financials.delivery}</span></div>`;
             }
 
             invTotal.innerText = order.financials.total.toLocaleString();
