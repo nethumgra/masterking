@@ -23,7 +23,7 @@
                     colors: {
                         'mudalali-green': {
                             light: '#fbcfe8',       /* Light Pink */
-                            DEFAULT: '#db2777',      /* Hot Pink */
+                            DEFAULT: '#db2777',     /* Hot Pink */
                             dark: '#be185d',        /* Dark Pink */
                         },
                         'mudalali-gold': '#fce7f3',
@@ -52,23 +52,46 @@
         .group:hover .dropdown-menu {
             @apply block;
         }
+        
+        /* DRAWER STYLES */
         .drawer-overlay {
             @apply fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity opacity-0 pointer-events-none;
         }
+        /* Default Drawer (Right Side - Cart/Account) */
         .drawer-content {
             @apply fixed top-0 right-0 h-full bg-white shadow-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out;
             width: 90%;
             max-width: 400px;
         }
+        /* Left Drawer (Menu) */
         .drawer-content.left {
             @apply left-0 right-auto transform -translate-x-full;
         }
+        
         .drawer.open .drawer-overlay {
             @apply opacity-100 pointer-events-auto;
         }
         .drawer.open .drawer-content {
             @apply transform translate-x-0;
         }
+
+        /* Drawer Tabs Styles */
+        .drawer-tab-btn {
+            @apply flex-1 text-center py-3 font-bold text-gray-500 border-b-2 border-transparent transition-colors text-sm uppercase cursor-pointer hover:text-mudalali-green;
+        }
+        .drawer-tab-btn.active {
+            @apply text-mudalali-green border-mudalali-green;
+        }
+        .menu-item { 
+            @apply block py-3 px-4 border-b border-gray-100 text-gray-600 font-medium hover:text-mudalali-green hover:bg-pink-50 transition-all; 
+        }
+        .menu-header { 
+            @apply px-4 py-3 bg-pink-50 text-gray-700 font-extrabold uppercase text-sm tracking-wide; 
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
         .mobile-nav-link.active {
             @apply text-mudalali-green;
         }
@@ -81,9 +104,6 @@
         .tab-button.active { 
             border-color: #db2777; 
             color: #db2777; 
-        }
-        .menu-tab-btn.active {
-            @apply border-mudalali-green text-mudalali-green;
         }
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .pop { animation: pop 0.2s ease-out; }
@@ -171,16 +191,16 @@
     </nav>
 
     <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
-        <button id="mobile-menu-btn" class="text-2xl text-gray-600">
+        <button id="mobile-menu-btn" class="text-2xl text-mudalali-green">
             <i class="fa fa-bars"></i>
         </button>
-      <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
-        TU<span class="text-gray-600">TU</span>
-    </a>
-    <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
-        <i class="fa fa-user"></i>
-    </a>
-</header>
+        <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green">
+            TU<span class="text-gray-600">TU</span>
+        </a>
+        <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
+            <i class="fa fa-user"></i>
+        </a>
+    </header>
 
     <main id="homepage-container" class="container mx-auto px-4 py-8">
         <div class="w-full text-center py-10">
@@ -252,12 +272,57 @@
 
     <div id="menu-drawer" class="drawer">
         <div class="drawer-overlay" id="menu-drawer-overlay"></div>
-        <div class="drawer-content left flex flex-col">
-            <div class="flex justify-between items-center p-4 border-b"><h2 class="text-xl font-bold text-mudalali-green">MENU</h2><button id="menu-drawer-close" class="text-xl">&times;</button></div>
-            <div class="p-4 border-b"><form class="flex"><input type="text" placeholder="Search..." class="w-full px-4 py-2 border border-r-0 border-gray-300 rounded-l-md focus:outline-none focus:border-mudalali-green"><button type="submit" class="bg-gray-100 border border-gray-300 px-4 rounded-r-md text-gray-600 hover:text-mudalali-green"><i class="fa fa-search"></i></button></form></div>
-            <div class="flex border-b"><button id="menu-tab-menu" class="menu-tab-btn active flex-1 py-3 font-semibold border-b-2">MENU</button><button id="menu-tab-categories" class="menu-tab-btn flex-1 py-3 font-semibold text-gray-500 border-b-2 border-transparent">CATEGORIES</button></div>
-            <div id="menu-tab-menu-content" class="flex-col flex-grow overflow-y-auto"><a href="index.html" class="block p-4 border-b font-semibold text-mudalali-green">HOME</a><a href="stories.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SELLER STORIES</a><a href="shop.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">SHOP</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">ABOUT US</a><a href="#" class="block p-4 border-b text-gray-700 hover:text-mudalali-green">CONTACT US</a><div class="p-4 bg-pink-50 font-bold text-gray-600">MY ACCOUNT</div><a href="wishlist.html" class="block p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-heart w-6 mr-1"></i> WISHLIST</a><a href="account.html" id="drawer-my-account-btn" class="block w-full text-left p-4 border-b text-gray-700 hover:text-mudalali-green"><i class="fa fa-user w-6 mr-1"></i> MY ACCOUNT</a></div>
-            <div id="menu-tab-categories-content" class="hidden flex-col flex-grow overflow-y-auto"></div>
+        <div class="drawer-content left flex flex-col h-full">
+            
+            <div class="p-4 flex justify-between items-center border-b border-gray-100">
+                <h2 class="text-xl font-bold text-mudalali-green tracking-wider">MENU</h2>
+                <button id="menu-drawer-close" class="text-gray-500 hover:text-mudalali-green text-xl"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-4 border-b border-gray-100">
+                <div class="relative">
+                    <input type="text" placeholder="Search..." class="w-full pl-4 pr-10 py-3 border border-pink-100 rounded-lg text-sm focus:outline-none focus:border-mudalali-green bg-pink-50/30">
+                    <button class="absolute right-3 top-3 text-gray-400"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="flex border-b border-gray-100">
+                <button id="tab-menu-btn" class="drawer-tab-btn active">Menu</button>
+                <button id="tab-categories-btn" class="drawer-tab-btn">Categories</button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto">
+                
+                <div id="tab-menu-content" class="animate-fade-in">
+                    <div class="space-y-0">
+                        <a href="index.html" class="menu-item text-mudalali-green font-bold">HOME</a>
+                        <a href="stories.html" class="menu-item">SELLER STORIES</a>
+                        <a href="shop.html" class="menu-item">SHOP</a>
+                        <a href="about.html" class="menu-item">ABOUT US</a>
+                        <a href="contact.html" class="menu-item">CONTACT US</a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="menu-header">MY ACCOUNT</div>
+                        <a href="wishlist.html" class="menu-item flex items-center space-x-3">
+                            <i class="fas fa-heart text-gray-400"></i> <span>WISHLIST</span>
+                        </a>
+                        <a href="account.html" class="menu-item flex items-center space-x-3">
+                            <i class="fas fa-user text-gray-400"></i> <span>MY ACCOUNT</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="tab-categories-content" class="hidden animate-fade-in p-2">
+                    <div id="categories-loader" class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-mudalali-green text-2xl"></i>
+                        <p class="text-xs text-gray-400 mt-2">Loading Categories...</p>
+                    </div>
+                    <div id="categories-list" class="space-y-1">
+                        </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -284,15 +349,15 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-     const firebaseConfig = {
-  apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-  authDomain: "masterking-fa629.firebaseapp.com",
-  projectId: "masterking-fa629",
-  storageBucket: "masterking-fa629.firebasestorage.app",
-  messagingSenderId: "680021576286",
-  appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-  measurementId: "G-9443L8L88Q"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+            authDomain: "masterking-fa629.firebaseapp.com",
+            projectId: "masterking-fa629",
+            storageBucket: "masterking-fa629.firebasestorage.app",
+            messagingSenderId: "680021576286",
+            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+            measurementId: "G-9443L8L88Q"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app); 
@@ -343,6 +408,7 @@
             setupMobileDrawers(); 
             updateWishlistCountBadge();
             setupCommentDrawer();
+            setupMenuDrawerTabs(); // New: Setup tabs for the new menu drawer
         });
 
         function getSelectedCurrency() { return localStorage.getItem('selectedCurrency') || 'LKR'; }
@@ -385,23 +451,14 @@
                 let config = {};
                 if (docSnap.exists()) config = docSnap.data();
                 
-                const logoImg = document.getElementById('logo-img');
-                const mobileLogoImg = document.getElementById('mobile-logo-img');
                 const logoLink = document.getElementById('logo-link');
                 const mobileLogoLink = document.getElementById('mobile-logo-link');
 
-                if (config.logoImageUrl && logoImg && mobileLogoImg) {
-                    logoImg.src = config.logoImageUrl;
-                    mobileLogoImg.src = config.logoImageUrl;
+                if (config.logoImageUrl) {
+                    // Update logo logic if image exists
                 } else {
-                    if (logoLink) {
-                        if(logoImg) logoImg.style.display = 'none';
-                        logoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
-                    }
-                    if (mobileLogoLink) {
-                        if(mobileLogoImg) mobileLogoImg.style.display = 'none';
-                        mobileLogoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
-                    }
+                    if (logoLink) logoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
+                    if (mobileLogoLink) mobileLogoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
                 }
                 if(document.getElementById('header-hotline')) {
                     document.getElementById('header-hotline').textContent = config.headerHotline || '011 234 5678';
@@ -524,7 +581,6 @@
             const loggedOutView = document.getElementById('account-drawer-logged-out');
             const desktopAccountBtn = document.getElementById('desktop-account-btn');
             const mobileAccountBtn = document.getElementById('mobile-account-btn');
-            const drawerMyAccountBtn = document.getElementById('drawer-my-account-btn');
 
             if (user) {
                 const userDocRef = doc(db, usersPath, user.uid);
@@ -543,7 +599,6 @@
                     e.preventDefault();
                     document.getElementById('account-drawer-modal')?.classList.remove('hidden');
                 });
-                drawerMyAccountBtn.href = "#";
 
                 if (currentUserData && currentUserData.isSeller) {
                     mobileAccountBtn.href = 'seller-profile.html';
@@ -563,7 +618,6 @@
                 
                 desktopAccountBtn.href = "account.html";
                 mobileAccountBtn.href = "account.html";
-                drawerMyAccountBtn.href = "account.html";
                 desktopAccountBtn.replaceWith(desktopAccountBtn.cloneNode(true)); 
 
                 document.getElementById('new-comment-input').disabled = true;
@@ -571,6 +625,65 @@
                 document.getElementById('comment-login-prompt').classList.remove('hidden');
             }
         });
+
+        // --- NEW MENU DRAWER LOGIC ---
+        function setupMenuDrawerTabs() {
+            const tabMenuBtn = document.getElementById('tab-menu-btn');
+            const tabCatBtn = document.getElementById('tab-categories-btn');
+            const tabMenuContent = document.getElementById('tab-menu-content');
+            const tabCatContent = document.getElementById('tab-categories-content');
+
+            if(!tabMenuBtn) return;
+
+            tabMenuBtn.addEventListener('click', () => {
+                tabMenuBtn.classList.add('active'); 
+                tabCatBtn.classList.remove('active');
+                tabMenuContent.classList.remove('hidden'); 
+                tabCatContent.classList.add('hidden');
+            });
+
+            tabCatBtn.addEventListener('click', () => {
+                tabCatBtn.classList.add('active'); 
+                tabMenuBtn.classList.remove('active');
+                tabCatContent.classList.remove('hidden'); 
+                tabMenuContent.classList.add('hidden');
+                
+                const catList = document.getElementById('categories-list');
+                if(catList && catList.children.length === 0) {
+                    loadCategoriesForDrawer();
+                }
+            });
+        }
+
+        async function loadCategoriesForDrawer() {
+            const loader = document.getElementById('categories-loader');
+            const list = document.getElementById('categories-list');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, publicDataPath, "categories"));
+                if(loader) loader.classList.add('hidden');
+                
+                if(querySnapshot.empty) {
+                    list.innerHTML = '<p class="text-sm text-gray-400 text-center">No categories found.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const name = data.name || "Unnamed";
+                    
+                    const link = document.createElement('a');
+                    link.href = `shop.html?category=${encodeURIComponent(name)}`;
+                    link.className = 'menu-item flex justify-between items-center';
+                    link.innerHTML = `<span>${name}</span> <i class="fas fa-chevron-right text-xs text-pink-300"></i>`;
+                    list.appendChild(link);
+                });
+            } catch (error) {
+                console.error("Error loading categories for drawer:", error);
+                if(loader) loader.innerHTML = '<p class="text-red-400 text-sm">Failed to load.</p>';
+            }
+        }
+        // -----------------------------
 
         async function buildHomepage() {
             const mainContainer = document.getElementById('homepage-container');
@@ -619,7 +732,6 @@
         }
 
         async function buildHeroSlider(mainContainer, layoutItem) {
-            // (Same implementation as previous code)
             const section = document.createElement('section');
             section.id = 'hero-slider';
             section.className = 'mb-8 relative rounded-2xl shadow-lg overflow-hidden aspect-[3/4] sm:aspect-[4/3] md:aspect-[16/9] lg:aspect-[3/1]';
@@ -697,7 +809,7 @@
                 if (querySnapshot.empty) { grid.innerHTML = '<p class="col-span-full text-gray-500 text-center">No categories found.</p>'; return; }
                 querySnapshot.forEach((doc) => {
                     const category = doc.data();
-                    const bgColor = category.color || '#f3f4f6'; // Use db color or gray
+                    const bgColor = category.color || '#f3f4f6';
                     
                     grid.innerHTML += `
                     <a href="shop.html?category=${encodeURIComponent(category.name)}" class="group w-[22vw] md:w-[14vw] lg:w-[10vw] flex-shrink-0">
@@ -721,7 +833,6 @@
                 titleEl.textContent = 'Loading...';
                 section.appendChild(titleEl);
             }
-            // CHANGED FOR MOBILE: Added grid classes and removed horizontal scroll classes for small screens
             const gridEl = document.createElement('div');
             gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4'; 
             gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading products...</p>';
@@ -756,7 +867,6 @@
                         
                         const productEl = document.createElement('a');
                         productEl.href = `product.html?id=${productId}`;
-                        // CHANGED FOR MOBILE: Removed fixed width classes (w-[45vw], flex-shrink-0)
                         productEl.className = "group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg w-full block cursor-pointer";
                         
                         productEl.innerHTML = `
@@ -845,7 +955,6 @@
             titleEl.className = 'text-2xl font-bold text-gray-800 mb-4 pl-2 border-l-4 border-mudalali-green';
             titleEl.textContent = 'Fresh Arrivals'; 
             section.appendChild(titleEl);
-            // CHANGED FOR MOBILE: Grid layout
             const gridEl = document.createElement('div');
             gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4';
             gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading...</p>';
@@ -866,7 +975,6 @@
                         
                         const productEl = document.createElement('a'); 
                         productEl.href = `product.html?id=${productId}`;
-                        // CHANGED FOR MOBILE: Removed fixed width classes
                         productEl.className = "group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg w-full block cursor-pointer";
                         
                         productEl.innerHTML = `
@@ -887,7 +995,6 @@
         }
 
         async function buildSellerStories(mainContainer, layoutItem) {
-            // (Same as before)
             const section = document.createElement('section');
             section.id = 'seller-stories';
             section.className = 'mb-8 seller-stories-container bg-pink-50 p-6 rounded-3xl';
@@ -942,7 +1049,7 @@
             } catch (error) { console.error("Error loading stories: ", error); }
         }
 
-        async function toggleLike(storyId, buttonEl) { /* Same as previous */
+        async function toggleLike(storyId, buttonEl) {
             if (!currentUser) { document.getElementById('account-drawer-modal').classList.remove('hidden'); return; }
             buttonEl.disabled = true;
             const storyRef = doc(db, publicDataPath, 'stories', storyId);
@@ -964,14 +1071,14 @@
             } catch (e) { console.error("Transaction failed: ", e); } finally { buttonEl.disabled = false; }
         }
 
-        async function shareStory(storyId, buttonEl, storyContent) { /* Same as previous */
+        async function shareStory(storyId, buttonEl, storyContent) {
             const storyUrl = `${window.location.origin}/story-detail.html?id=${storyId}`; 
             const shareData = { title: `Check this out from Pink Store`, text: storyContent ? storyContent.substring(0, 100) + '...' : 'Check out this story!', url: storyUrl };
             try { if (navigator.share) { await navigator.share(shareData); } else { throw new Error('Web Share not supported'); } } 
             catch (err) { try { await navigator.clipboard.writeText(storyUrl); buttonEl.innerHTML = '<i class="fa fa-check text-green-500"></i>'; buttonEl.disabled = true; setTimeout(() => { buttonEl.innerHTML = '<i class="fa fa-share"></i>'; buttonEl.disabled = false; }, 2000); } catch (copyErr) { alert('Failed to copy link.'); } }
         }
 
-        function formatTimestamp(date) { /* Same as previous */
+        function formatTimestamp(date) {
             const now = new Date(); const seconds = Math.floor((now - date) / 1000);
             let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + "y";
             interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + "mo";
@@ -981,7 +1088,7 @@
             return Math.floor(seconds) + "s";
         }
 
-        function setupCommentDrawer() { /* Same as previous */
+        function setupCommentDrawer() {
             const drawer = document.getElementById('comments-drawer');
             const closeBtn = document.getElementById('comments-drawer-close');
             const overlay = document.getElementById('comments-drawer-overlay');
@@ -1004,7 +1111,7 @@
             });
         }
 
-        function openCommentsDrawer(storyId, sellerUid) { /* Same as previous */
+        function openCommentsDrawer(storyId, sellerUid) {
             if (unsubscribeCommentsListener) { unsubscribeCommentsListener(); }
             currentStoryIdForComment = storyId;
             const drawer = document.getElementById('comments-drawer');
@@ -1028,7 +1135,7 @@
             });
         }
 
-        async function loadDesktopNavCategories() { /* Same as previous */
+        async function loadDesktopNavCategories() {
             const container = document.getElementById('desktop-nav-links-container'); if (!container) return;
             const collRef = collection(db, publicDataPath, 'categories');
             onSnapshot(collRef, (querySnapshot) => {
@@ -1044,6 +1151,45 @@
             }, (error) => { console.error("Error loading nav categories: ", error); });
         }
 
-</script>
+        async function loadFooter() {
+            // Placeholder for Footer logic if dynamic, currently static in HTML structure
+            // In a real scenario, this would fetch from publicDataPath/siteContent/footerConfig
+        }
+
+        function setupMobileDrawers() {
+            const cartDrawer = document.getElementById('cart-drawer');
+            const menuDrawer = document.getElementById('menu-drawer');
+            const accountDrawer = document.getElementById('account-drawer-modal');
+
+            const toggleDrawer = (drawer) => {
+                drawer.classList.toggle('open');
+            };
+
+            // Menu Drawer
+            document.getElementById('mobile-menu-btn')?.addEventListener('click', () => toggleDrawer(menuDrawer));
+            document.getElementById('menu-drawer-close')?.addEventListener('click', () => toggleDrawer(menuDrawer));
+            document.getElementById('menu-drawer-overlay')?.addEventListener('click', () => toggleDrawer(menuDrawer));
+
+            // Cart Drawer
+            document.getElementById('mobile-cart-btn')?.addEventListener('click', () => toggleDrawer(cartDrawer));
+            document.getElementById('desktop-cart-btn')?.addEventListener('click', () => toggleDrawer(cartDrawer));
+            document.getElementById('cart-drawer-close')?.addEventListener('click', () => toggleDrawer(cartDrawer));
+            document.getElementById('cart-drawer-overlay')?.addEventListener('click', () => toggleDrawer(cartDrawer));
+
+            // Account Drawer Logic
+            const closeAccount = () => accountDrawer.classList.add('hidden');
+            document.getElementById('close-account-drawer-btn-logged-in')?.addEventListener('click', closeAccount);
+            document.getElementById('close-account-drawer-btn-logged-out')?.addEventListener('click', closeAccount);
+            document.getElementById('account-drawer-bg')?.addEventListener('click', closeAccount);
+            
+            // Logout
+            document.getElementById('drawer-logout-btn')?.addEventListener('click', async () => {
+                await signOut(auth);
+                closeAccount();
+                window.location.reload();
+            });
+        }
+
+    </script>
 </body>
 </html>

@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 
     <script>
         tailwind.config = {
@@ -28,37 +30,60 @@
     <style type="text/tailwindcss">
         body { @apply font-sans text-gray-800 bg-tutu-bg; }
         
-        /* Tab Buttons */
+        /* Page Tab Buttons (Login/Register) */
         .page-tab-btn {
             @apply w-1/2 text-center pb-4 font-semibold text-gray-400 border-b-2 border-transparent transition-colors cursor-pointer hover:text-tutu-rose;
         }
         .page-tab-btn.active {
             @apply text-tutu-rose border-tutu-rose font-bold;
         }
+
+        /* Drawer Tab Buttons (Menu/Categories) */
+        .drawer-tab-btn {
+            @apply flex-1 text-center py-3 font-bold text-gray-500 border-b-2 border-transparent transition-colors text-sm uppercase cursor-pointer;
+        }
+        .drawer-tab-btn.active {
+            @apply text-tutu-rose border-tutu-rose;
+        }
         
         .form-input {
             @apply block w-full p-3 border border-rose-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-tutu-rose focus:border-transparent bg-white/50 transition-all;
         }
 
-        /* User Type Radio Label - Adjusted for 3 items */
         .user-type-label {
             @apply flex flex-col items-center justify-center text-center p-3 rounded-xl cursor-pointer bg-white border border-rose-100 text-gray-500 transition-all hover:border-tutu-rose hover:text-tutu-rose text-xs sm:text-sm h-full;
         }
-        .user-type-label i {
-            @apply text-lg mb-1;
-        }
+        .user-type-label i { @apply text-lg mb-1; }
         .user-type-label:has(input:checked) {
             @apply bg-rose-50 border-tutu-rose text-tutu-rose font-bold shadow-sm ring-1 ring-tutu-rose;
         }
 
         /* Drawer Styles */
-        .drawer-overlay { @apply fixed inset-0 bg-black/50 z-50 opacity-0 pointer-events-none transition-opacity; }
-        .drawer-content { @apply fixed top-0 right-0 h-full bg-white shadow-2xl z-50 w-80 translate-x-full transition-transform duration-300; }
-        .drawer.open .drawer-overlay { @apply opacity-100 pointer-events-auto; }
-        .drawer.open .drawer-content { @apply translate-x-0; }
+        .drawer-overlay { @apply fixed inset-0 bg-black/50 z-50 opacity-0 pointer-events-none transition-opacity duration-300; }
+        .drawer-content { @apply fixed top-0 h-full bg-white shadow-2xl z-50 w-[85%] max-w-sm transition-transform duration-300 ease-in-out; }
         
+        /* Right Drawer Animation (Cart/Account) */
+        .drawer-right { @apply right-0 translate-x-full; }
+        .drawer.open .drawer-right { @apply translate-x-0; }
+        
+        /* Left Drawer Animation (Menu) */
+        .drawer-left { @apply left-0 -translate-x-full; }
+        .drawer.open .drawer-left { @apply translate-x-0; }
+        
+        .drawer.open .drawer-overlay { @apply opacity-100 pointer-events-auto; }
+
         /* Mobile Nav */
         .mobile-nav-link.active { @apply text-tutu-rose font-bold; }
+        
+        /* Menu Links Styles */
+        .menu-item { @apply block py-3 px-4 border-b border-gray-100 text-gray-600 font-medium hover:text-tutu-rose hover:bg-rose-50 transition-all; }
+        .menu-header { @apply px-4 py-3 bg-rose-50 text-gray-700 font-extrabold uppercase text-sm tracking-wide; }
+        
+        /* Modal Styles */
+        .modal-overlay { @apply fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300; }
+        .modal-overlay.active { @apply opacity-100 pointer-events-auto; }
+        .modal-box { @apply bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300; }
+        .modal-overlay.active .modal-box { @apply scale-100; }
     </style>
 </head>
 <body class="pb-20 md:pb-0 flex flex-col min-h-screen"> 
@@ -67,35 +92,19 @@
     
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 hidden md:block border-b border-rose-100">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-             <a href="/" id="logo-link" class="text-3xl font-black uppercase tracking-widest hover:opacity-80 transition-opacity">
+             <a href="/" class="text-3xl font-black uppercase tracking-widest hover:opacity-80 transition-opacity">
               <span class="text-tutu-rose">TU</span><span class="text-gray-800">TU</span>
             </a>
-            
-            <nav class="hidden md:flex space-x-8">
-                <a href="index.html" class="font-semibold text-gray-600 hover:text-tutu-rose transition-colors">Home</a>
-                <a href="shop.html" class="font-semibold text-gray-600 hover:text-tutu-rose transition-colors">Shop</a>
-                <a href="stories.html" class="font-semibold text-gray-600 hover:text-tutu-rose transition-colors">Stories</a>
-            </nav>
-
             <div class="flex items-center space-x-8">
-                <a href="account.html" id="desktop-account-btn" class="flex flex-col items-center text-tutu-rose transition-colors">
-                    <i class="fa fa-user text-xl"></i>
-                </a>
-                <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-500 hover:text-tutu-rose relative transition-colors">
-                    <i class="fa fa-shopping-cart text-xl"></i>
-                    <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-tutu-rose text-white text-[10px] font-bold rounded-full px-1.5 border-2 border-white">0</span>
-                </button>
+                <a href="account.html" id="desktop-account-btn" class="flex flex-col items-center text-tutu-rose transition-colors"><i class="fa fa-user text-xl"></i></a>
+                <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-500 hover:text-tutu-rose relative transition-colors"><i class="fa fa-shopping-cart text-xl"></i><span id="cart-count-badge" class="absolute -top-2 -right-2 bg-tutu-rose text-white text-[10px] font-bold rounded-full px-1.5 border-2 border-white">0</span></button>
             </div>
         </div>
     </header>
 
     <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4 px-6">
-        <button id="mobile-menu-btn" class="text-2xl text-gray-600">
-            <i class="fa fa-bars"></i>
-        </button>
-         <a href="/" id="mobile-logo-link" class="text-2xl font-black uppercase tracking-widest">
-            <span class="text-tutu-rose">TU</span><span class="text-gray-800">TU</span>
-        </a>
+        <button id="mobile-menu-btn" class="text-2xl text-tutu-rose"><i class="fa fa-bars"></i></button>
+         <a href="/" class="text-2xl font-black uppercase tracking-widest"><span class="text-tutu-rose">TU</span><span class="text-gray-800">TU</span></a>
         <div class="w-8"></div> 
     </header>
 
@@ -115,20 +124,10 @@
                             <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>
                             <p class="text-sm text-gray-500">Sign in to continue shopping</p>
                         </div>
-                        
                         <form id="login-form" class="space-y-5">
-                            <div>
-                                <label for="login-email" class="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-                                <input type="email" id="login-email" required class="form-input" placeholder="hello@example.com">
-                            </div>
-                            <div>
-                                <label for="login-password" class="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                                <input type="password" id="login-password" required class="form-input" placeholder="••••••••">
-                            </div>
-                            
-                            <button type="submit" class="w-full bg-tutu-rose text-white p-4 rounded-xl hover:bg-tutu-rose-dark font-bold text-lg shadow-lg shadow-rose-200 transition-all transform active:scale-95">
-                                Login Now
-                            </button>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Email</label><input type="email" id="login-email" required class="form-input"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Password</label><input type="password" id="login-password" required class="form-input"></div>
+                            <button type="submit" class="w-full bg-tutu-rose text-white p-4 rounded-xl hover:bg-tutu-rose-dark font-bold text-lg shadow-lg shadow-rose-200 transition-all">Login Now</button>
                             <p id="login-error" class="text-red-500 text-sm text-center font-medium h-5"></p>
                         </form>
                     </div>
@@ -136,58 +135,80 @@
                     <div id="register-form-container" class="hidden animate-fade-in">
                         <div class="text-center mb-4">
                             <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
-                            <p class="text-sm text-gray-500">Join our community today</p>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2 mb-6">
-                            <label class="user-type-label">
-                                <input type="radio" name="userType" value="customer" class="hidden" checked> 
-                                <i class="fa fa-shopping-bag"></i> Customer
-                            </label>
-                            <label class="user-type-label">
-                                <input type="radio" name="userType" value="affiliate" class="hidden"> 
-                                <i class="fa fa-bullhorn"></i> Affiliate
-                            </label>
-                            <label class="user-type-label">
-                                <input type="radio" name="userType" value="reseller" class="hidden"> 
-                                <i class="fa fa-handshake"></i> Reseller
-                            </label>
+                            <label class="user-type-label"><input type="radio" name="userType" value="customer" class="hidden" checked><i class="fa fa-shopping-bag"></i> Customer</label>
+                            <label class="user-type-label"><input type="radio" name="userType" value="affiliate" class="hidden"><i class="fa fa-bullhorn"></i> Affiliate</label>
+                            <label class="user-type-label"><input type="radio" name="userType" value="reseller" class="hidden"><i class="fa fa-handshake"></i> Reseller</label>
                         </div>
 
                         <form id="register-form" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
-                                <input type="text" id="reg-name" required class="form-input" placeholder="Your Name">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label><input type="text" id="reg-name" required class="form-input"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Email</label><input type="email" id="reg-email" required class="form-input"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Password</label><input type="password" id="reg-password" required class="form-input"></div>
+
+                            <div id="affiliate-fields" class="hidden space-y-3 pt-3 border-t border-rose-100 bg-rose-50/50 p-4 rounded-xl">
+                                <h3 class="text-sm font-bold text-tutu-rose">Affiliate Details</h3>
+                                <input type="url" id="reg-youtube" placeholder="YouTube" class="form-input text-sm">
+                                <input type="url" id="reg-facebook" placeholder="Facebook" class="form-input text-sm">
+                                <input type="url" id="reg-tiktok-insta" placeholder="TikTok/Insta" class="form-input text-sm">
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-                                <input type="email" id="reg-email" required class="form-input" placeholder="hello@example.com">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                                <input type="password" id="reg-password" required class="form-input" placeholder="Min. 6 characters">
+                            <div id="reseller-fields" class="hidden space-y-3 pt-3 border-t border-rose-100 bg-rose-50/50 p-4 rounded-xl">
+                                <h3 class="text-sm font-bold text-tutu-rose">Reseller KYC Details</h3>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-1">Mobile</label><input type="tel" id="res-phone" placeholder="077xxxxxxx" class="form-input text-sm"></div>
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp</label><input type="tel" id="res-whatsapp" placeholder="077xxxxxxx" class="form-input text-sm"></div>
+                                </div>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">Address</label><input type="text" id="res-address" class="form-input text-sm"></div>
+
+                                <div class="p-3 bg-white rounded-lg border border-rose-100">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">NIC Number</label>
+                                    <input type="text" id="res-nic-no" placeholder="98xxxxxxxV" class="form-input text-sm mb-3 uppercase">
+                                    
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" id="open-nic-modal-btn" class="flex-1 bg-gray-800 text-white py-2 rounded-lg text-xs font-bold hover:bg-gray-700 transition-colors">
+                                            <i class="fas fa-id-card mr-1"></i> Verify ID with AI
+                                        </button>
+                                        <span id="main-verification-badge" class="hidden px-2 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold border border-green-200">
+                                            <i class="fas fa-check-circle"></i> Verified
+                                        </span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 mt-1 italic">Verification required to create account.</p>
+                                </div>
+
+                                <div class="p-2 bg-white rounded-lg border border-rose-100">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Bank Details</label>
+                                    <select id="res-bank-name" class="form-input text-sm mb-2">
+                                        <option value="" disabled selected>Select Bank</option>
+                                        <option value="BOC">Bank of Ceylon</option>
+                                        <option value="Peoples">People's Bank</option>
+                                        <option value="Commercial">Commercial Bank</option>
+                                        <option value="HNB">Hatton National Bank</option>
+                                        <option value="Sampath">Sampath Bank</option>
+                                        <option value="Seylan">Seylan Bank</option>
+                                        <option value="NDB">NDB Bank</option>
+                                        <option value="NTB">Nations Trust Bank</option>
+                                        <option value="NSB">National Savings Bank</option>
+                                        <option value="PanAsia">Pan Asia Bank</option>
+                                        <option value="DFCC">DFCC Bank</option>
+                                    </select>
+                                    <input type="number" id="res-account-no" placeholder="Account Number" class="form-input text-sm">
+                                </div>
                             </div>
 
-                            <div id="affiliate-fields" class="hidden space-y-3 pt-3 border-t border-rose-100 bg-rose-50/50 p-4 rounded-xl animate-fade-in">
-                                <h3 id="social-fields-title" class="text-sm font-bold text-tutu-rose">Affiliate Details</h3>
-                                <p class="text-xs text-gray-500">Add your social media to get verified faster.</p>
-                                <input type="url" id="reg-youtube" placeholder="YouTube Channel Link (Optional)" class="form-input text-sm">
-                                <input type="url" id="reg-facebook" placeholder="Facebook Page Link (Optional)" class="form-input text-sm">
-                                <input type="url" id="reg-tiktok-insta" placeholder="TikTok/Instagram Link (Optional)" class="form-input text-sm">
-                            </div>
-
-                            <button type="submit" class="w-full bg-tutu-rose text-white p-4 rounded-xl hover:bg-tutu-rose-dark font-bold text-lg shadow-lg shadow-rose-200 transition-all transform active:scale-95 mt-2">
+                            <button type="submit" id="submit-btn" class="w-full bg-tutu-rose text-white p-4 rounded-xl hover:bg-tutu-rose-dark font-bold text-lg shadow-lg shadow-rose-200 transition-all transform active:scale-95 mt-2">
                                 Create Account
                             </button>
-                            <p id="register-error" class="text-red-500 text-sm text-center font-medium h-5"></p>
+                            <p id="register-error" class="text-red-500 text-sm text-center font-medium h-5 mt-2"></p>
                         </form>
                     </div>
                 </div>
             </div>
 
             <div class="hidden md:block relative bg-rose-50 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] hover:scale-110" alt="Fashion">
+                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] hover:scale-110">
                 <div class="absolute inset-0 bg-gradient-to-t from-tutu-rose/90 to-transparent mix-blend-multiply"></div>
                 <div class="absolute bottom-0 left-0 p-12 text-white">
                     <h3 class="text-4xl font-extrabold mb-3 leading-tight">Join the Revolution</h3>
@@ -197,49 +218,106 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-t border-rose-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex justify-around items-center z-40 md:hidden">
-        <a href="index.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-tutu-rose text-xs transition-colors">
-            <i class="fa fa-store text-xl mb-1"></i><span>Shop</span>
-        </a>
-        <a href="stories.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-tutu-rose text-xs transition-colors">
-            <i class="fa fa-book-open text-xl mb-1"></i><span>Stories</span>
-        </a>
-        <a href="wishlist.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-tutu-rose text-xs relative transition-colors">
-            <div class="relative"><i class="fa fa-heart text-xl mb-1"></i><span id="mobile-wishlist-badge" class="absolute -top-1 -right-2 bg-tutu-rose text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">0</span></div><span>Wishlist</span>
-        </a>
-        <button id="mobile-cart-btn" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-tutu-rose text-xs relative transition-colors">
-            <div class="relative"><i class="fa fa-shopping-bag text-xl mb-1"></i><span id="mobile-cart-badge" class="absolute -top-1 -right-2 bg-tutu-rose text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">0</span></div><span>Cart</span>
-        </button>
-        <a href="account.html" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-tutu-rose text-xs font-bold transition-colors">
-            <i class="fa fa-user text-xl mb-1"></i><span>Account</span>
-        </a>
-    </nav>
+    <div id="nic-verification-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                <h3 class="text-lg font-bold text-gray-800">Verify Identity</h3>
+                <button type="button" id="close-nic-modal" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="p-3 bg-blue-50 text-blue-700 rounded-lg text-xs border border-blue-100">
+                    <i class="fas fa-info-circle mr-1"></i> Make sure the NIC number is readable in the <b>Front</b> photo.
+                </div>
 
-    <div id="account-drawer-modal" class="drawer drawer-modal fixed inset-0 z-50 hidden">
-        <div id="account-drawer-bg" class="drawer-overlay fixed inset-0 bg-black/50 opacity-0 transition-opacity"></div>
-        <div id="account-drawer" class="drawer-content fixed top-0 right-0 h-full bg-white shadow-2xl z-50 w-80 translate-x-full transition-transform duration-300">
-            <div id="account-drawer-logged-in" class="hidden flex flex-col h-full">
-                <div class="p-5 flex justify-between items-center border-b border-rose-100 bg-rose-50/30">
-                    <h2 class="text-xl font-bold text-gray-800">My Account</h2>
-                    <button id="close-account-drawer-btn-logged-in" class="text-gray-500 hover:text-tutu-rose"><i class="fas fa-times text-xl"></i></button>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">1. Front Side Photo</label>
+                    <input type="file" id="modal-nic-front" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-tutu-rose hover:file:bg-rose-100 cursor-pointer border border-dashed border-gray-300 rounded-lg p-2">
                 </div>
-                <div class="flex-grow p-6 overflow-y-auto">
-                    <div class="text-center mb-6">
-                        <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3 text-tutu-rose text-2xl">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <p class="text-gray-500 text-sm">Welcome back,</p>
-                        <h3 id="account-drawer-user-email" class="text-md font-semibold text-gray-800 break-words mt-1"></h3>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">2. Back Side Photo</label>
+                    <input type="file" id="modal-nic-back" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-tutu-rose hover:file:bg-rose-100 cursor-pointer border border-dashed border-gray-300 rounded-lg p-2">
+                </div>
+
+                <div id="modal-loading-area" class="hidden text-center py-4">
+                    <div class="w-10 h-10 border-4 border-rose-100 border-t-tutu-rose rounded-full animate-spin mx-auto mb-2"></div>
+                    <p class="text-xs text-gray-500 animate-pulse">AI Scanning ID... Please wait.</p>
+                </div>
+
+                <div id="modal-success-area" class="hidden text-center py-4 bg-green-50 rounded-xl border border-green-100">
+                    <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
+                    <p class="text-sm font-bold text-green-700">Identity Verified!</p>
+                </div>
+
+                <p id="modal-error-msg" class="text-xs text-red-500 text-center font-bold"></p>
+
+                <button type="button" id="run-ai-check-btn" class="w-full bg-gray-800 text-white p-3 rounded-xl hover:bg-gray-900 font-bold shadow-lg transition-transform active:scale-95">
+                    Check & Verify
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-drawer" class="drawer">
+        <div id="menu-drawer-overlay" class="drawer-overlay"></div>
+        <div class="drawer-content drawer-left flex flex-col h-full">
+            
+            <div class="p-4 flex justify-between items-center border-b border-gray-100">
+                <h2 class="text-xl font-black text-tutu-rose tracking-wider">MENU</h2>
+                <button id="menu-drawer-close" class="text-gray-500 hover:text-tutu-rose text-xl"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-4 border-b border-gray-100">
+                <div class="relative">
+                    <input type="text" placeholder="Search..." class="w-full pl-4 pr-10 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-tutu-rose bg-gray-50">
+                    <button class="absolute right-3 top-3 text-gray-400"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="flex border-b border-gray-100">
+                <button id="tab-menu-btn" class="drawer-tab-btn active">Menu</button>
+                <button id="tab-categories-btn" class="drawer-tab-btn">Categories</button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto">
+                
+                <div id="tab-menu-content" class="animate-fade-in">
+                    <div class="space-y-0">
+                        <a href="index.html" class="menu-item text-tutu-rose font-bold">HOME</a>
+                        <a href="stories.html" class="menu-item">SELLER STORIES</a>
+                        <a href="shop.html" class="menu-item">SHOP</a>
+                        <a href="about.html" class="menu-item">ABOUT US</a>
+                        <a href="contact.html" class="menu-item">CONTACT US</a>
                     </div>
-                    <button id="drawer-logout-btn" class="w-full text-center bg-gray-100 text-gray-600 p-3 rounded-xl hover:bg-gray-200 font-bold text-base transition-colors">Logout</button>
+                    
+                    <div class="mt-4">
+                        <div class="menu-header">MY ACCOUNT</div>
+                        <a href="wishlist.html" class="menu-item flex items-center space-x-3">
+                            <i class="fas fa-heart text-gray-400"></i> <span>WISHLIST</span>
+                        </a>
+                        <a href="account.html" class="menu-item flex items-center space-x-3">
+                            <i class="fas fa-user text-gray-400"></i> <span>MY ACCOUNT</span>
+                        </a>
+                    </div>
                 </div>
+
+                <div id="tab-categories-content" class="hidden animate-fade-in p-2">
+                    <div id="categories-loader" class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-tutu-rose text-2xl"></i>
+                        <p class="text-xs text-gray-400 mt-2">Loading Categories...</p>
+                    </div>
+                    <div id="categories-list" class="space-y-1">
+                        </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <div id="cart-drawer" class="drawer">
         <div class="drawer-overlay" id="cart-drawer-overlay"></div>
-        <div class="drawer-content flex flex-col">
+        <div class="drawer-content drawer-right flex flex-col">
             <div class="flex justify-between items-center p-5 border-b border-rose-100 bg-rose-50/30">
                 <h2 class="text-xl font-bold text-gray-800">Shopping Cart</h2>
                 <button id="cart-drawer-close" class="text-gray-500 hover:text-tutu-rose"><i class="fas fa-times text-xl"></i></button>
@@ -253,18 +331,36 @@
                     <span class="text-lg font-medium text-gray-600">Subtotal:</span>
                     <span id="cart-drawer-total" class="text-2xl font-bold text-tutu-rose">Rs. 0.00</span>
                 </div>
-                <div class="flex flex-col gap-3">
-                    <a href="cart.html" class="w-full bg-white border-2 border-tutu-rose text-tutu-rose p-3 rounded-xl hover:bg-rose-50 font-bold text-center transition-colors">View Cart</a>
-                    <a href="checkout.html" class="w-full bg-tutu-rose text-white p-3 rounded-xl hover:bg-tutu-rose-dark font-bold text-center transition-colors shadow-lg shadow-rose-200">Checkout</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="account-drawer-modal" class="drawer drawer-modal fixed inset-0 z-50 hidden">
+        <div id="account-drawer-bg" class="drawer-overlay"></div>
+        <div class="drawer-content drawer-right fixed top-0 right-0 h-full bg-white shadow-2xl z-50 w-80 translate-x-full transition-transform duration-300">
+            <div id="account-drawer-logged-in" class="hidden flex flex-col h-full">
+                <div class="p-5 flex justify-between items-center border-b border-rose-100 bg-rose-50/30">
+                    <h2 class="text-xl font-bold text-gray-800">My Account</h2>
+                    <button id="close-account-drawer-btn-logged-in" class="text-gray-500 hover:text-tutu-rose"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="flex-grow p-6">
+                    <div class="text-center mb-6"><h3 id="account-drawer-user-email" class="text-md font-semibold text-gray-800 break-words mt-1"></h3></div>
+                    <button id="drawer-logout-btn" class="w-full text-center bg-gray-100 text-gray-600 p-3 rounded-xl font-bold">Logout</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-t border-rose-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex justify-around items-center z-40 md:hidden">
+        <a href="index.html" class="mobile-nav-link flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-tutu-rose text-xs transition-colors"><i class="fa fa-store text-xl mb-1"></i><span>Shop</span></a>
+        <a href="account.html" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-tutu-rose text-xs font-bold transition-colors"><i class="fa fa-user text-xl mb-1"></i><span>Account</span></a>
+    </nav>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, setDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, onSnapshot, setDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Firebase Configuration
         const firebaseConfig = {
@@ -280,42 +376,32 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app); 
+        const storage = getStorage(app);
         const usersPath = `/users`; 
 
         let currentUser = null;
-
-        function captureAffiliateRef() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const affiliateId = urlParams.get('ref');
-            if (affiliateId) {
-                console.log(`Affiliate ID captured: ${affiliateId}`);
-                localStorage.setItem('affiliateRef', affiliateId);
-            }
-        }
+        let isNicVerified = false; 
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('page-loader').style.width = '100%';
             setTimeout(() => document.getElementById('page-loader').style.display = 'none', 500);
             
             setupTabLogic();
-            setupMobileDrawers();
-            captureAffiliateRef();
+            setupDrawers(); 
+            setupNicModalLogic();
             attachCartDrawerListener(null);
+            setupMenuDrawerTabs(); // Initialize Menu Drawer Tabs
         });
 
-        // Auth State & Redirect Logic
+        // Auth State
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                // If user is logged in, check role and redirect
                 const loginContainer = document.getElementById('login-form-container');
                 const registerContainer = document.getElementById('register-form-container');
-                
-                // Only redirect if we are visible on the login/register forms
                 if (!loginContainer.classList.contains('hidden') || !registerContainer.classList.contains('hidden')) {
                      await redirectUserBasedOnRole(user);
                 }
-
                 document.getElementById('account-drawer-logged-in').classList.remove('hidden');
                 document.getElementById('account-drawer-logged-in').classList.add('flex');
                 document.getElementById('account-drawer-user-email').textContent = user.email;
@@ -326,26 +412,184 @@
         });
 
         async function redirectUserBasedOnRole(user) {
-            console.log("Checking user role...");
-            const userDocRef = doc(db, usersPath, user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                
-                // Priority Redirects (Seller removed)
-                if (userData.isAffiliate === true || userData.wantsToBeAffiliate === true) {
-                    window.location.href = 'affiliate-dashboard.html';
-                } else if (userData.role === 'reseller' || userData.wantsToBeReseller === true) {
-                    window.location.href = 'reseller-dashboard.html'; 
-                } else {
-                    window.location.href = 'customer-account.html';
-                }
-            } else {
-                window.location.href = 'customer-account.html';
+            const userDoc = await getDoc(doc(db, usersPath, user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                if (data.isAffiliate || data.wantsToBeAffiliate) window.location.href = 'affiliate-dashboard.html';
+                else if (data.role === 'reseller' || data.wantsToBeReseller) window.location.href = 'reseller-dashboard.html';
+                else window.location.href = 'customer-account.html';
+            } else window.location.href = 'customer-account.html';
+        }
+
+        // VALIDATION FUNCTIONS
+        function validateSriLankanPhone(number) {
+            const phoneRegex = /^(?:0|94|\+94)?(7[0-9]{8})$/;
+            return phoneRegex.test(number);
+        }
+
+        function validateSriLankanNIC(nic) {
+            const oldNicRegex = /^[0-9]{9}[vVxX]$/;
+            const newNicRegex = /^[0-9]{12}$/;
+            return oldNicRegex.test(nic) || newNicRegex.test(nic);
+        }
+
+        // NIC MODAL LOGIC
+        function setupNicModalLogic() {
+            const modal = document.getElementById('nic-verification-modal');
+            const openBtn = document.getElementById('open-nic-modal-btn');
+            const closeBtn = document.getElementById('close-nic-modal');
+            const checkBtn = document.getElementById('run-ai-check-btn');
+            const nicInput = document.getElementById('res-nic-no');
+            const mainBadge = document.getElementById('main-verification-badge');
+
+            if(openBtn) {
+                openBtn.addEventListener('click', () => {
+                    const nic = nicInput.value;
+                    if(!nic) { alert("Please enter your NIC Number first."); nicInput.focus(); return; }
+                    if(!validateSriLankanNIC(nic)) { alert("Please enter a valid NIC Number (9 digits+V or 12 digits)."); nicInput.focus(); return; }
+                    modal.classList.add('active');
+                });
+            }
+            if(closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+            if(nicInput) {
+                nicInput.addEventListener('input', () => {
+                    isNicVerified = false;
+                    mainBadge.classList.add('hidden');
+                    openBtn.classList.remove('hidden');
+                });
+            }
+
+            if(checkBtn) {
+                checkBtn.addEventListener('click', async () => {
+                    const frontFile = document.getElementById('modal-nic-front').files[0];
+                    const backFile = document.getElementById('modal-nic-back').files[0];
+                    const loadingArea = document.getElementById('modal-loading-area');
+                    const errorMsg = document.getElementById('modal-error-msg');
+                    const successArea = document.getElementById('modal-success-area');
+
+                    if(!frontFile || !backFile) { errorMsg.textContent = "Please upload both Front and Back photos."; return; }
+
+                    checkBtn.classList.add('hidden');
+                    loadingArea.classList.remove('hidden');
+                    errorMsg.textContent = "";
+
+                    try {
+                        const { data: { text } } = await Tesseract.recognize(frontFile, 'eng');
+                        const cleanedText = text.replace(/[^a-zA-Z0-9]/g, '');
+                        const cleanedInput = nicInput.value.replace(/[^a-zA-Z0-9]/g, '');
+
+                        if (cleanedText.includes(cleanedInput) || (cleanedInput.length > 8 && cleanedText.includes(cleanedInput.substring(0, 8)))) {
+                            loadingArea.classList.add('hidden');
+                            successArea.classList.remove('hidden');
+                            setTimeout(() => {
+                                isNicVerified = true;
+                                modal.classList.remove('active'); 
+                                openBtn.classList.add('hidden');
+                                mainBadge.classList.remove('hidden');
+                                successArea.classList.add('hidden');
+                                checkBtn.classList.remove('hidden');
+                            }, 1500); 
+                        } else {
+                            throw new Error("NIC Number did not match the photo. Please try a clearer photo.");
+                        }
+                    } catch (err) {
+                        loadingArea.classList.add('hidden');
+                        checkBtn.classList.remove('hidden');
+                        errorMsg.textContent = "Verification Failed: " + err.message;
+                    }
+                });
             }
         }
 
+        // ===========================================
+        //  DRAWER LOGIC (MENU, CART, ACCOUNT)
+        // ===========================================
+        function setupDrawers() {
+            // -- Cart Drawer --
+            const cartDrawer = document.getElementById('cart-drawer');
+            const toggleCart = () => cartDrawer.classList.toggle('open');
+            document.getElementById('mobile-cart-btn')?.addEventListener('click', toggleCart);
+            document.getElementById('desktop-cart-btn')?.addEventListener('click', toggleCart);
+            document.getElementById('cart-drawer-close')?.addEventListener('click', toggleCart);
+            document.getElementById('cart-drawer-overlay')?.addEventListener('click', toggleCart);
+
+            // -- Menu Drawer (Left Side) --
+            const menuDrawer = document.getElementById('menu-drawer');
+            const toggleMenu = () => menuDrawer.classList.toggle('open');
+            document.getElementById('mobile-menu-btn')?.addEventListener('click', toggleMenu);
+            document.getElementById('menu-drawer-close')?.addEventListener('click', toggleMenu);
+            document.getElementById('menu-drawer-overlay')?.addEventListener('click', toggleMenu);
+
+            // -- Account Drawer (Right Side) --
+            const accountDrawer = document.getElementById('account-drawer-modal');
+            const closeAccount = () => accountDrawer.classList.add('hidden');
+            const openAccount = (e) => { e.preventDefault(); if(currentUser) accountDrawer.classList.remove('hidden'); };
+            document.getElementById('desktop-account-btn')?.addEventListener('click', openAccount);
+            document.getElementById('close-account-drawer-btn-logged-in')?.addEventListener('click', closeAccount);
+            document.getElementById('account-drawer-bg')?.addEventListener('click', closeAccount);
+            document.getElementById('drawer-logout-btn')?.addEventListener('click', async () => {
+                await signOut(auth); closeAccount(); window.location.reload();
+            });
+        }
+
+        // ===========================================
+        //  MENU DRAWER TABS & CATEGORIES FETCH
+        // ===========================================
+        function setupMenuDrawerTabs() {
+            const tabMenuBtn = document.getElementById('tab-menu-btn');
+            const tabCatBtn = document.getElementById('tab-categories-btn');
+            const tabMenuContent = document.getElementById('tab-menu-content');
+            const tabCatContent = document.getElementById('tab-categories-content');
+
+            tabMenuBtn.addEventListener('click', () => {
+                tabMenuBtn.classList.add('active'); tabCatBtn.classList.remove('active');
+                tabMenuContent.classList.remove('hidden'); tabCatContent.classList.add('hidden');
+            });
+
+            tabCatBtn.addEventListener('click', () => {
+                tabCatBtn.classList.add('active'); tabMenuBtn.classList.remove('active');
+                tabCatContent.classList.remove('hidden'); tabMenuContent.classList.add('hidden');
+                
+                const catList = document.getElementById('categories-list');
+                if(catList.children.length === 0) {
+                    loadCategories();
+                }
+            });
+        }
+
+        async function loadCategories() {
+            const loader = document.getElementById('categories-loader');
+            const list = document.getElementById('categories-list');
+            
+            try {
+                // Assuming "categories" collection exists and has a "name" field
+                const querySnapshot = await getDocs(collection(db, "categories"));
+                loader.classList.add('hidden');
+                
+                if(querySnapshot.empty) {
+                    list.innerHTML = '<p class="text-sm text-gray-400 text-center">No categories found.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const name = data.name || "Unnamed Category";
+                    const id = doc.id;
+                    
+                    const link = document.createElement('a');
+                    link.href = `shop.html?category=${id}`;
+                    link.className = 'menu-item flex justify-between items-center';
+                    link.innerHTML = `<span>${name}</span> <i class="fas fa-chevron-right text-xs text-gray-300"></i>`;
+                    list.appendChild(link);
+                });
+            } catch (error) {
+                console.error("Error loading categories:", error);
+                loader.innerHTML = '<p class="text-red-400 text-sm">Failed to load categories.</p>';
+            }
+        }
+        
+        // PAGE TAB LOGIC (Login/Register)
         function setupTabLogic() {
             const loginTab = document.getElementById('login-tab-btn');
             const registerTab = document.getElementById('register-tab-btn');
@@ -356,55 +600,42 @@
                 loginTab.classList.add('active'); registerTab.classList.remove('active');
                 loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
             });
-
             registerTab.addEventListener('click', () => {
                 registerTab.classList.add('active'); loginTab.classList.remove('active');
                 registerForm.classList.remove('hidden'); loginForm.classList.add('hidden');
             });
 
-            // Toggle Fields based on User Type Radio
             const userTypeRadios = document.querySelectorAll('input[name="userType"]');
             const affiliateFields = document.getElementById('affiliate-fields');
-            const socialTitle = document.getElementById('social-fields-title');
+            const resellerFields = document.getElementById('reseller-fields');
             
             userTypeRadios.forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    const userType = e.target.value;
-                    
-                    // Reset
                     affiliateFields.classList.add('hidden');
-
-                    if (userType === 'affiliate') {
-                        affiliateFields.classList.remove('hidden');
-                        socialTitle.textContent = "Affiliate Details";
-                    } else if (userType === 'reseller') {
-                        affiliateFields.classList.remove('hidden');
-                        socialTitle.textContent = "Reseller Details";
-                    }
+                    resellerFields.classList.add('hidden');
+                    if (e.target.value === 'affiliate') affiliateFields.classList.remove('hidden');
+                    else if (e.target.value === 'reseller') resellerFields.classList.remove('hidden');
                 });
             });
 
-            // Login Submit
+            // LOGIN SUBMIT
             document.getElementById('login-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('login-email').value;
                 const password = document.getElementById('login-password').value;
-                const errorEl = document.getElementById('login-error');
-                errorEl.textContent = "Signing in...";
-
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } catch (err) {
-                    errorEl.textContent = "Invalid email or password.";
-                    console.error(err);
-                }
+                try { await signInWithEmailAndPassword(auth, email, password); }
+                catch (err) { document.getElementById('login-error').textContent = "Invalid email or password."; }
             });
 
-            // Register Submit (Handles 3 Roles)
+            // REGISTER SUBMIT
             document.getElementById('register-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const errorEl = document.getElementById('register-error');
-                errorEl.textContent = "Creating account...";
+                const submitBtn = document.getElementById('submit-btn');
+                
+                errorEl.textContent = "Processing...";
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
 
                 const userType = document.querySelector('input[name="userType"]:checked').value;
                 const name = document.getElementById('reg-name').value;
@@ -412,6 +643,46 @@
                 const password = document.getElementById('reg-password').value;
 
                 try {
+                    let resellerData = {};
+
+                    if (userType === 'reseller') {
+                        const phone = document.getElementById('res-phone').value;
+                        const whatsapp = document.getElementById('res-whatsapp').value;
+                        const address = document.getElementById('res-address').value;
+                        const nic = document.getElementById('res-nic-no').value;
+                        const bank = document.getElementById('res-bank-name').value;
+                        const accountNo = document.getElementById('res-account-no').value;
+
+                        if(!validateSriLankanPhone(phone)) throw new Error("Invalid Mobile Number (07...)");
+                        if(!validateSriLankanPhone(whatsapp)) throw new Error("Invalid Whatsapp Number (07...)");
+                        if(!validateSriLankanNIC(nic)) throw new Error("Invalid NIC Number");
+                        if(!bank) throw new Error("Please select a Bank");
+                        if(!address || !accountNo) throw new Error("Please fill all fields");
+
+                        if (!isNicVerified) {
+                            throw new Error("Please verify your ID by clicking the 'Verify ID with AI' button.");
+                        }
+
+                        // Upload Images
+                        errorEl.textContent = "Uploading NIC Images...";
+                        const frontFile = document.getElementById('modal-nic-front').files[0];
+                        const backFile = document.getElementById('modal-nic-back').files[0];
+                        
+                        const frontRef = ref(storage, `nic_cards/${Date.now()}_front_${frontFile.name}`);
+                        const frontSnap = await uploadBytes(frontRef, frontFile);
+                        const frontUrl = await getDownloadURL(frontSnap.ref);
+
+                        const backRef = ref(storage, `nic_cards/${Date.now()}_back_${backFile.name}`);
+                        const backSnap = await uploadBytes(backRef, backFile);
+                        const backUrl = await getDownloadURL(backSnap.ref);
+
+                        resellerData = {
+                            phone, whatsapp, address, nic, bank, accountNo,
+                            nicFrontUrl: frontUrl, nicBackUrl: backUrl, isAiVerified: true
+                        };
+                    }
+
+                    errorEl.textContent = "Creating account...";
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
 
@@ -419,112 +690,57 @@
                     const userDocRef = doc(db, usersPath, user.uid);
                     
                     let userData = {
-                        name: name,
-                        email: email,
-                        createdAt: serverTimestamp(),
-                        isSeller: false,
-                        isAffiliate: false,
-                        wantsToBeAffiliate: false,
-                        wantsToBeSeller: false,
-                        role: "customer" // Default
+                        name: name, email: email, createdAt: serverTimestamp(),
+                        isSeller: false, isAffiliate: false,
+                        wantsToBeAffiliate: false, wantsToBeReseller: false, role: "customer"
                     };
 
-                    if (userType === 'customer') {
-                        // Default data is enough
-                    } 
-                    else if (userType === 'affiliate') {
-                        const youtube = document.getElementById('reg-youtube').value;
-                        const facebook = document.getElementById('reg-facebook').value;
-                        const tiktokInsta = document.getElementById('reg-tiktok-insta').value;
-                        
+                    if (userType === 'affiliate') {
                         userData.wantsToBeAffiliate = true;
+                        userData.role = "affiliate_pending";
                         userData.affiliateCode = user.uid;
                         userData.socialMedia = {
-                            youtube: youtube || null,
-                            facebook: facebook || null,
-                            tiktok_insta: tiktokInsta || null
+                            youtube: document.getElementById('reg-youtube').value,
+                            facebook: document.getElementById('reg-facebook').value,
+                            tiktok: document.getElementById('reg-tiktok-insta').value
                         };
-                    } 
-                    else if (userType === 'reseller') {
-                        const youtube = document.getElementById('reg-youtube').value;
-                        const facebook = document.getElementById('reg-facebook').value;
-                        const tiktokInsta = document.getElementById('reg-tiktok-insta').value;
-                        
-                        userData.role = "reseller";
+                    } else if (userType === 'reseller') {
+                        userData.role = "reseller_pending";
                         userData.wantsToBeReseller = true;
-                        userData.socialMedia = {
-                            youtube: youtube || null,
-                            facebook: facebook || null,
-                            tiktok_insta: tiktokInsta || null
-                        };
+                        userData.resellerDetails = resellerData;
                     }
 
                     batch.set(userDocRef, userData);
                     await batch.commit();
-                    errorEl.textContent = "";
-                    
-                    // Redirect logic
-                    if (userType === 'affiliate') {
-                        window.location.href = 'affiliate-dashboard.html';
-                    } else if (userType === 'reseller') {
-                        window.location.href = 'reseller-dashboard.html';
-                    } else {
-                        window.location.href = 'customer-account.html';
-                    }
+
+                    errorEl.textContent = "Success! Redirecting...";
+                    if (userType === 'affiliate') window.location.href = 'affiliate-dashboard.html';
+                    else if (userType === 'reseller') window.location.href = 'reseller-dashboard.html';
+                    else window.location.href = 'customer-account.html';
 
                 } catch (err) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50');
                     errorEl.textContent = err.message.replace('Firebase: ', '');
-                    console.error(err);
                 }
             });
         }
 
-        // Drawer & Cart Logic
-        function setupMobileDrawers() {
-            const cartDrawer = document.getElementById('cart-drawer');
-            const accountDrawer = document.getElementById('account-drawer-modal');
-            const toggleCart = () => cartDrawer.classList.toggle('open');
-            
-            document.getElementById('mobile-cart-btn')?.addEventListener('click', toggleCart);
-            document.getElementById('desktop-cart-btn')?.addEventListener('click', toggleCart);
-            document.getElementById('cart-drawer-close')?.addEventListener('click', toggleCart);
-            document.getElementById('cart-drawer-overlay')?.addEventListener('click', toggleCart);
-
-            const closeAccount = () => accountDrawer.classList.add('hidden');
-            const openAccount = (e) => {
-                e.preventDefault();
-                if(currentUser) accountDrawer.classList.remove('hidden');
-            };
-
-            document.getElementById('desktop-account-btn')?.addEventListener('click', openAccount);
-            document.getElementById('close-account-drawer-btn-logged-in')?.addEventListener('click', closeAccount);
-            document.getElementById('account-drawer-bg')?.addEventListener('click', closeAccount);
-            
-            document.getElementById('drawer-logout-btn')?.addEventListener('click', async () => {
-                await signOut(auth);
-                closeAccount();
-                window.location.reload();
-            });
-        }
-
+        // Cart Listener
         function attachCartDrawerListener(userId) {
             const container = document.getElementById('cart-drawer-items-container');
             const totalEl = document.getElementById('cart-drawer-total');
             const badges = [document.getElementById('cart-count-badge'), document.getElementById('mobile-cart-badge')];
-            
             if (!container || !totalEl) return;
-            
             if (!userId) {
                 container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
                 totalEl.textContent = 'Rs. 0.00';
                 badges.forEach(b => { if(b) b.textContent = '0' });
                 return;
             }
-
             onSnapshot(collection(db, usersPath, userId, 'cart'), (snapshot) => {
                 let count = snapshot.size;
                 badges.forEach(b => { if(b) b.textContent = count });
-                
                 let subtotalLKR = 0;
                 if (snapshot.empty) {
                     container.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
