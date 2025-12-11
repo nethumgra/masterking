@@ -554,7 +554,8 @@
 
                 // Initial fetch: We fetch a bit more data (limit 100) to allow client-side filtering
                 if (categoryName) {
-                    q = query(productsRef, where("categories", "==", categoryName), limit(100));
+                   // 'categories' kiyana eka 'category' karanna
+                 q = query(productsRef, where("category", "==", categoryName), limit(100));
                 } else {
                     q = query(productsRef, orderBy("createdAt", "desc"), limit(100));
                 }
@@ -600,10 +601,10 @@
                 if (price < minPrice || price > maxPrice) return false;
 
                 // Category Check (If selected in drawer)
-                if (selectedCategories.length > 0) {
-                      return selectedCategories.includes(product.categories);
-                }
-
+               if (selectedCategories.length > 0) {
+      // Methanath 'product.categories' wenuwata 'product.category' enna oni
+      return selectedCategories.includes(product.category);
+}
                 return true;
             });
 
@@ -663,7 +664,7 @@
                     </div>
                 </a>
                 <div class="p-4 text-center">
-                    <p class="text-xs text-gray-400 uppercase tracking-wide hidden md:block">${product.categories || 'TUTU Collection'}</p>
+                   <p class="text-xs text-gray-400 uppercase tracking-wide hidden md:block">${product.category || 'TUTU Collection'}</p>
                     <a href="product.html?id=${productId}" class="block product-link">
                         <h3 class="my-1 text-sm font-semibold text-gray-800 hover:text-mudalali-green md:text-lg line-clamp-2">${product.name}</h3>
                     </a>
