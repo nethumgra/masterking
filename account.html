@@ -9,8 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -167,15 +165,16 @@
                                     <label class="block text-xs font-bold text-gray-600 mb-1">NIC Number</label>
                                     <input type="text" id="res-nic-no" placeholder="98xxxxxxxV" class="form-input text-sm mb-3 uppercase">
                                     
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" id="open-nic-modal-btn" class="flex-1 bg-gray-800 text-white py-2 rounded-lg text-xs font-bold hover:bg-gray-700 transition-colors">
-                                            <i class="fas fa-id-card mr-1"></i> Verify ID with AI
-                                        </button>
-                                        <span id="main-verification-badge" class="hidden px-2 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold border border-green-200">
-                                            <i class="fas fa-check-circle"></i> Verified
-                                        </span>
+                                    <div class="space-y-3 mt-2">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-gray-500 mb-1">NIC Front Photo</label>
+                                            <input type="file" id="res-nic-front" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-tutu-rose hover:file:bg-rose-100 cursor-pointer border border-dashed border-gray-300 rounded-lg p-2">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-gray-500 mb-1">NIC Back Photo</label>
+                                            <input type="file" id="res-nic-back" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-tutu-rose hover:file:bg-rose-100 cursor-pointer border border-dashed border-gray-300 rounded-lg p-2">
+                                        </div>
                                     </div>
-                                    <p class="text-[10px] text-gray-400 mt-1 italic">Verification required to create account.</p>
                                 </div>
 
                                 <div class="p-2 bg-white rounded-lg border border-rose-100">
@@ -217,47 +216,6 @@
             </div>
         </div>
     </main>
-
-    <div id="nic-verification-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                <h3 class="text-lg font-bold text-gray-800">Verify Identity</h3>
-                <button type="button" id="close-nic-modal" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="p-3 bg-blue-50 text-blue-700 rounded-lg text-xs border border-blue-100">
-                    <i class="fas fa-info-circle mr-1"></i> Make sure the NIC number is readable in the <b>Front</b> photo.
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">1. Front Side Photo</label>
-                    <input type="file" id="modal-nic-front" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-tutu-rose hover:file:bg-rose-100 cursor-pointer border border-dashed border-gray-300 rounded-lg p-2">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">2. Back Side Photo</label>
-                    <input type="file" id="modal-nic-back" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-tutu-rose hover:file:bg-rose-100 cursor-pointer border border-dashed border-gray-300 rounded-lg p-2">
-                </div>
-
-                <div id="modal-loading-area" class="hidden text-center py-4">
-                    <div class="w-10 h-10 border-4 border-rose-100 border-t-tutu-rose rounded-full animate-spin mx-auto mb-2"></div>
-                    <p class="text-xs text-gray-500 animate-pulse">AI Scanning ID... Please wait.</p>
-                </div>
-
-                <div id="modal-success-area" class="hidden text-center py-4 bg-green-50 rounded-xl border border-green-100">
-                    <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
-                    <p class="text-sm font-bold text-green-700">Identity Verified!</p>
-                </div>
-
-                <p id="modal-error-msg" class="text-xs text-red-500 text-center font-bold"></p>
-
-                <button type="button" id="run-ai-check-btn" class="w-full bg-gray-800 text-white p-3 rounded-xl hover:bg-gray-900 font-bold shadow-lg transition-transform active:scale-95">
-                    Check & Verify
-                </button>
-            </div>
-        </div>
-    </div>
 
     <div id="menu-drawer" class="drawer">
         <div id="menu-drawer-overlay" class="drawer-overlay"></div>
@@ -356,408 +314,340 @@
         <a href="account.html" class="mobile-nav-link active flex-1 flex flex-col items-center justify-center text-tutu-rose text-xs font-bold transition-colors"><i class="fa fa-user text-xl mb-1"></i><span>Account</span></a>
     </nav>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, onSnapshot, setDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, onSnapshot, setDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-            authDomain: "masterking-fa629.firebaseapp.com",
-            projectId: "masterking-fa629",
-            storageBucket: "masterking-fa629.firebasestorage.app",
-            messagingSenderId: "680021576286",
-            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-            measurementId: "G-9443L8L88Q"
-        };
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+        authDomain: "masterking-fa629.firebaseapp.com",
+        projectId: "masterking-fa629",
+        storageBucket: "masterking-fa629.firebasestorage.app",
+        messagingSenderId: "680021576286",
+        appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+        measurementId: "G-9443L8L88Q"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); 
-        const storage = getStorage(app);
-        const usersPath = `/users`; 
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app); 
+    const storage = getStorage(app);
+    const usersPath = `/users`; 
 
-        let currentUser = null;
-        let isNicVerified = false; 
+    let currentUser = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('page-loader').style.width = '100%';
-            setTimeout(() => document.getElementById('page-loader').style.display = 'none', 500);
-            
-            setupTabLogic();
-            setupDrawers(); 
-            setupNicModalLogic();
-            attachCartDrawerListener(null);
-            setupMenuDrawerTabs(); // Initialize Menu Drawer Tabs
-        });
-
-        // Auth State
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            if (user) {
-                const loginContainer = document.getElementById('login-form-container');
-                const registerContainer = document.getElementById('register-form-container');
-                if (!loginContainer.classList.contains('hidden') || !registerContainer.classList.contains('hidden')) {
-                     await redirectUserBasedOnRole(user);
-                }
-                document.getElementById('account-drawer-logged-in').classList.remove('hidden');
-                document.getElementById('account-drawer-logged-in').classList.add('flex');
-                document.getElementById('account-drawer-user-email').textContent = user.email;
-                attachCartDrawerListener(user.uid);
-            } else {
-                attachCartDrawerListener(null);
-            }
-        });
-
-        async function redirectUserBasedOnRole(user) {
-            const userDoc = await getDoc(doc(db, usersPath, user.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                if (data.isAffiliate || data.wantsToBeAffiliate) window.location.href = 'affiliate-dashboard.html';
-                else if (data.role === 'reseller' || data.wantsToBeReseller) window.location.href = 'reseller-dashboard.html';
-                else window.location.href = 'customer-account.html';
-            } else window.location.href = 'customer-account.html';
-        }
-
-        // VALIDATION FUNCTIONS
-        function validateSriLankanPhone(number) {
-            const phoneRegex = /^(?:0|94|\+94)?(7[0-9]{8})$/;
-            return phoneRegex.test(number);
-        }
-
-        function validateSriLankanNIC(nic) {
-            const oldNicRegex = /^[0-9]{9}[vVxX]$/;
-            const newNicRegex = /^[0-9]{12}$/;
-            return oldNicRegex.test(nic) || newNicRegex.test(nic);
-        }
-
-        // NIC MODAL LOGIC
-        function setupNicModalLogic() {
-            const modal = document.getElementById('nic-verification-modal');
-            const openBtn = document.getElementById('open-nic-modal-btn');
-            const closeBtn = document.getElementById('close-nic-modal');
-            const checkBtn = document.getElementById('run-ai-check-btn');
-            const nicInput = document.getElementById('res-nic-no');
-            const mainBadge = document.getElementById('main-verification-badge');
-
-            if(openBtn) {
-                openBtn.addEventListener('click', () => {
-                    const nic = nicInput.value;
-                    if(!nic) { alert("Please enter your NIC Number first."); nicInput.focus(); return; }
-                    if(!validateSriLankanNIC(nic)) { alert("Please enter a valid NIC Number (9 digits+V or 12 digits)."); nicInput.focus(); return; }
-                    modal.classList.add('active');
-                });
-            }
-            if(closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('active'));
-
-            if(nicInput) {
-                nicInput.addEventListener('input', () => {
-                    isNicVerified = false;
-                    mainBadge.classList.add('hidden');
-                    openBtn.classList.remove('hidden');
-                });
-            }
-
-            if(checkBtn) {
-                checkBtn.addEventListener('click', async () => {
-                    const frontFile = document.getElementById('modal-nic-front').files[0];
-                    const backFile = document.getElementById('modal-nic-back').files[0];
-                    const loadingArea = document.getElementById('modal-loading-area');
-                    const errorMsg = document.getElementById('modal-error-msg');
-                    const successArea = document.getElementById('modal-success-area');
-
-                    if(!frontFile || !backFile) { errorMsg.textContent = "Please upload both Front and Back photos."; return; }
-
-                    checkBtn.classList.add('hidden');
-                    loadingArea.classList.remove('hidden');
-                    errorMsg.textContent = "";
-
-                    try {
-                        const { data: { text } } = await Tesseract.recognize(frontFile, 'eng');
-                        const cleanedText = text.replace(/[^a-zA-Z0-9]/g, '');
-                        const cleanedInput = nicInput.value.replace(/[^a-zA-Z0-9]/g, '');
-
-                        if (cleanedText.includes(cleanedInput) || (cleanedInput.length > 8 && cleanedText.includes(cleanedInput.substring(0, 8)))) {
-                            loadingArea.classList.add('hidden');
-                            successArea.classList.remove('hidden');
-                            setTimeout(() => {
-                                isNicVerified = true;
-                                modal.classList.remove('active'); 
-                                openBtn.classList.add('hidden');
-                                mainBadge.classList.remove('hidden');
-                                successArea.classList.add('hidden');
-                                checkBtn.classList.remove('hidden');
-                            }, 1500); 
-                        } else {
-                            throw new Error("NIC Number did not match the photo. Please try a clearer photo.");
-                        }
-                    } catch (err) {
-                        loadingArea.classList.add('hidden');
-                        checkBtn.classList.remove('hidden');
-                        errorMsg.textContent = "Verification Failed: " + err.message;
-                    }
-                });
-            }
-        }
-
-        // ===========================================
-        //  DRAWER LOGIC (MENU, CART, ACCOUNT)
-        // ===========================================
-        function setupDrawers() {
-            // -- Cart Drawer --
-            const cartDrawer = document.getElementById('cart-drawer');
-            const toggleCart = () => cartDrawer.classList.toggle('open');
-            document.getElementById('mobile-cart-btn')?.addEventListener('click', toggleCart);
-            document.getElementById('desktop-cart-btn')?.addEventListener('click', toggleCart);
-            document.getElementById('cart-drawer-close')?.addEventListener('click', toggleCart);
-            document.getElementById('cart-drawer-overlay')?.addEventListener('click', toggleCart);
-
-            // -- Menu Drawer (Left Side) --
-            const menuDrawer = document.getElementById('menu-drawer');
-            const toggleMenu = () => menuDrawer.classList.toggle('open');
-            document.getElementById('mobile-menu-btn')?.addEventListener('click', toggleMenu);
-            document.getElementById('menu-drawer-close')?.addEventListener('click', toggleMenu);
-            document.getElementById('menu-drawer-overlay')?.addEventListener('click', toggleMenu);
-
-            // -- Account Drawer (Right Side) --
-            const accountDrawer = document.getElementById('account-drawer-modal');
-            const closeAccount = () => accountDrawer.classList.add('hidden');
-            const openAccount = (e) => { e.preventDefault(); if(currentUser) accountDrawer.classList.remove('hidden'); };
-            document.getElementById('desktop-account-btn')?.addEventListener('click', openAccount);
-            document.getElementById('close-account-drawer-btn-logged-in')?.addEventListener('click', closeAccount);
-            document.getElementById('account-drawer-bg')?.addEventListener('click', closeAccount);
-            document.getElementById('drawer-logout-btn')?.addEventListener('click', async () => {
-                await signOut(auth); closeAccount(); window.location.reload();
-            });
-        }
-
-        // ===========================================
-        //  MENU DRAWER TABS & CATEGORIES FETCH
-        // ===========================================
-        function setupMenuDrawerTabs() {
-            const tabMenuBtn = document.getElementById('tab-menu-btn');
-            const tabCatBtn = document.getElementById('tab-categories-btn');
-            const tabMenuContent = document.getElementById('tab-menu-content');
-            const tabCatContent = document.getElementById('tab-categories-content');
-
-            tabMenuBtn.addEventListener('click', () => {
-                tabMenuBtn.classList.add('active'); tabCatBtn.classList.remove('active');
-                tabMenuContent.classList.remove('hidden'); tabCatContent.classList.add('hidden');
-            });
-
-            tabCatBtn.addEventListener('click', () => {
-                tabCatBtn.classList.add('active'); tabMenuBtn.classList.remove('active');
-                tabCatContent.classList.remove('hidden'); tabMenuContent.classList.add('hidden');
-                
-                const catList = document.getElementById('categories-list');
-                if(catList.children.length === 0) {
-                    loadCategories();
-                }
-            });
-        }
-
-        async function loadCategories() {
-            const loader = document.getElementById('categories-loader');
-            const list = document.getElementById('categories-list');
-            
-            try {
-                // Assuming "categories" collection exists and has a "name" field
-                const querySnapshot = await getDocs(collection(db, "categories"));
-                loader.classList.add('hidden');
-                
-                if(querySnapshot.empty) {
-                    list.innerHTML = '<p class="text-sm text-gray-400 text-center">No categories found.</p>';
-                    return;
-                }
-
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const name = data.name || "Unnamed Category";
-                    const id = doc.id;
-                    
-                    const link = document.createElement('a');
-                    link.href = `shop.html?category=${id}`;
-                    link.className = 'menu-item flex justify-between items-center';
-                    link.innerHTML = `<span>${name}</span> <i class="fas fa-chevron-right text-xs text-gray-300"></i>`;
-                    list.appendChild(link);
-                });
-            } catch (error) {
-                console.error("Error loading categories:", error);
-                loader.innerHTML = '<p class="text-red-400 text-sm">Failed to load categories.</p>';
-            }
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('page-loader').style.width = '100%';
+        setTimeout(() => document.getElementById('page-loader').style.display = 'none', 500);
         
-        // PAGE TAB LOGIC (Login/Register)
-        function setupTabLogic() {
-            const loginTab = document.getElementById('login-tab-btn');
-            const registerTab = document.getElementById('register-tab-btn');
-            const loginForm = document.getElementById('login-form-container');
-            const registerForm = document.getElementById('register-form-container');
+        setupTabLogic();
+        setupDrawers(); 
+        attachCartDrawerListener(null);
+        setupMenuDrawerTabs();
+    });
 
-            loginTab.addEventListener('click', () => {
-                loginTab.classList.add('active'); registerTab.classList.remove('active');
-                loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
-            });
-            registerTab.addEventListener('click', () => {
-                registerTab.classList.add('active'); loginTab.classList.remove('active');
-                registerForm.classList.remove('hidden'); loginForm.classList.add('hidden');
-            });
-
-            const userTypeRadios = document.querySelectorAll('input[name="userType"]');
-            const affiliateFields = document.getElementById('affiliate-fields');
-            const resellerFields = document.getElementById('reseller-fields');
-            
-            userTypeRadios.forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    affiliateFields.classList.add('hidden');
-                    resellerFields.classList.add('hidden');
-                    if (e.target.value === 'affiliate') affiliateFields.classList.remove('hidden');
-                    else if (e.target.value === 'reseller') resellerFields.classList.remove('hidden');
-                });
-            });
-
-            // LOGIN SUBMIT
-            document.getElementById('login-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                try { await signInWithEmailAndPassword(auth, email, password); }
-                catch (err) { document.getElementById('login-error').textContent = "Invalid email or password."; }
-            });
-
-            // REGISTER SUBMIT
-            document.getElementById('register-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const errorEl = document.getElementById('register-error');
-                const submitBtn = document.getElementById('submit-btn');
-                
-                errorEl.textContent = "Processing...";
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50');
-
-                const userType = document.querySelector('input[name="userType"]:checked').value;
-                const name = document.getElementById('reg-name').value;
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
-
-                try {
-                    let resellerData = {};
-
-                    if (userType === 'reseller') {
-                        const phone = document.getElementById('res-phone').value;
-                        const whatsapp = document.getElementById('res-whatsapp').value;
-                        const address = document.getElementById('res-address').value;
-                        const nic = document.getElementById('res-nic-no').value;
-                        const bank = document.getElementById('res-bank-name').value;
-                        const accountNo = document.getElementById('res-account-no').value;
-
-                        if(!validateSriLankanPhone(phone)) throw new Error("Invalid Mobile Number (07...)");
-                        if(!validateSriLankanPhone(whatsapp)) throw new Error("Invalid Whatsapp Number (07...)");
-                        if(!validateSriLankanNIC(nic)) throw new Error("Invalid NIC Number");
-                        if(!bank) throw new Error("Please select a Bank");
-                        if(!address || !accountNo) throw new Error("Please fill all fields");
-
-                        if (!isNicVerified) {
-                            throw new Error("Please verify your ID by clicking the 'Verify ID with AI' button.");
-                        }
-
-                        // Upload Images
-                        errorEl.textContent = "Uploading NIC Images...";
-                        const frontFile = document.getElementById('modal-nic-front').files[0];
-                        const backFile = document.getElementById('modal-nic-back').files[0];
-                        
-                        const frontRef = ref(storage, `nic_cards/${Date.now()}_front_${frontFile.name}`);
-                        const frontSnap = await uploadBytes(frontRef, frontFile);
-                        const frontUrl = await getDownloadURL(frontSnap.ref);
-
-                        const backRef = ref(storage, `nic_cards/${Date.now()}_back_${backFile.name}`);
-                        const backSnap = await uploadBytes(backRef, backFile);
-                        const backUrl = await getDownloadURL(backSnap.ref);
-
-                        resellerData = {
-                            phone, whatsapp, address, nic, bank, accountNo,
-                            nicFrontUrl: frontUrl, nicBackUrl: backUrl, isAiVerified: true
-                        };
-                    }
-
-                    errorEl.textContent = "Creating account...";
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-
-                    const batch = writeBatch(db);
-                    const userDocRef = doc(db, usersPath, user.uid);
-                    
-                    let userData = {
-                        name: name, email: email, createdAt: serverTimestamp(),
-                        isSeller: false, isAffiliate: false,
-                        wantsToBeAffiliate: false, wantsToBeReseller: false, role: "customer"
-                    };
-
-                    if (userType === 'affiliate') {
-                        userData.wantsToBeAffiliate = true;
-                        userData.role = "affiliate_pending";
-                        userData.affiliateCode = user.uid;
-                        userData.socialMedia = {
-                            youtube: document.getElementById('reg-youtube').value,
-                            facebook: document.getElementById('reg-facebook').value,
-                            tiktok: document.getElementById('reg-tiktok-insta').value
-                        };
-                    } else if (userType === 'reseller') {
-                        userData.role = "reseller_pending";
-                        userData.wantsToBeReseller = true;
-                        userData.resellerDetails = resellerData;
-                    }
-
-                    batch.set(userDocRef, userData);
-                    await batch.commit();
-
-                    errorEl.textContent = "Success! Redirecting...";
-                    if (userType === 'affiliate') window.location.href = 'affiliate-dashboard.html';
-                    else if (userType === 'reseller') window.location.href = 'reseller-dashboard.html';
-                    else window.location.href = 'customer-account.html';
-
-                } catch (err) {
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-50');
-                    errorEl.textContent = err.message.replace('Firebase: ', '');
-                }
-            });
+    // Auth State
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        if (user) {
+            const loginContainer = document.getElementById('login-form-container');
+            const registerContainer = document.getElementById('register-form-container');
+            if (!loginContainer.classList.contains('hidden') || !registerContainer.classList.contains('hidden')) {
+                    await redirectUserBasedOnRole(user);
+            }
+            document.getElementById('account-drawer-logged-in').classList.remove('hidden');
+            document.getElementById('account-drawer-logged-in').classList.add('flex');
+            document.getElementById('account-drawer-user-email').textContent = user.email;
+            attachCartDrawerListener(user.uid);
+        } else {
+            attachCartDrawerListener(null);
         }
+    });
 
-        // Cart Listener
-        function attachCartDrawerListener(userId) {
-            const container = document.getElementById('cart-drawer-items-container');
-            const totalEl = document.getElementById('cart-drawer-total');
-            const badges = [document.getElementById('cart-count-badge'), document.getElementById('mobile-cart-badge')];
-            if (!container || !totalEl) return;
-            if (!userId) {
-                container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
-                totalEl.textContent = 'Rs. 0.00';
-                badges.forEach(b => { if(b) b.textContent = '0' });
+    async function redirectUserBasedOnRole(user) {
+        const userDoc = await getDoc(doc(db, usersPath, user.uid));
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.isAffiliate || data.wantsToBeAffiliate) window.location.href = 'affiliate-dashboard.html';
+            else if (data.role === 'reseller' || data.wantsToBeReseller) window.location.href = 'reseller-dashboard.html';
+            else window.location.href = 'customer-account.html';
+        } else window.location.href = 'customer-account.html';
+    }
+
+    // VALIDATION FUNCTIONS
+    function validateSriLankanPhone(number) {
+        const phoneRegex = /^(?:0|94|\+94)?(7[0-9]{8})$/;
+        return phoneRegex.test(number);
+    }
+
+    function validateSriLankanNIC(nic) {
+        const oldNicRegex = /^[0-9]{9}[vVxX]$/;
+        const newNicRegex = /^[0-9]{12}$/;
+        return oldNicRegex.test(nic) || newNicRegex.test(nic);
+    }
+
+    // ===========================================
+    //  DRAWER LOGIC (MENU, CART, ACCOUNT)
+    // ===========================================
+    function setupDrawers() {
+        // -- Cart Drawer --
+        const cartDrawer = document.getElementById('cart-drawer');
+        const toggleCart = () => cartDrawer.classList.toggle('open');
+        document.getElementById('mobile-cart-btn')?.addEventListener('click', toggleCart);
+        document.getElementById('desktop-cart-btn')?.addEventListener('click', toggleCart);
+        document.getElementById('cart-drawer-close')?.addEventListener('click', toggleCart);
+        document.getElementById('cart-drawer-overlay')?.addEventListener('click', toggleCart);
+
+        // -- Menu Drawer (Left Side) --
+        const menuDrawer = document.getElementById('menu-drawer');
+        const toggleMenu = () => menuDrawer.classList.toggle('open');
+        document.getElementById('mobile-menu-btn')?.addEventListener('click', toggleMenu);
+        document.getElementById('menu-drawer-close')?.addEventListener('click', toggleMenu);
+        document.getElementById('menu-drawer-overlay')?.addEventListener('click', toggleMenu);
+
+        // -- Account Drawer (Right Side) --
+        const accountDrawer = document.getElementById('account-drawer-modal');
+        const closeAccount = () => accountDrawer.classList.add('hidden');
+        const openAccount = (e) => { e.preventDefault(); if(currentUser) accountDrawer.classList.remove('hidden'); };
+        document.getElementById('desktop-account-btn')?.addEventListener('click', openAccount);
+        document.getElementById('close-account-drawer-btn-logged-in')?.addEventListener('click', closeAccount);
+        document.getElementById('account-drawer-bg')?.addEventListener('click', closeAccount);
+        document.getElementById('drawer-logout-btn')?.addEventListener('click', async () => {
+            await signOut(auth); closeAccount(); window.location.reload();
+        });
+    }
+
+    // ===========================================
+    //  MENU DRAWER TABS & CATEGORIES FETCH
+    // ===========================================
+    function setupMenuDrawerTabs() {
+        const tabMenuBtn = document.getElementById('tab-menu-btn');
+        const tabCatBtn = document.getElementById('tab-categories-btn');
+        const tabMenuContent = document.getElementById('tab-menu-content');
+        const tabCatContent = document.getElementById('tab-categories-content');
+
+        tabMenuBtn.addEventListener('click', () => {
+            tabMenuBtn.classList.add('active'); tabCatBtn.classList.remove('active');
+            tabMenuContent.classList.remove('hidden'); tabCatContent.classList.add('hidden');
+        });
+
+        tabCatBtn.addEventListener('click', () => {
+            tabCatBtn.classList.add('active'); tabMenuBtn.classList.remove('active');
+            tabCatContent.classList.remove('hidden'); tabMenuContent.classList.add('hidden');
+            
+            const catList = document.getElementById('categories-list');
+            if(catList.children.length === 0) {
+                loadCategories();
+            }
+        });
+    }
+
+    async function loadCategories() {
+        const loader = document.getElementById('categories-loader');
+        const list = document.getElementById('categories-list');
+        
+        try {
+            const querySnapshot = await getDocs(collection(db, "categories"));
+            loader.classList.add('hidden');
+            
+            if(querySnapshot.empty) {
+                list.innerHTML = '<p class="text-sm text-gray-400 text-center">No categories found.</p>';
                 return;
             }
-            onSnapshot(collection(db, usersPath, userId, 'cart'), (snapshot) => {
-                let count = snapshot.size;
-                badges.forEach(b => { if(b) b.textContent = count });
-                let subtotalLKR = 0;
-                if (snapshot.empty) {
-                    container.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
-                } else {
-                    container.innerHTML = ''; 
-                    snapshot.forEach(doc => {
-                        const item = doc.data();
-                        subtotalLKR += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = "flex justify-between items-center mb-3 border-b border-rose-50 pb-2";
-                        itemDiv.innerHTML = `<span class="text-sm font-medium">${item.name || 'Item'}</span> <span class="text-tutu-rose font-bold text-sm">x${item.quantity}</span>`;
-                        container.appendChild(itemDiv);
-                    });
-                }
-                totalEl.textContent = `Rs. ${subtotalLKR.toFixed(2)}`;
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const name = data.name || "Unnamed Category";
+                const id = doc.id;
+                
+                const link = document.createElement('a');
+                link.href = `shop.html?category=${id}`;
+                link.className = 'menu-item flex justify-between items-center';
+                link.innerHTML = `<span>${name}</span> <i class="fas fa-chevron-right text-xs text-gray-300"></i>`;
+                list.appendChild(link);
             });
+        } catch (error) {
+            console.error("Error loading categories:", error);
+            loader.innerHTML = '<p class="text-red-400 text-sm">Failed to load categories.</p>';
         }
-    </script>
+    }
+    
+    // PAGE TAB LOGIC (Login/Register)
+    function setupTabLogic() {
+        const loginTab = document.getElementById('login-tab-btn');
+        const registerTab = document.getElementById('register-tab-btn');
+        const loginForm = document.getElementById('login-form-container');
+        const registerForm = document.getElementById('register-form-container');
+
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active'); registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
+        });
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active'); loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden'); loginForm.classList.add('hidden');
+        });
+
+        const userTypeRadios = document.querySelectorAll('input[name="userType"]');
+        const affiliateFields = document.getElementById('affiliate-fields');
+        const resellerFields = document.getElementById('reseller-fields');
+        
+        userTypeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                affiliateFields.classList.add('hidden');
+                resellerFields.classList.add('hidden');
+                if (e.target.value === 'affiliate') affiliateFields.classList.remove('hidden');
+                else if (e.target.value === 'reseller') resellerFields.classList.remove('hidden');
+            });
+        });
+
+        // LOGIN SUBMIT
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try { await signInWithEmailAndPassword(auth, email, password); }
+            catch (err) { document.getElementById('login-error').textContent = "Invalid email or password."; }
+        });
+
+        // REGISTER SUBMIT
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('register-error');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            errorEl.textContent = "Processing...";
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50');
+
+            const userType = document.querySelector('input[name="userType"]:checked').value;
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                let resellerData = {};
+
+                if (userType === 'reseller') {
+                    const phone = document.getElementById('res-phone').value;
+                    const whatsapp = document.getElementById('res-whatsapp').value;
+                    const address = document.getElementById('res-address').value;
+                    const nic = document.getElementById('res-nic-no').value;
+                    const bank = document.getElementById('res-bank-name').value;
+                    const accountNo = document.getElementById('res-account-no').value;
+                    
+                    // New File Inputs
+                    const frontFile = document.getElementById('res-nic-front').files[0];
+                    const backFile = document.getElementById('res-nic-back').files[0];
+
+                    if(!validateSriLankanPhone(phone)) throw new Error("Invalid Mobile Number (07...)");
+                    if(!validateSriLankanPhone(whatsapp)) throw new Error("Invalid Whatsapp Number (07...)");
+                    if(!validateSriLankanNIC(nic)) throw new Error("Invalid NIC Number");
+                    if(!bank) throw new Error("Please select a Bank");
+                    if(!address || !accountNo) throw new Error("Please fill all fields");
+                    
+                    // Check if files are selected
+                    if (!frontFile || !backFile) {
+                        throw new Error("Please upload both NIC Front and Back photos.");
+                    }
+
+                    // Upload Images
+                    errorEl.textContent = "Uploading NIC Images...";
+                    
+                    const frontRef = ref(storage, `nic_cards/${Date.now()}_front_${frontFile.name}`);
+                    const frontSnap = await uploadBytes(frontRef, frontFile);
+                    const frontUrl = await getDownloadURL(frontSnap.ref);
+
+                    const backRef = ref(storage, `nic_cards/${Date.now()}_back_${backFile.name}`);
+                    const backSnap = await uploadBytes(backRef, backFile);
+                    const backUrl = await getDownloadURL(backSnap.ref);
+
+                    resellerData = {
+                        phone, whatsapp, address, nic, bank, accountNo,
+                        nicFrontUrl: frontUrl, nicBackUrl: backUrl, 
+                        isManualVerified: false // Changed from AI verified
+                    };
+                }
+
+                errorEl.textContent = "Creating account...";
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                const batch = writeBatch(db);
+                const userDocRef = doc(db, usersPath, user.uid);
+                
+                let userData = {
+                    name: name, email: email, createdAt: serverTimestamp(),
+                    isSeller: false, isAffiliate: false,
+                    wantsToBeAffiliate: false, wantsToBeReseller: false, role: "customer"
+                };
+
+                if (userType === 'affiliate') {
+                    userData.wantsToBeAffiliate = true;
+                    userData.role = "affiliate_pending";
+                    userData.affiliateCode = user.uid;
+                    userData.socialMedia = {
+                        youtube: document.getElementById('reg-youtube').value,
+                        facebook: document.getElementById('reg-facebook').value,
+                        tiktok: document.getElementById('reg-tiktok-insta').value
+                    };
+                } else if (userType === 'reseller') {
+                    userData.role = "reseller_pending";
+                    userData.wantsToBeReseller = true;
+                    userData.resellerDetails = resellerData;
+                }
+
+                batch.set(userDocRef, userData);
+                await batch.commit();
+
+                errorEl.textContent = "Success! Redirecting...";
+                if (userType === 'affiliate') window.location.href = 'affiliate-dashboard.html';
+                else if (userType === 'reseller') window.location.href = 'reseller-dashboard.html';
+                else window.location.href = 'customer-account.html';
+
+            } catch (err) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+                errorEl.textContent = err.message.replace('Firebase: ', '');
+            }
+        });
+    }
+
+    // Cart Listener
+    function attachCartDrawerListener(userId) {
+        const container = document.getElementById('cart-drawer-items-container');
+        const totalEl = document.getElementById('cart-drawer-total');
+        const badges = [document.getElementById('cart-count-badge'), document.getElementById('mobile-cart-badge')];
+        if (!container || !totalEl) return;
+        if (!userId) {
+            container.innerHTML = '<p class="text-gray-500">Please log in to see your cart.</p>';
+            totalEl.textContent = 'Rs. 0.00';
+            badges.forEach(b => { if(b) b.textContent = '0' });
+            return;
+        }
+        onSnapshot(collection(db, usersPath, userId, 'cart'), (snapshot) => {
+            let count = snapshot.size;
+            badges.forEach(b => { if(b) b.textContent = count });
+            let subtotalLKR = 0;
+            if (snapshot.empty) {
+                container.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
+            } else {
+                container.innerHTML = ''; 
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    subtotalLKR += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "flex justify-between items-center mb-3 border-b border-rose-50 pb-2";
+                    itemDiv.innerHTML = `<span class="text-sm font-medium">${item.name || 'Item'}</span> <span class="text-tutu-rose font-bold text-sm">x${item.quantity}</span>`;
+                    container.appendChild(itemDiv);
+                });
+            }
+            totalEl.textContent = `Rs. ${subtotalLKR.toFixed(2)}`;
+        });
+    }
+</script>
 </body>
 </html>

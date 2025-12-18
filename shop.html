@@ -320,7 +320,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // NOTE: Added 'or' to imports below
+        import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction, or } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
@@ -496,7 +497,7 @@
                     const html = `
                         <a href="shop.html?category=${encodeURIComponent(sub.name)}" 
                            class="min-w-[120px] md:min-w-0 flex-shrink-0 snap-start group block relative overflow-hidden rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                            
+                           
                             <div class="h-24 flex flex-col items-center justify-center p-3 text-center transition-transform transform group-hover:-translate-y-1"
                                  style="background-color: ${bgColor}33;"> <div class="w-10 h-10 mb-2 rounded-full bg-white flex items-center justify-center shadow-sm">
                                     <img src="${sub.imageUrl || 'https://placehold.co/50'}" class="w-6 h-6 object-contain">
@@ -552,10 +553,15 @@
                 const productsRef = collection(db, publicDataPath, 'products');
                 let q;
 
-                // Initial fetch: We fetch a bit more data (limit 100) to allow client-side filtering
+                // UPDATE: Changed query to check both category AND subCategory
                 if (categoryName) {
-                   // 'categories' kiyana eka 'category' karanna
-                 q = query(productsRef, where("category", "==", categoryName), limit(100));
+                    q = query(productsRef, 
+                        or(
+                            where("category", "==", categoryName),
+                            where("subCategory", "==", categoryName) // Assumes DB field is 'subCategory'
+                        ), 
+                        limit(100)
+                    );
                 } else {
                     q = query(productsRef, orderBy("createdAt", "desc"), limit(100));
                 }
@@ -600,11 +606,12 @@
                 // Price Check
                 if (price < minPrice || price > maxPrice) return false;
 
-                // Category Check (If selected in drawer)
-               if (selectedCategories.length > 0) {
-      // Methanath 'product.categories' wenuwata 'product.category' enna oni
-      return selectedCategories.includes(product.category);
-}
+                // UPDATE: Category Check (Main OR Sub)
+                if (selectedCategories.length > 0) {
+                     const mainCatMatch = product.category && selectedCategories.includes(product.category);
+                     const subCatMatch = product.subCategory && selectedCategories.includes(product.subCategory);
+                     return mainCatMatch || subCatMatch;
+                }
                 return true;
             });
 
