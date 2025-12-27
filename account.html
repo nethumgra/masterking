@@ -318,7 +318,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, getDocs, onSnapshot, setDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+    // getStorage references left for potential other needs, but not used for NIC now
 
     // Firebase Configuration
     const firebaseConfig = {
@@ -334,8 +334,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app); 
-    const storage = getStorage(app);
     const usersPath = `/users`; 
+
+    const IMGBB_API_KEY = "e2f2d5556ca498ec3392bcfcea70ef6f";
 
     let currentUser = null;
 
@@ -348,6 +349,24 @@
         attachCartDrawerListener(null);
         setupMenuDrawerTabs();
     });
+
+    // --- NEW: ImgBB Upload Function ---
+    async function uploadToImgBB(file) {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            return result.data.url;
+        } else {
+            throw new Error("Image upload failed: " + result.error.message);
+        }
+    }
 
     // Auth State
     onAuthStateChanged(auth, async (user) => {
@@ -393,7 +412,6 @@
     //  DRAWER LOGIC (MENU, CART, ACCOUNT)
     // ===========================================
     function setupDrawers() {
-        // -- Cart Drawer --
         const cartDrawer = document.getElementById('cart-drawer');
         const toggleCart = () => cartDrawer.classList.toggle('open');
         document.getElementById('mobile-cart-btn')?.addEventListener('click', toggleCart);
@@ -401,14 +419,12 @@
         document.getElementById('cart-drawer-close')?.addEventListener('click', toggleCart);
         document.getElementById('cart-drawer-overlay')?.addEventListener('click', toggleCart);
 
-        // -- Menu Drawer (Left Side) --
         const menuDrawer = document.getElementById('menu-drawer');
         const toggleMenu = () => menuDrawer.classList.toggle('open');
         document.getElementById('mobile-menu-btn')?.addEventListener('click', toggleMenu);
         document.getElementById('menu-drawer-close')?.addEventListener('click', toggleMenu);
         document.getElementById('menu-drawer-overlay')?.addEventListener('click', toggleMenu);
 
-        // -- Account Drawer (Right Side) --
         const accountDrawer = document.getElementById('account-drawer-modal');
         const closeAccount = () => accountDrawer.classList.add('hidden');
         const openAccount = (e) => { e.preventDefault(); if(currentUser) accountDrawer.classList.remove('hidden'); };
@@ -420,9 +436,6 @@
         });
     }
 
-    // ===========================================
-    //  MENU DRAWER TABS & CATEGORIES FETCH
-    // ===========================================
     function setupMenuDrawerTabs() {
         const tabMenuBtn = document.getElementById('tab-menu-btn');
         const tabCatBtn = document.getElementById('tab-categories-btn');
@@ -437,40 +450,30 @@
         tabCatBtn.addEventListener('click', () => {
             tabCatBtn.classList.add('active'); tabMenuBtn.classList.remove('active');
             tabCatContent.classList.remove('hidden'); tabMenuContent.classList.add('hidden');
-            
             const catList = document.getElementById('categories-list');
-            if(catList.children.length === 0) {
-                loadCategories();
-            }
+            if(catList.children.length === 0) loadCategories();
         });
     }
 
     async function loadCategories() {
         const loader = document.getElementById('categories-loader');
         const list = document.getElementById('categories-list');
-        
         try {
             const querySnapshot = await getDocs(collection(db, "categories"));
             loader.classList.add('hidden');
-            
             if(querySnapshot.empty) {
                 list.innerHTML = '<p class="text-sm text-gray-400 text-center">No categories found.</p>';
                 return;
             }
-
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const name = data.name || "Unnamed Category";
-                const id = doc.id;
-                
                 const link = document.createElement('a');
-                link.href = `shop.html?category=${id}`;
+                link.href = `shop.html?category=${doc.id}`;
                 link.className = 'menu-item flex justify-between items-center';
-                link.innerHTML = `<span>${name}</span> <i class="fas fa-chevron-right text-xs text-gray-300"></i>`;
+                link.innerHTML = `<span>${data.name || "Unnamed"}</span> <i class="fas fa-chevron-right text-xs text-gray-300"></i>`;
                 list.appendChild(link);
             });
         } catch (error) {
-            console.error("Error loading categories:", error);
             loader.innerHTML = '<p class="text-red-400 text-sm">Failed to load categories.</p>';
         }
     }
@@ -513,7 +516,7 @@
             catch (err) { document.getElementById('login-error').textContent = "Invalid email or password."; }
         });
 
-        // REGISTER SUBMIT
+        // REGISTER SUBMIT (Updated with ImgBB)
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const errorEl = document.getElementById('register-error');
@@ -539,7 +542,6 @@
                     const bank = document.getElementById('res-bank-name').value;
                     const accountNo = document.getElementById('res-account-no').value;
                     
-                    // New File Inputs
                     const frontFile = document.getElementById('res-nic-front').files[0];
                     const backFile = document.getElementById('res-nic-back').files[0];
 
@@ -548,27 +550,18 @@
                     if(!validateSriLankanNIC(nic)) throw new Error("Invalid NIC Number");
                     if(!bank) throw new Error("Please select a Bank");
                     if(!address || !accountNo) throw new Error("Please fill all fields");
-                    
-                    // Check if files are selected
-                    if (!frontFile || !backFile) {
-                        throw new Error("Please upload both NIC Front and Back photos.");
-                    }
+                    if (!frontFile || !backFile) throw new Error("Please upload both NIC Front and Back photos.");
 
-                    // Upload Images
-                    errorEl.textContent = "Uploading NIC Images...";
+                    // Upload to ImgBB instead of Firebase Storage
+                    errorEl.textContent = "Uploading NIC Images (ImgBB)...";
                     
-                    const frontRef = ref(storage, `nic_cards/${Date.now()}_front_${frontFile.name}`);
-                    const frontSnap = await uploadBytes(frontRef, frontFile);
-                    const frontUrl = await getDownloadURL(frontSnap.ref);
-
-                    const backRef = ref(storage, `nic_cards/${Date.now()}_back_${backFile.name}`);
-                    const backSnap = await uploadBytes(backRef, backFile);
-                    const backUrl = await getDownloadURL(backSnap.ref);
+                    const frontUrl = await uploadToImgBB(frontFile);
+                    const backUrl = await uploadToImgBB(backFile);
 
                     resellerData = {
                         phone, whatsapp, address, nic, bank, accountNo,
                         nicFrontUrl: frontUrl, nicBackUrl: backUrl, 
-                        isManualVerified: false // Changed from AI verified
+                        isManualVerified: false 
                     };
                 }
 

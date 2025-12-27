@@ -231,7 +231,7 @@
                 </form>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
-                <div><h4 class="font-bold text-gray-800 mb-4">PINK STORE</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">TUTU</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
                 <div><h4 class="font-bold text-gray-800 mb-4">INFO</h4><ul id="footer-col-info" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
                 <div><h4 class="font-bold text-gray-800 mb-4">QUICK LINKS</h4><ul id="footer-col-quicklinks" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
                 <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">CONTACT US</h4><address id="footer-address" class="not-italic text-sm">Loading...</address><p class="mt-2 text-sm">Email: <a id="footer-email" href="#" class="hover:text-mudalali-green">...</a></p><p class="text-sm">Hotline: <a id="footer-hotline" href="#" class="hover:text-mudalali-green">...</a></p></div>
@@ -1200,25 +1200,43 @@
             });
         }
 
-        async function loadDesktopNavCategories() {
-            const container = document.getElementById('desktop-nav-links-container'); if (!container) return;
-            const collRef = collection(db, publicDataPath, 'categories');
-            onSnapshot(collRef, (querySnapshot) => {
-                const dropdownContainer = container.querySelector('.dropdown-menu'); if (dropdownContainer) dropdownContainer.innerHTML = '';
-                const existingLinks = container.querySelectorAll('a:not(.group > a)'); existingLinks.forEach(link => link.remove());
-                if (querySnapshot.empty) return;
-                let count = 0;
-                querySnapshot.forEach((doc) => {
-                    const category = doc.data();
-                    if (count < 6) { const linkHtml = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green px-3 py-2.5 hidden md:block">${category.name}</a>`; container.insertAdjacentHTML('beforeend', linkHtml); count++; }
-                    if (dropdownContainer) { const dropdownLink = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green hover:bg-pink-50 px-4 py-3 block border-b border-gray-100 last:border-0">${category.name}</a>`; dropdownContainer.innerHTML += dropdownLink; }
-                });
-            }, (error) => { console.error("Error loading nav categories: ", error); });
-        }
+       async function loadDesktopNavCategories() {
+    const container = document.getElementById('desktop-nav-links-container'); 
+    if (!container) return;
 
-        async function loadFooter() {
-            // Placeholder for Footer logic if dynamic
-        }
+    const collRef = collection(db, publicDataPath, 'categories');
+    onSnapshot(collRef, (querySnapshot) => {
+        const dropdownContainer = container.querySelector('.dropdown-menu'); 
+        if (dropdownContainer) dropdownContainer.innerHTML = '';
+
+        const existingLinks = container.querySelectorAll('a:not(.group > a)'); 
+        existingLinks.forEach(link => link.remove());
+
+        if (querySnapshot.empty) return;
+
+        let count = 0;
+        querySnapshot.forEach((doc) => {
+            const category = doc.data();
+
+            // --- අලුතින් එක් කළ කොටස: Sub-categories මඟ හැරීම ---
+            if (category.parentId) return; 
+            // ----------------------------------------------
+
+            if (count < 6) { 
+                const linkHtml = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green px-3 py-2.5 hidden md:block">${category.name}</a>`; 
+                container.insertAdjacentHTML('beforeend', linkHtml); 
+                count++; 
+            }
+            
+            if (dropdownContainer) { 
+                const dropdownLink = `<a href="shop.html?category=${encodeURIComponent(category.name)}" class="font-semibold text-gray-600 hover:text-mudalali-green hover:bg-pink-50 px-4 py-3 block border-b border-gray-100 last:border-0">${category.name}</a>`; 
+                dropdownContainer.innerHTML += dropdownLink; 
+            }
+        });
+    }, (error) => { 
+        console.error("Error loading nav categories: ", error); 
+    });
+}
 
         function setupMobileDrawers() {
             const cartDrawer = document.getElementById('cart-drawer');
