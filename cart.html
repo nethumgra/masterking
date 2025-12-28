@@ -97,9 +97,9 @@
     <!-- HEADER (Pink Theme) -->
     <header class="bg-white shadow-sm sticky top-0 z-40 hidden md:block border-b border-pink-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="/" id="logo-link" class="text-3xl font-bold text-mudalali-green">
-                <span class="text-gray-800">PINK</span>STORE
-            </a>
+           <a href="/" id="logo-link" class="flex items-center">
+    <img src="logo.png" alt="Logo" class="h-10 md:h-12 w-auto object-contain">
+</a>
 
             <div class="flex-grow max-w-xl mx-4">
                 <form class="flex">
@@ -155,9 +155,9 @@
         <button id="mobile-menu-btn" class="text-2xl text-gray-600">
             <i class="fa fa-bars"></i>
         </button>
-      <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
-        PINK<span class="text-gray-600">STORE</span>
-    </a>
+     <a href="index.html" id="mobile-logo-link" class="flex items-center">
+    <img src="logo.png" alt="Logo" class="h-8 w-auto object-contain">
+</a>
     <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
         <i class="fa fa-user"></i>
     </a>
@@ -570,8 +570,7 @@
                 const logoLink = document.getElementById('logo-link');
                 const mobileLogoLink = document.getElementById('mobile-logo-link');
 
-                if (logoLink) logoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
-                if (mobileLogoLink) mobileLogoLink.innerHTML = 'TU<span class="text-gray-600">TU</span>';
+              
                 
                 if(document.getElementById('header-hotline')) {
                     document.getElementById('header-hotline').textContent = config.headerHotline || '011 234 5678';

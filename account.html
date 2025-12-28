@@ -90,9 +90,9 @@
     
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 hidden md:block border-b border-rose-100">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-             <a href="/" class="text-3xl font-black uppercase tracking-widest hover:opacity-80 transition-opacity">
-              <span class="text-tutu-rose">TU</span><span class="text-gray-800">TU</span>
-            </a>
+            <a href="/" id="logo-link" class="flex items-center">
+    <img src="logo.png" alt="Logo" class="h-10 md:h-12 w-auto object-contain">
+</a>
             <div class="flex items-center space-x-8">
                 <a href="account.html" id="desktop-account-btn" class="flex flex-col items-center text-tutu-rose transition-colors"><i class="fa fa-user text-xl"></i></a>
                 <button id="desktop-cart-btn" class="flex flex-col items-center text-gray-500 hover:text-tutu-rose relative transition-colors"><i class="fa fa-shopping-cart text-xl"></i><span id="cart-count-badge" class="absolute -top-2 -right-2 bg-tutu-rose text-white text-[10px] font-bold rounded-full px-1.5 border-2 border-white">0</span></button>
@@ -102,7 +102,9 @@
 
     <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4 px-6">
         <button id="mobile-menu-btn" class="text-2xl text-tutu-rose"><i class="fa fa-bars"></i></button>
-         <a href="/" class="text-2xl font-black uppercase tracking-widest"><span class="text-tutu-rose">TU</span><span class="text-gray-800">TU</span></a>
+       <a href="/" id="logo-link" class="flex items-center">
+    <img src="logo.png" alt="Logo" class="h-10 md:h-12 w-auto object-contain">
+</a>
         <div class="w-8"></div> 
     </header>
 
