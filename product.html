@@ -243,6 +243,9 @@
                             <div id="product-price" class="my-4">
                                 <span class="text-3xl font-bold text-mudalali-green">Rs. 0.00</span>
                             </div>
+
+                            <div id="product-variations" class="my-6 space-y-5">
+                                 </div>
                             
                             <div class="flex-grow"></div> 
                             
@@ -256,6 +259,11 @@
                                 <button id="wishlist-btn" class="w-14 h-14 border-2 border-gray-200 text-gray-400 rounded-full flex items-center justify-center text-2xl hover:text-mudalali-green hover:border-mudalali-green transition-all">
                                     <i class="fa fa-heart"></i>
                                 </button>
+
+                                <button id="share-btn" class="w-14 h-14 border-2 border-gray-200 text-gray-400 rounded-full flex items-center justify-center text-2xl hover:text-mudalali-green hover:border-mudalali-green transition-all" title="Share Product">
+    <i class="fa fa-share-nodes"></i>
+</button>
+
                             </div>
                         </div>
                     </div>
@@ -495,6 +503,40 @@
                 reviewsTabBtn.classList.add('active'); descTabBtn.classList.remove('active'); deliveryTabBtn.classList.remove('active');
                 reviewsTabPanel.classList.remove('hidden'); descTabPanel.classList.add('hidden'); deliveryTabPanel.classList.add('hidden');
             });
+
+            // Share Functionality
+const shareBtn = document.getElementById('share-btn');
+shareBtn.addEventListener('click', async () => {
+    if (!currentProductData) return;
+
+    const shareData = {
+        title: currentProductData.name,
+        text: `Check out this amazing product: ${currentProductData.name} on Pink Store!`,
+        url: window.location.href
+    };
+
+    try {
+        // ජංගම දුරකථන වල Web Share API එක පරීක්ෂා කිරීම
+        if (navigator.share) {
+            await navigator.share(shareData);
+            console.log('Product shared successfully');
+        } else {
+            // Share API එක නැතිනම් (Desktop වලදී වගේ) Link එක Copy කිරීම
+            await navigator.clipboard.writeText(window.location.href);
+            
+            // පොඩි Alert එකක් හෝ Toast එකක් පෙන්වන්න
+            shareBtn.innerHTML = '<i class="fa fa-check text-green-500"></i>';
+            setTimeout(() => {
+                shareBtn.innerHTML = '<i class="fa fa-share-nodes"></i>';
+            }, 2000);
+            
+            alert("Link copied to clipboard! You can now paste and share it.");
+        }
+    } catch (err) {
+        console.error('Error sharing:', err);
+    }
+});
+
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -1103,6 +1145,7 @@ async function loadDesktopNavCategories() {
             if (snap.exists()) document.getElementById('wishlist-btn')?.classList.add('liked');
         }
 
+        
     </script>
 </body>
 </html>
