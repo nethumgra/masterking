@@ -218,81 +218,135 @@
         let currentUser = null;
         let productData = null;
         let selectedVars = {};
+        let selectedVariationPrices = {};
         let quantity = 1;
 
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
 
         // --- CORE FUNCTIONS ---
+async function initProductPage() {
+    if (!productId) return window.location.href = 'shop.html';
 
-        async function initProductPage() {
-            if (!productId) return window.location.href = 'shop.html';
-            updateProgress(30);
+    try {
+        const docSnap = await getDoc(doc(db, '/artifacts/default-app-id/public/data/products', productId));
+        if (!docSnap.exists()) return window.location.href = 'shop.html';
 
-            try {
-                const docSnap = await getDoc(doc(db, '/artifacts/default-app-id/public/data/products', productId));
-                if (!docSnap.exists()) return window.location.href = 'shop.html';
+        productData = { id: docSnap.id, ...docSnap.data() };
+        renderProductUI();
+        
+        loadSellerData(productData.sellerUid);
+        loadRelatedProducts(); // Related products මෙතැනදී call වේ
+        loadReviews();
 
-                productData = { id: docSnap.id, ...docSnap.data() };
-                renderProductUI();
-                
-                loadSellerData(productData.sellerUid);
-                loadRelatedProducts();
-                loadReviews();
+        // Error Fix: Element එක තියෙනවාද කියා පරීක්ෂා කර පසුව Hide/Show කරන්න
+        const skeleton = document.getElementById('product-skeleton');
+        const content = document.getElementById('product-content'); // HTML එකේ මේ ID එක ඇති බව සහතික කරගන්න
+        
+        if (skeleton) skeleton.classList.add('hidden');
+        if (content) content.classList.remove('hidden');
 
-                document.getElementById('product-skeleton').classList.add('hidden');
-                document.getElementById('product-content').classList.remove('hidden');
-                updateProgress(100);
-            } catch (e) { console.error(e); }
-        }
+    } catch (e) { 
+        console.error("Initialization Error:", e); 
+    }
+}
+ function renderProductUI() {
+        const nameEl = document.getElementById('product-name');
+        const imgEl = document.getElementById('main-product-image');
+        const descEl = document.getElementById('product-description');
+        const delEl = document.getElementById('product-delivery');
 
-    function renderProductUI() {
-            document.getElementById('product-name').textContent = productData.name;
-            document.getElementById('product-price-container').innerHTML = `<span class="text-4xl font-black text-mudalali-green">Rs. ${parseFloat(productData.price).toLocaleString()}</span>`;
-            document.getElementById('main-product-image').src = productData.images?.[0] || productData.imageUrl;
-            document.getElementById('product-description').innerHTML = productData.description?.replace(/\n/g, '<br>') || 'No description available.';
-            document.getElementById('product-delivery').innerHTML = productData.deliveryDetails || 'Estimated delivery: 3-5 working days.';
+        if(nameEl) nameEl.textContent = productData.name;
+        if(imgEl) imgEl.src = productData.images?.[0] || productData.imageUrl;
+        if(descEl) descEl.innerHTML = productData.description?.replace(/\n/g, '<br>') || 'No description available.';
+        if(delEl) delEl.innerHTML = productData.deliveryDetails || 'Estimated delivery: 3-5 working days.';
 
-            // Variation Logic - Fixed for Admin Panel Structure
-            const varBox = document.getElementById('product-variations');
-            varBox.innerHTML = '';
+        const varBox = document.getElementById('product-variations');
+        if(!varBox) return;
+        varBox.innerHTML = ''; 
+        
+        let variations = productData.variations || [];
+        if (!Array.isArray(variations)) variations = Object.values(variations);
+
+        selectedVariationPrices = {}; 
+
+        variations.forEach((vGroup) => {
+            if (!vGroup.name || !vGroup.options) return;
+
+            const div = document.createElement('div');
+            div.className = "mb-6";
+            div.innerHTML = `<label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">${vGroup.name}</label>`;
             
-            // Admin Panel එකෙන් එන variations (Array of Objects)
-            const variations = productData.variations || [];
+            const groupWrapper = document.createElement('div');
+            groupWrapper.className = 'flex flex-wrap gap-3';
+            
+            const options = Array.isArray(vGroup.options) ? vGroup.options : Object.values(vGroup.options);
 
-            if (Array.isArray(variations)) {
-                variations.forEach((vGroup) => {
-                    // Check if name and options exist
-                    if (!vGroup.name || !Array.isArray(vGroup.options)) return;
+            options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = `variation-btn ${i === 0 ? 'active' : ''}`;
+                
+                let optName, optPrice;
+                if (typeof opt === 'object' && opt !== null) {
+                    optName = opt.name || opt.label;
+                    optPrice = parseFloat(opt.price) || 0;
+                } else {
+                    optName = opt;
+                    optPrice = 0;
+                }
 
-                    const div = document.createElement('div');
-                    div.innerHTML = `<label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">${vGroup.name}</label>`;
-                    
-                    const group = document.createElement('div');
-                    group.className = 'flex flex-wrap gap-3';
-                    
-                    vGroup.options.forEach((opt, i) => {
-                        const btn = document.createElement('button');
-                        btn.className = `variation-btn ${i === 0 ? 'active' : ''}`;
-                        btn.textContent = opt;
-                        
-                        // Default selection
-                        if (i === 0) selectedVars[vGroup.name] = opt;
+                btn.textContent = optName;
+                
+                if (i === 0) {
+                    selectedVars[vGroup.name] = optName;
+                    selectedVariationPrices[vGroup.name] = optPrice;
+                }
 
-                        btn.onclick = () => {
-                            group.querySelectorAll('.variation-btn').forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            selectedVars[vGroup.name] = opt;
-                        };
-                        group.appendChild(btn);
-                    });
-                    
-                    div.appendChild(group);
-                    varBox.appendChild(div);
-                });
-            }
-        }
+                btn.onclick = () => {
+                    groupWrapper.querySelectorAll('.variation-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedVars[vGroup.name] = optName;
+                    selectedVariationPrices[vGroup.name] = optPrice;
+                    calculateFinalPrice();
+                };
+                groupWrapper.appendChild(btn);
+            });
+            
+            div.appendChild(groupWrapper);
+            varBox.appendChild(div);
+        });
 
+        calculateFinalPrice();
+    }
+
+   function calculateFinalPrice() {
+    // භාණ්ඩයේ මූලික මිල
+    let basePrice = parseFloat(productData.price) || 0;
+    
+    // Variation වල මුළු අගය (ඔයාට මේක 'එකතු වෙන්න' ඕනෙද නැද්ද යන්න තීරණය කරන්න පුළුවන්)
+    let extraPrice = Object.values(selectedVariationPrices).reduce((a, b) => a + b, 0);
+
+    // --- විසඳුම ---
+    // මචං, ඔයාට Variation එකේ මිල විතරක් පෙන්වන්න ඕනේ නම් (Base price එකතු කරන්නේ නැතුව)
+    // මේ logic එක පාවිච්චි කරන්න:
+    let finalTotal = extraPrice > 0 ? extraPrice : basePrice;
+
+    // නමුත් ඔයාට Base Price එකට මේක එකතු වෙන්නම ඕනේ නම් පරණ විදිහ තියන්න:
+    // let finalTotal = basePrice + extraPrice; 
+
+    const priceContainer = document.getElementById('product-price-container');
+    if (priceContainer) {
+        priceContainer.innerHTML = `<span class="text-4xl font-black text-mudalali-green">Rs. ${finalTotal.toLocaleString()}</span>`;
+    }
+}
+
+// මිල පෙන්වන ලස්සන Helper Function එකක්
+function updatePriceDisplay(amount) {
+    const priceContainer = document.getElementById('product-price-container');
+    if (priceContainer) {
+        priceContainer.innerHTML = `<span class="text-4xl font-black text-mudalali-green">Rs. ${amount.toLocaleString()}</span>`;
+    }
+}
         async function loadSellerData(uid) {
             if (!uid) return;
             const snap = await getDoc(doc(db, 'users', uid));
@@ -304,24 +358,43 @@
             }
         }
 
-        async function loadRelatedProducts() {
-            const grid = document.getElementById('related-products-grid');
-            const q = query(collection(db, '/artifacts/default-app-id/public/data/products'), limit(5));
-            const snap = await getDocs(q);
-            grid.innerHTML = '';
-            snap.forEach(d => {
-                if (d.id === productId) return;
-                const p = d.data();
-                grid.innerHTML += `
-                    <a href="product.html?id=${d.id}" class="flex gap-4 items-center bg-gray-50 p-2 rounded-2xl hover:bg-pink-50 transition-all border border-transparent hover:border-pink-100 group">
-                        <img src="${p.imageUrl}" class="w-14 h-14 rounded-xl object-cover bg-white">
-                        <div class="min-w-0">
-                            <h4 class="text-xs font-bold truncate text-gray-800 group-hover:text-mudalali-green">${p.name}</h4>
-                            <p class="text-[11px] text-mudalali-green font-black mt-1">Rs. ${parseFloat(p.price).toLocaleString()}</p>
-                        </div>
-                    </a>`;
-            });
+     async function loadRelatedProducts() {
+    const grid = document.getElementById('related-products-grid');
+    if (!grid) return;
+
+    try {
+        // ඔයාගේ Database Path එක හරියටම පරීක්ෂා කරගන්න (default-app-id)
+        const q = query(collection(db, '/artifacts/default-app-id/public/data/products'), limit(6));
+        const snap = await getDocs(q);
+        
+        grid.innerHTML = '';
+        
+        if (snap.empty) {
+            grid.innerHTML = '<p class="text-[10px] text-gray-400 italic">No related products found.</p>';
+            return;
         }
+
+        snap.forEach(d => {
+            if (d.id === productId) return; // දැනට බලන භාණ්ඩය අත්හරින්න
+            const p = d.data();
+            
+            // Image Fix: images array එක හෝ imageUrl පරීක්ෂා කිරීම
+            const img = p.images && p.images.length > 0 ? p.images[0] : (p.imageUrl || 'https://placehold.co/100');
+            const price = parseFloat(p.price) || 0;
+
+            grid.innerHTML += `
+                <a href="product.html?id=${d.id}" class="flex gap-4 items-center bg-gray-50 p-2 rounded-2xl hover:bg-pink-50 transition-all border border-transparent hover:border-pink-100 group">
+                    <img src="${img}" class="w-14 h-14 rounded-xl object-cover bg-white shadow-sm">
+                    <div class="min-w-0">
+                        <h4 class="text-[11px] font-bold truncate text-gray-800 group-hover:text-mudalali-green">${p.name}</h4>
+                        <p class="text-[11px] text-mudalali-green font-black mt-1">Rs. ${price.toLocaleString()}</p>
+                    </div>
+                </a>`;
+        });
+    } catch (e) {
+        console.error("Related Products Error:", e);
+    }
+}
 
         function loadReviews() {
             const list = document.getElementById('reviews-list');
