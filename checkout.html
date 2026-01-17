@@ -256,7 +256,7 @@
                 </form>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
-                <div><h4 class="font-bold text-gray-800 mb-4">PINK STORE</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
+                <div><h4 class="font-bold text-gray-800 mb-4">Tutu Tub</h4><ul id="footer-col-tsmgroup" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
                 <div><h4 class="font-bold text-gray-800 mb-4">INFO</h4><ul id="footer-col-info" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
                 <div><h4 class="font-bold text-gray-800 mb-4">QUICK LINKS</h4><ul id="footer-col-quicklinks" class="space-y-2 text-sm"><li>Loading...</li></ul></div>
                 <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">CONTACT US</h4><address id="footer-address" class="not-italic text-sm">Loading...</address><p class="mt-2 text-sm">Email: <a id="footer-email" href="#" class="hover:text-mudalali-green">...</a></p><p class="text-sm">Hotline: <a id="footer-hotline" href="#" class="hover:text-mudalali-green">...</a></p></div>
@@ -354,14 +354,13 @@
             collectionGroup
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIbu2qT53iGPqMCx5UdU6XY8wvXkb3ZF4",
-            authDomain: "mudalali-mama.firebaseapp.com",
-            projectId: "mudalali-mama",
-            storageBucket: "mudalali-mama.firebasestorage.app",
-            messagingSenderId: "296597428969",
-            appId: "1:296597428969:web:684668be9c0eaeecb4ae78",
-            measurementId: "G-GC1CP1LRFD"
+       const firebaseConfig = {
+            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+            authDomain: "masterking-fa629.firebaseapp.com",
+            projectId: "masterking-fa629",
+            storageBucket: "masterking-fa629.firebasestorage.app",
+            messagingSenderId: "680021576286",
+            appId: "1:680021576286:web:52769441eeda5ab56f02cf"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -372,6 +371,7 @@
         const publicDataPath = `/artifacts/${appId}/public/data`;
         const usersPath = `/users`; 
 
+        let isInitialLoad = true;
         let currentUser = null;
         let currentUserData = null;
         let currentCart = [];
@@ -480,109 +480,99 @@
                 updateWishlistCountBadge(0);
             }
         });
-        
-        /**
-         * (වෙනස් කළා) 
-         * Shipping cost එක cart එකේ තියෙන හැම item එකකම product document එකෙන් 
-         * 'shipping' field එක අරන් calculate කරනවා.
-         */
-        async function loadOrderSummary(userId) {
-            const summaryContainer = document.getElementById('order-summary-items');
-            const subtotalEl = document.getElementById('summary-subtotal');
-            const shippingEl = document.getElementById('summary-shipping');
-            const feeEl = document.getElementById('summary-fee');
-            const totalEl = document.getElementById('summary-total');
-            
-            const cartRef = collection(db, usersPath, userId, 'cart');
-            
-            try {
-                const snapshot = await getDocs(cartRef);
+
+
+
+async function loadOrderSummary(userId) {
+    const summaryContainer = document.getElementById('order-summary-items');
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const shippingEl = document.getElementById('summary-shipping');
+    const feeEl = document.getElementById('summary-fee');
+    const totalEl = document.getElementById('summary-total');
+    
+    const cartRef = collection(db, usersPath, userId, 'cart');
+    
+    onSnapshot(cartRef, async (snapshot) => {
+        // 1. Cart එක ඇත්තටම empty ද කියලා තත්පර 3ක් බලනවා
+        if (snapshot.empty) {
+            if (isInitialLoad) {
+                summaryContainer.innerHTML = '<p class="text-gray-500 py-4 text-center italic">Checking your cart items...</p>';
                 
-                if (snapshot.empty) {
-                    summaryContainer.innerHTML = '<p class="text-gray-500 py-4">Your cart is empty.</p>';
-                    document.getElementById('place-order-btn').disabled = true;
-                    alert("Your cart is empty. Redirecting to shop...");
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                summaryContainer.innerHTML = ''; 
-                let subtotalLKR = 0;
-                let totalShipping = 0; // <-- අලුත් shipping total variable එක
-                currentCart = []; 
-
-                // Use Promise.all to fetch all product data in parallel
-                const cartItemPromises = snapshot.docs.map(async (doc) => {
-                    const item = { id: doc.id, ...doc.data() };
-                    const quantity = parseInt(item.quantity) || 1;
-                    const priceLKR = parseFloat(item.price) || 0;
-                    const itemTotalLKR = priceLKR * quantity;
-                    
-                    subtotalLKR += itemTotalLKR;
-                    
-                    // --- අලුත් Shipping Logic එක ---
-                    let itemShipping = 0;
-                    if (item.productId) {
-                        try {
-                            const productRef = doc(db, publicDataPath, 'products', item.productId);
-                            const productSnap = await getDoc(productRef);
-                            if (productSnap.exists()) {
-                                const productData = productSnap.data();
-                                // 'shipping' field එකෙන් ගාණ අරන් quantity එකෙන් වැඩි කරනවා
-                                itemShipping = (parseFloat(productData.shipping) || 0) * quantity;
-                                // Seller ගෙ data එකත් cart item එකට add කරගන්නවා order එකේ save කරන්න
-                                item.sellerUid = productData.sellerUid || null; 
-                                item.shippingCost = itemShipping; // Item එකේ shipping cost එක save කරගන්නවා
-                            }
-                        } catch (e) {
-                            console.error(`Could not fetch product ${item.productId} for shipping:`, e);
-                            itemShipping = 0; // Product එක හම්බුනේ නැත්නම් 0
-                        }
+                setTimeout(async () => {
+                    const freshSnap = await getDocs(cartRef);
+                    if (freshSnap.empty && window.location.pathname.includes('checkout.html')) {
+                        alert("Your cart is empty. Redirecting...");
+                        window.location.href = 'index.html';
                     }
-                    totalShipping += itemShipping; // මුළු shipping total එකට එකතු කරනවා
-                    // --- Shipping Logic ඉවරයි ---
-
-                    currentCart.push(item); // Order එකට save කරන්න cart එක හදාගන්නවා
-                    
-                    return `
-                        <div class="flex justify-between items-center py-3">
-                            <div class="flex items-center gap-3">
-                                <img src="${item.imageUrl || 'https://placehold.co/64'}" alt="${item.name}" class="w-12 h-12 rounded object-contain border p-1">
-                                <div>
-                                    <p class="font-semibold text-sm text-gray-800">${item.name}</p>
-                                    <p class="text-xs text-gray-500">Qty: ${quantity}</p>
-                                </div>
-                            </div>
-                            <span class="text-sm font-semibold">Rs. ${itemTotalLKR.toFixed(2)}</span>
-                        </div>
-                    `;
-                });
-                
-                const summaryHtml = await Promise.all(cartItemPromises);
-                summaryContainer.innerHTML = summaryHtml.join('');
-                
-                // --- අලුත් Total Calculation ---
-                const platformFee = subtotalLKR * 0.04; // 4% Platform Fee
-                const totalCost = subtotalLKR + totalShipping + platformFee; 
-                
-                subtotalEl.textContent = `Rs. ${subtotalLKR.toFixed(2)}`;
-                shippingEl.textContent = `Rs. ${totalShipping.toFixed(2)}`; // Hardcoded 350 වෙනුවට අලුත් total එක
-                feeEl.textContent = `Rs. ${platformFee.toFixed(2)}`;
-                totalEl.textContent = `Rs. ${totalCost.toFixed(2)}`;
-
-                checkoutLoader.classList.add('hidden');
-                checkoutContent.classList.remove('hidden');
-                if (pageLoader) {
-                    pageLoader.style.width = '100%';
-                    setTimeout(() => { pageLoader.classList.add('hidden'); }, 500);
-                }
-
-            } catch (error) {
-                console.error("Error loading cart summary: ", error);
-                summaryContainer.innerHTML = '<p class="text-red-500 py-4">Error loading cart.</p>';
+                }, 3000);
+                isInitialLoad = false;
+                return;
+            } else {
+                window.location.href = 'index.html';
+                return;
             }
         }
+
+        // 2. Variations තෝරපු වෙලාවක වුණත් calculation එක හරියට වෙන්න මෙතන ඉඳන් වැඩේ පටන් ගන්නවා
+        isInitialLoad = false;
+        summaryContainer.innerHTML = ''; 
+        let subtotalLKR = 0;
+        let totalShipping = 0;
+        currentCart = []; 
+
+        const cartItemPromises = snapshot.docs.map(async (docSnap) => {
+            const item = { id: docSnap.id, ...docSnap.data() };
+            const quantity = parseInt(item.quantity) || 1;
+            const priceLKR = parseFloat(item.price) || 0;
+            const itemTotalLKR = priceLKR * quantity;
+            
+            subtotalLKR += itemTotalLKR;
+            
+            let itemShipping = 0;
+            if (item.productId) {
+                const productSnap = await getDoc(doc(db, publicDataPath, 'products', item.productId));
+                if (productSnap.exists()) {
+                    const pData = productSnap.data();
+                    itemShipping = (parseFloat(pData.deliveryPrice) || parseFloat(pData.shipping) || 0) * quantity;
+                    item.shippingCost = itemShipping;
+                }
+            }
+            totalShipping += itemShipping;
+            currentCart.push(item);
+
+            // Variations පෙන්වන කොටස
+            const variationHtml = item.variations 
+                ? `<p class="text-[10px] text-mudalali-green font-bold uppercase">Selection: ${Object.values(item.variations).join(', ')}</p>` 
+                : '';
+
+            return `
+                <div class="flex justify-between items-center py-4 border-b border-pink-50 last:border-0">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.imageUrl}" class="w-14 h-14 rounded-lg object-contain border p-1 bg-white">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800 line-clamp-1">${item.name}</p>
+                            ${variationHtml}
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold text-gray-700">Rs. ${itemTotalLKR.toLocaleString()}</span>
+                </div>`;
+        });
+
+        const htmlResults = await Promise.all(cartItemPromises);
+        summaryContainer.innerHTML = htmlResults.join('');
         
+        const platformFee = subtotalLKR * 0.04; 
+        const totalCost = subtotalLKR + totalShipping + platformFee; 
+        
+        subtotalEl.textContent = `Rs. ${subtotalLKR.toLocaleString()}`;
+        shippingEl.textContent = `Rs. ${totalShipping.toLocaleString()}`;
+        feeEl.textContent = `Rs. ${platformFee.toLocaleString()}`;
+        totalEl.textContent = `Rs. ${totalCost.toLocaleString()}`;
+
+        document.getElementById('checkout-loader')?.classList.add('hidden');
+        document.getElementById('checkout-content')?.classList.remove('hidden');
+    });
+}
         // ====================================================================
         // ===== ALUTHIN HADAPU `onPlaceOrder` FUNCTION EKA (AFFILIATE SAMAGA) =====
         // ====================================================================
