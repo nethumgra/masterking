@@ -182,11 +182,14 @@
                             </div>
                         </div>
 
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Description</p>
-                            <p id="modalDesc" class="text-sm text-gray-600 leading-relaxed line-clamp-3"></p>
-                            <button onclick="copyDesc()" class="absolute top-3 right-3 text-xs text-rose-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-white px-2 py-1 rounded shadow-sm border border-rose-100">Copy</button>
-                        </div>
+                      <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
+    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Description</p>
+    <p id="modalDesc" class="text-sm text-gray-600 leading-relaxed line-clamp-3"></p>
+    <button onclick="copyDesc()" class="absolute top-3 right-3 text-xs text-rose-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-white px-2 py-1 rounded shadow-sm border border-rose-100">Copy</button>
+</div>
+
+<div id="modalVariationsContainer" class="space-y-4">
+    </div>
 
                         <div class="bg-gradient-to-br from-gray-50 to-white p-5 rounded-xl border border-rose-100 shadow-sm">
                             <h4 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
@@ -341,479 +344,460 @@
             </div>
         </div>
     </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, setDoc, updateDoc, deleteDoc, increment, serverTimestamp, writeBatch, query, where, limit, startAfter, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, setDoc, updateDoc, deleteDoc, increment, serverTimestamp, writeBatch, query, where, limit, startAfter, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
+        authDomain: "masterking-fa629.firebaseapp.com",
+        projectId: "masterking-fa629",
+        storageBucket: "masterking-fa629.firebasestorage.app",
+        messagingSenderId: "680021576286",
+        appId: "1:680021576286:web:52769441eeda5ab56f02cf",
+        measurementId: "G-9443L8L88Q"
+    };
 
-        // Global Variable for Config (In Real App, pass from environment)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-            authDomain: "masterking-fa629.firebaseapp.com",
-            projectId: "masterking-fa629",
-            storageBucket: "masterking-fa629.firebasestorage.app",
-            messagingSenderId: "680021576286",
-            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-            measurementId: "G-9443L8L88Q"
-        };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    
+    const appId = 'default-app-id';
+    const publicDataPath = `/artifacts/${appId}/public/data`;
+    const usersPath = `/users`;
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        const appId = 'default-app-id';
-        const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`;
+    let currentUser = null;
+    let currentModalProduct = {};
+    let currentCartData = [];
+    let lastVisibleProduct = null;
+    let isProductsLoading = false;
+    let hasMoreProducts = true;
+    let currentCategory = 'all';
+    let searchQuery = '';
+    let searchTimeout = null;
 
-        let currentUser = null;
-        let currentModalProduct = {};
-        let currentCartData = [];
-        let lastVisibleProduct = null;
-        let isProductsLoading = false;
-        let hasMoreProducts = true;
-        let currentCategory = 'all';
-        let searchQuery = '';
-        
-        let finalCartWeight = 0;
-        let finalDeliveryFee = 0;
-        let finalGrandTotal = 0;
+    let productsCache = {}; 
+    let selectedVars = {}; 
+    let currentVarPrices = {}; // තෝරාගන්නා variations වල මිල තියාගන්න
 
-        // 1. AUTH & INIT
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                loadUserProfile(user.uid);
-                loadCategories();
-                loadProducts(true);
-                listenToCart(user.uid);
-            } else {
-                window.location.href = 'account.html';
-            }
-        });
+    let finalCartWeight = 0;
+    let finalDeliveryFee = 0;
+    let finalGrandTotal = 0;
 
-        async function loadUserProfile(uid) {
-            try {
-                const userDoc = await getDoc(doc(db, usersPath, uid));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    document.getElementById('sidebar-user-name').innerText = data.name || "Reseller User";
-                    if(data.photoURL) document.getElementById('sidebar-user-img').src = data.photoURL;
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        // 2. CATEGORIES
-        async function loadCategories() {
-            const container = document.getElementById('categoryContainer');
-            try {
-                const snap = await getDocs(collection(db, publicDataPath, 'categories'));
-                snap.forEach(docSnap => {
-                    const cat = docSnap.data();
-                    const btn = document.createElement('button');
-                    btn.className = `cat-btn bg-white border border-rose-100 text-gray-500 px-5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap hover:bg-rose-50 hover:text-rose-600 transition-colors shadow-sm`;
-                    btn.innerText = cat.name;
-                    btn.onclick = () => filterCategory(cat.name, btn);
-                    container.appendChild(btn);
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        window.filterCategory = (catName, btnElement) => {
-            document.querySelectorAll('.cat-btn').forEach(b => {
-                b.className = `cat-btn bg-white border border-rose-100 text-gray-500 px-5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap hover:bg-rose-50 hover:text-rose-600 transition-colors shadow-sm`;
-            });
-            btnElement.className = `cat-btn bg-sidebar-dark border border-sidebar-dark text-white px-5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shadow-md`;
-            currentCategory = catName;
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            loadUserProfile(user.uid);
+            loadCategories();
             loadProducts(true);
-        };
-
-        // 3. LOAD PRODUCTS
-        async function loadProducts(reset = false) {
-            if (isProductsLoading || (!hasMoreProducts && !reset)) return;
-            isProductsLoading = true;
-            document.getElementById('loadMoreSpinner').classList.remove('hidden');
-            const container = document.getElementById('products-grid');
-
-            if (reset) {
-                container.innerHTML = '';
-                lastVisibleProduct = null;
-                hasMoreProducts = true;
-                document.getElementById('endOfResults').classList.add('hidden');
-            }
-
-            try {
-                let q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(15));
-                if (currentCategory !== 'all') q = query(q, where('category', '==', currentCategory));
-                if (lastVisibleProduct) q = query(q, startAfter(lastVisibleProduct));
-
-                const snapshot = await getDocs(q);
-                if (snapshot.empty) {
-                    hasMoreProducts = false;
-                    document.getElementById('endOfResults').classList.remove('hidden');
-                } else {
-                    lastVisibleProduct = snapshot.docs[snapshot.docs.length - 1];
-                    snapshot.forEach(docSnap => {
-                        const p = docSnap.data();
-                        if (searchQuery && !p.name.toLowerCase().includes(searchQuery)) return;
-
-                        const pid = docSnap.id;
-                        const wholesalePrice = parseFloat(p.price) || 0;
-                        const marketPrice = parseFloat(p.resellPrice) || wholesalePrice; // Fallback to wholesale
-                        const weight = parseFloat(p.weight) || 0;
-
-                        const card = `
-                        <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden border border-rose-50 flex flex-col h-full group relative">
-                            <div class="absolute top-2 right-2 z-10 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm font-bold">
-                                ${weight} KG
-                            </div>
-                            <div class="relative aspect-square bg-gray-50 overflow-hidden">
-                                <img src="${p.imageUrl || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            </div>
-                            <div class="p-3 flex flex-col flex-grow">
-                                <h3 class="font-bold text-gray-800 text-[11px] mb-2 line-clamp-2 h-8 leading-snug" title="${p.name}">${p.name}</h3>
-                                <div class="mt-auto space-y-1">
-                                    <div class="flex justify-between items-end">
-                                        <div>
-                                            <p class="text-[8px] text-gray-400 uppercase font-bold">Wholesale</p>
-                                            <p class="text-sm font-black text-rose-600">Rs. ${wholesalePrice.toLocaleString()}</p>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="text-[8px] text-green-500 uppercase font-bold">Market</p>
-                                            <p class="text-sm font-black text-green-600">Rs. ${marketPrice.toLocaleString()}</p>
-                                        </div>
-                                    </div>
-                                    <button class="w-full mt-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[10px] font-bold py-2 rounded-lg transition-all btn-earn flex justify-center items-center gap-1 border border-rose-100"
-                                        data-id="${pid}" 
-                                        data-title="${p.name}" 
-                                        data-price="${wholesalePrice}" 
-                                        data-resell="${marketPrice}"
-                                        data-weight="${weight}"
-                                        data-delivery="${p.deliveryPrice || 350}"
-                                        data-img="${p.imageUrl}" 
-                                        data-desc="${p.description || ''}">
-                                        SELL NOW <i class="fa fa-arrow-right text-[8px]"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>`;
-                        container.innerHTML += card;
-                    });
-                }
-            } catch (e) { console.error(e); } 
-            finally {
-                isProductsLoading = false;
-                document.getElementById('loadMoreSpinner').classList.add('hidden');
-                reattachListeners();
-            }
+            listenToCart(user.uid);
+        } else {
+            window.location.href = 'account.html';
         }
+    });
 
-        // SCROLL HANDLING
-        document.getElementById('scrollContainer').addEventListener('scroll', (e) => {
-            const el = e.target;
-            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) loadProducts();
-        });
+    async function loadUserProfile(uid) {
+        try {
+            const userDoc = await getDoc(doc(db, usersPath, uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                document.getElementById('sidebar-user-name').innerText = data.name || "Reseller User";
+                if(data.photoURL) document.getElementById('sidebar-user-img').src = data.photoURL;
+            }
+        } catch (e) { console.error(e); }
+    }
 
-        // SEARCH HANDLING
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchQuery = e.target.value.toLowerCase();
-            searchTimeout = setTimeout(() => loadProducts(true), 500);
-        });
-
-        function reattachListeners() {
-            document.querySelectorAll('.btn-earn').forEach(btn => {
-                btn.onclick = () => openModal(
-                    btn.dataset.id, 
-                    btn.dataset.title, 
-                    parseFloat(btn.dataset.price), 
-                    parseFloat(btn.dataset.resell),
-                    btn.dataset.img, 
-                    btn.dataset.desc,
-                    parseFloat(btn.dataset.weight),
-                    parseFloat(btn.dataset.delivery)
-                );
+    async function loadCategories() {
+        const container = document.getElementById('categoryContainer');
+        try {
+            const snap = await getDocs(collection(db, publicDataPath, 'categories'));
+            snap.forEach(docSnap => {
+                const cat = docSnap.data();
+                const btn = document.createElement('button');
+                btn.className = `cat-btn bg-white border border-rose-100 text-gray-500 px-5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap hover:bg-rose-50 hover:text-rose-600 transition-colors shadow-sm`;
+                btn.innerText = cat.name;
+                btn.onclick = () => filterCategory(cat.name, btn);
+                container.appendChild(btn);
             });
+        } catch (e) { console.error(e); }
+    }
+
+    window.filterCategory = (catName, btnElement) => {
+        document.querySelectorAll('.cat-btn').forEach(b => {
+            b.className = `cat-btn bg-white border border-rose-100 text-gray-500 px-5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap hover:bg-rose-50 hover:text-rose-600 transition-colors shadow-sm`;
+        });
+        btnElement.className = `cat-btn bg-sidebar-dark border border-sidebar-dark text-white px-5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shadow-md`;
+        currentCategory = catName;
+        loadProducts(true);
+    };
+
+    // --- 1. LOAD PRODUCTS (Updated: Resell -> Wholesale, Price -> Market) ---
+    async function loadProducts(reset = false) {
+        if (isProductsLoading || (!hasMoreProducts && !reset)) return;
+        isProductsLoading = true;
+        document.getElementById('loadMoreSpinner').classList.remove('hidden');
+        const container = document.getElementById('products-grid');
+
+        if (reset) {
+            container.innerHTML = '';
+            lastVisibleProduct = null;
+            hasMoreProducts = true;
+            document.getElementById('endOfResults').classList.add('hidden');
         }
 
-        // 4. MODAL LOGIC
-        window.openModal = (id, title, wholesale, resell, img, desc, weight, delivery) => {
-            currentModalProduct = { id, title, wholesale, resell, img, desc, weight, delivery };
-            
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalBasePrice').innerText = wholesale.toLocaleString();
-            document.getElementById('modalResellPrice').innerText = resell.toLocaleString();
-            document.getElementById('modalImg').src = img || 'https://via.placeholder.com/300';
-            document.getElementById('modalDesc').innerText = desc;
-            document.getElementById('modalWeightBadge').innerText = `${weight} KG`;
-            document.getElementById('modalDeliveryCost').innerText = delivery.toLocaleString();
+        try {
+            let q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(15));
+            if (currentCategory !== 'all') q = query(q, where('category', '==', currentCategory));
+            if (lastVisibleProduct) q = query(q, startAfter(lastVisibleProduct));
 
-            // Auto fill Selling Price with Suggested Resell Price
-            document.getElementById('modalSellingPrice').value = resell;
-            document.getElementById('modalQty').value = 1;
-            
-            calcModalProfit();
-            document.getElementById('productModal').classList.remove('hidden');
-        };
-
-        window.calcModalProfit = () => {
-            const selling = parseFloat(document.getElementById('modalSellingPrice').value) || 0;
-            const qty = parseInt(document.getElementById('modalQty').value) || 1;
-            const wholesale = currentModalProduct.wholesale;
-            
-            const profitPerUnit = selling - wholesale;
-            const totalProfit = profitPerUnit * qty;
-            
-            const display = document.getElementById('modalProfitDisplay');
-            display.innerText = totalProfit.toLocaleString();
-            
-            if (totalProfit < 0) {
-                display.parentElement.classList.replace('bg-green-50', 'bg-red-50');
-                display.classList.replace('text-green-600', 'text-red-600');
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                hasMoreProducts = false;
+                document.getElementById('endOfResults').classList.remove('hidden');
             } else {
-                display.parentElement.classList.replace('bg-red-50', 'bg-green-50');
-                display.classList.replace('text-red-600', 'text-green-600');
-            }
-        };
+                lastVisibleProduct = snapshot.docs[snapshot.docs.length - 1];
+                snapshot.forEach(docSnap => {
+                    const p = docSnap.data();
+                    const pid = docSnap.id;
+                    productsCache[pid] = p;
 
-        window.closeModal = () => document.getElementById('productModal').classList.add('hidden');
-        window.copyTitle = () => { navigator.clipboard.writeText(currentModalProduct.title); alert("Copied Product Name"); };
-        window.copyDesc = () => { navigator.clipboard.writeText(currentModalProduct.desc); alert("Copied Description"); };
+                    if (searchQuery && !p.name.toLowerCase().includes(searchQuery)) return;
 
-        window.addToCartReal = async () => {
-            if (!currentUser) return;
-            const sellingPrice = parseFloat(document.getElementById('modalSellingPrice').value);
-            const qty = parseInt(document.getElementById('modalQty').value);
-            
-            if (!sellingPrice || sellingPrice < currentModalProduct.wholesale) {
-                if(!confirm("Your selling price is below wholesale. You will lose money. Continue?")) return;
-            }
+                    // FIX: මිල ගණන් මාරු කළා (Resell -> Wholesale, Price -> Market)
+                    const wholesalePrice = parseFloat(p.resellPrice) || 0; 
+                    const marketPrice = parseFloat(p.price) || wholesalePrice;
+                    const weight = parseFloat(p.weight) || 0;
 
-            const btn = document.getElementById('addToCartBtn');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Adding...'; btn.disabled = true;
-
-            try {
-                const cartRef = doc(db, usersPath, currentUser.uid, 'cart', currentModalProduct.id);
-                const docSnap = await getDoc(cartRef);
-                
-                const data = {
-                    productId: currentModalProduct.id,
-                    name: currentModalProduct.title,
-                    wholesalePrice: currentModalProduct.wholesale,
-                    sellingPrice: sellingPrice,
-                    profitPerUnit: sellingPrice - currentModalProduct.wholesale,
-                    imageUrl: currentModalProduct.img,
-                    weight: currentModalProduct.weight,
-                    quantity: docSnap.exists() ? increment(qty) : qty,
-                    addedAt: serverTimestamp()
-                };
-                
-                docSnap.exists() ? await updateDoc(cartRef, data) : await setDoc(cartRef, data);
-                closeModal();
-                toggleCart();
-            } catch (e) { alert("Failed to add to cart"); }
-            finally { btn.innerHTML = originalHTML; btn.disabled = false; }
-        };
-
-        // 5. CART LISTENER
-        function listenToCart(uid) {
-            onSnapshot(collection(db, usersPath, uid, 'cart'), (snap) => {
-                const container = document.getElementById('cartItemsContainer');
-                const footer = document.getElementById('cartFooter');
-                const checkoutForm = document.getElementById('checkoutForm');
-                
-                const count = snap.size;
-                document.getElementById('mobile-cart-badge').innerText = count;
-                document.getElementById('sidebar-cart-count').innerText = count;
-
-                if (snap.empty) {
-                    container.innerHTML = '<div class="text-center py-10 opacity-40"><i class="fa fa-shopping-basket text-5xl mb-3"></i><p class="text-sm font-bold">Cart is empty</p></div>';
-                    footer.classList.add('hidden');
-                    checkoutForm.classList.add('hidden');
-                    currentCartData = [];
-                    return;
-                }
-
-                footer.classList.remove('hidden');
-                checkoutForm.classList.remove('hidden');
-                container.innerHTML = '';
-                currentCartData = [];
-
-                let totalProfit = 0, billTotal = 0, totalWeight = 0;
-
-                snap.forEach(docSnap => {
-                    const item = docSnap.data();
-                    const lineTotal = item.sellingPrice * item.quantity;
-                    const lineProfit = item.profitPerUnit * item.quantity;
-                    const lineWeight = (item.weight || 0) * item.quantity;
-
-                    totalProfit += lineProfit;
-                    billTotal += lineTotal;
-                    totalWeight += lineWeight;
-                    
-                    currentCartData.push({...item, id: docSnap.id});
-
-                    container.innerHTML += `
-                    <div class="bg-white border border-rose-50 rounded-xl p-3 flex gap-3 relative shadow-sm group">
-                        <img src="${item.imageUrl}" class="w-14 h-14 object-cover rounded-lg border border-gray-100">
-                        <div class="flex-1">
-                            <h4 class="font-bold text-[10px] text-gray-800 line-clamp-1 pr-6">${item.name}</h4>
-                            <div class="flex justify-between items-center mt-1">
-                                <span class="text-[9px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded font-bold">Qty: ${item.quantity}</span>
-                                <span class="text-xs font-black text-gray-800">Rs. ${lineTotal.toLocaleString()}</span>
-                            </div>
-                            <p class="text-[8px] text-green-600 font-bold mt-1">Profit: Rs. ${lineProfit.toLocaleString()}</p>
+                    const card = `
+                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden border border-rose-50 flex flex-col h-full group relative">
+                        <div class="absolute top-2 right-2 z-10 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm font-bold">${weight} KG</div>
+                        <div class="relative aspect-square bg-gray-50 overflow-hidden">
+                             <img src="${p.imageUrl || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         </div>
-                        <button class="cart-del absolute top-2 right-2 text-gray-300 hover:text-rose-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${docSnap.id}"><i class="fa fa-trash-alt text-[10px]"></i></button>
+                        <div class="p-3 flex flex-col flex-grow">
+                            <h3 class="font-bold text-gray-800 text-[11px] mb-2 line-clamp-2 h-8 leading-snug">${p.name}</h3>
+                            <div class="mt-auto space-y-1">
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <p class="text-[8px] text-gray-400 uppercase font-bold">Wholesale (Cost)</p>
+                                        <p class="text-sm font-black text-rose-600">Rs. ${wholesalePrice.toLocaleString()}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[8px] text-green-500 uppercase font-bold">Market (Sell)</p>
+                                        <p class="text-sm font-black text-green-600">Rs. ${marketPrice.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <button onclick="openModal('${pid}')" class="w-full mt-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[10px] font-bold py-2 rounded-lg transition-all border border-rose-100">
+                                    SELL NOW <i class="fa fa-arrow-right text-[8px]"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>`;
+                    container.innerHTML += card;
                 });
+            }
+        } catch (e) { console.error(e); } 
+        finally {
+            isProductsLoading = false;
+            document.getElementById('loadMoreSpinner').classList.add('hidden');
+        }
+    }
 
-                document.querySelectorAll('.cart-del').forEach(b => b.onclick = () => deleteDoc(doc(db, usersPath, uid, 'cart', b.dataset.id)));
+    // --- 2. MODAL LOGIC (Variation Logic Integrated) ---
+    window.openModal = (id) => {
+        const product = productsCache[id];
+        if (!product) return;
+
+        currentModalProduct = { ...product, id };
+        selectedVars = {};
+        currentVarPrices = {};
+
+        document.getElementById('modalTitle').innerText = product.name;
+        document.getElementById('modalImg').src = product.imageUrl || 'https://via.placeholder.com/300';
+        document.getElementById('modalDesc').innerText = product.description || '';
+        document.getElementById('modalWeightBadge').innerText = `${product.weight || 0} KG`;
+        document.getElementById('modalDeliveryCost').innerText = (product.deliveryPrice || 350).toLocaleString();
+
+        const varContainer = document.getElementById('modalVariationsContainer');
+        if (varContainer) {
+            varContainer.innerHTML = '';
+            const variations = product.variations ? (Array.isArray(product.variations) ? product.variations : Object.values(product.variations)) : [];
+
+            variations.forEach(vGroup => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = "mb-4";
+                groupDiv.innerHTML = `<p class="text-[10px] font-bold text-gray-400 uppercase mb-2">${vGroup.name}</p>`;
                 
-                window.tempItemsTotal = billTotal;
-                finalCartWeight = totalWeight;
-                document.getElementById('cartItemsTotal').innerText = billTotal.toLocaleString();
-                document.getElementById('cartProfitTotal').innerText = totalProfit.toLocaleString();
-                
-                handlePaymentChange(); 
+                const btnWrapper = document.createElement('div');
+                btnWrapper.className = "flex flex-wrap gap-2";
+
+                const options = Array.isArray(vGroup.options) ? vGroup.options : Object.values(vGroup.options);
+                options.forEach((opt, idx) => {
+                    const optName = typeof opt === 'object' ? (opt.name || opt.label) : opt;
+                    const optPrice = typeof opt === 'object' ? (parseFloat(opt.price) || 0) : 0;
+
+                    const btn = document.createElement('button');
+                    btn.innerText = optName;
+                    btn.className = `px-3 py-1.5 border rounded-lg text-xs font-medium transition-all ${idx === 0 ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-gray-500 border-gray-200'}`;
+                    
+                    if(idx === 0) {
+                        selectedVars[vGroup.name] = optName;
+                        currentVarPrices[vGroup.name] = optPrice;
+                    }
+
+                    btn.onclick = () => {
+                        btnWrapper.querySelectorAll('button').forEach(b => {
+                            b.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-white text-gray-500 border-gray-200";
+                        });
+                        btn.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-rose-600 text-white border-rose-600";
+                        selectedVars[vGroup.name] = optName;
+                        currentVarPrices[vGroup.name] = optPrice;
+                        updateDynamicPrices();
+                    };
+                    btnWrapper.appendChild(btn);
+                });
+                groupDiv.appendChild(btnWrapper);
+                varContainer.appendChild(groupDiv);
             });
         }
+        updateDynamicPrices(); 
+        document.getElementById('productModal').classList.remove('hidden');
+    };
 
-        window.handlePaymentChange = () => {
-            const method = document.querySelector('input[name="payment"]:checked').value;
-            let deliveryFee = 0;
+    // --- 3. DYNAMIC PRICE UPDATER ---
+    function updateDynamicPrices() {
+        const varExtraTotal = Object.values(currentVarPrices).reduce((a, b) => a + b, 0);
+        
+        let baseWholesale = parseFloat(currentModalProduct.resellPrice) || 0;
+        let baseMarket = parseFloat(currentModalProduct.price) || baseWholesale;
 
-            if (method !== 'store_pickup') {
-                // Logic: 0kg - 1kg = 350 LKR, +100 per extra KG
-                if (finalCartWeight > 0) {
-                    deliveryFee = 350;
-                    if (finalCartWeight > 1) {
-                        const extra = Math.ceil(finalCartWeight - 1);
-                        deliveryFee += (extra * 100);
-                    }
-                }
-            }
+        // Variation එකේ මිල 0 ට වඩා වැඩි නම් ඒක wholesale එක ලෙස ගනී
+        const finalWholesale = varExtraTotal > 0 ? varExtraTotal : baseWholesale;
+        const finalMarket = varExtraTotal > 0 ? (varExtraTotal + (baseMarket - baseWholesale)) : baseMarket;
 
-            finalDeliveryFee = deliveryFee;
-            finalGrandTotal = window.tempItemsTotal + deliveryFee;
+        document.getElementById('modalBasePrice').innerText = finalWholesale.toLocaleString();
+        document.getElementById('modalResellPrice').innerText = finalMarket.toLocaleString();
+        document.getElementById('modalSellingPrice').value = finalMarket;
+        
+        currentModalProduct.currentActivePrice = finalWholesale; 
+        calcModalProfit();
+    }
 
-            document.getElementById('deliveryFeeDisplay').innerText = method === 'store_pickup' ? "Free Pickup" : `Rs. ${deliveryFee.toLocaleString()}`;
-            document.getElementById('cartGrandTotal').innerText = finalGrandTotal.toLocaleString();
-        };
+    window.calcModalProfit = () => {
+        const selling = parseFloat(document.getElementById('modalSellingPrice').value) || 0;
+        const qty = parseInt(document.getElementById('modalQty').value) || 1;
+        const wholesale = currentModalProduct.currentActivePrice || 0;
+        
+        const profitPerUnit = selling - wholesale;
+        const totalProfit = profitPerUnit * qty;
+        
+        const display = document.getElementById('modalProfitDisplay');
+        display.innerText = totalProfit.toLocaleString();
+        display.classList.toggle('text-red-600', totalProfit < 0);
+        display.classList.toggle('text-green-600', totalProfit >= 0);
+    };
 
-        window.toggleCart = () => {
-            const drawer = document.getElementById('cartDrawer');
-            const overlay = document.getElementById('cartOverlay');
-            if (!drawer.classList.contains('drawer-open')) {
-                drawer.classList.add('drawer-open');
-                drawer.classList.remove('pointer-events-none');
-                overlay.classList.remove('opacity-0', 'pointer-events-none');
-            } else {
-                drawer.classList.remove('drawer-open');
-                setTimeout(() => { drawer.classList.add('pointer-events-none'); overlay.classList.add('opacity-0', 'pointer-events-none'); }, 300);
-            }
-        };
+    // --- 4. ADD TO CART ---
+    window.addToCartReal = async () => {
+        if (!currentUser) return;
+        const sellingPrice = parseFloat(document.getElementById('modalSellingPrice').value);
+        const qty = parseInt(document.getElementById('modalQty').value);
+        const wholesale = currentModalProduct.currentActivePrice || 0;
 
-        // PLACE ORDER & INVOICE FUNCTIONS (Kept basically same but integrated with resell data)
-        window.placeOrderReal = async () => {
-            const name = document.getElementById('custName').value;
-            const phone = document.getElementById('custPhone').value;
-            const address = document.getElementById('custAddress').value;
-            const method = document.querySelector('input[name="payment"]:checked').value;
+        if (sellingPrice < wholesale && !confirm("Selling below cost? You will lose money.")) return;
 
-            if (!name || !phone) { alert("Customer name and phone required"); return; }
-            if (method !== 'store_pickup' && !address) { alert("Address required for delivery"); return; }
+        const btn = document.getElementById('addToCartBtn');
+        btn.disabled = true;
 
-            const btn = document.getElementById('placeOrderBtn');
-            btn.innerHTML = 'Placing Order...'; btn.disabled = true;
-
-            try {
-                let wholesaleSubtotal = 0, totalProfit = 0;
-                currentCartData.forEach(d => {
-                    wholesaleSubtotal += d.wholesalePrice * d.quantity;
-                    totalProfit += d.profitPerUnit * d.quantity;
-                });
-
-                const orderData = {
-                    resellerId: currentUser.uid, 
-                    resellerEmail: currentUser.email,
-                    customer: { name, phone, address: method === 'store_pickup' ? 'Store Pickup' : address },
-                    items: currentCartData,
-                    method,
-                    financials: { 
-                        wholesaleSubtotal, 
-                        resellerProfit: totalProfit, 
-                        delivery: finalDeliveryFee, 
-                        weight: finalCartWeight,
-                        grandTotal: finalGrandTotal 
-                    },
-                    status: 'Pending',
-                    createdAt: serverTimestamp()
-                };
-
-                await addDoc(collection(db, 'reseller_orders'), orderData);
-                
-                const batch = writeBatch(db);
-                currentCartData.forEach(item => batch.delete(doc(db, usersPath, currentUser.uid, 'cart', item.id)));
-                await batch.commit();
-
-                alert("Order Placed Successfully!");
-                toggleCart();
-            } catch(e) { console.error(e); alert("Failed to place order."); }
-            finally { btn.innerHTML = 'CONFIRM ORDER'; btn.disabled = false; }
-        };
-
-        window.generateCustomerInvoice = () => {
-            if (currentCartData.length === 0) return;
-            const invItems = document.getElementById('invItems');
-            const invTotal = document.getElementById('invTotal');
-            const invDate = document.getElementById('invDate');
+        try {
+            const varSuffix = Object.values(selectedVars).join('-').replace(/\s+/g, '');
+            const cartId = currentModalProduct.id + (varSuffix ? '-' + varSuffix : '');
             
-            invItems.innerHTML = '';
-            currentCartData.forEach(item => {
+            const cartRef = doc(db, usersPath, currentUser.uid, 'cart', cartId);
+            
+            const data = {
+                productId: currentModalProduct.id,
+                name: currentModalProduct.name,
+                wholesalePrice: wholesale,
+                sellingPrice: sellingPrice,
+                profitPerUnit: sellingPrice - wholesale,
+                imageUrl: currentModalProduct.imageUrl,
+                weight: currentModalProduct.weight || 0,
+                variations: selectedVars,
+                quantity: qty,
+                addedAt: serverTimestamp()
+            };
+            
+            await setDoc(cartRef, data, { merge: true });
+            closeModal();
+            toggleCart();
+        } catch (e) { alert("Failed to add to cart"); }
+        finally { btn.disabled = false; }
+    };
+
+    // --- 5. CART LISTENER ---
+    function listenToCart(uid) {
+        onSnapshot(collection(db, usersPath, uid, 'cart'), (snap) => {
+            const container = document.getElementById('cartItemsContainer');
+            const count = snap.size;
+            document.getElementById('mobile-cart-badge').innerText = count;
+            document.getElementById('sidebar-cart-count').innerText = count;
+
+            if (snap.empty) {
+                container.innerHTML = '<p class="text-center py-10 opacity-40">Cart is empty</p>';
+                document.getElementById('cartFooter').classList.add('hidden');
+                document.getElementById('checkoutForm').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('cartFooter').classList.remove('hidden');
+            document.getElementById('checkoutForm').classList.remove('hidden');
+            container.innerHTML = '';
+            currentCartData = [];
+
+            let totalProfit = 0, billTotal = 0, totalWeight = 0;
+
+            snap.forEach(docSnap => {
+                const item = docSnap.data();
                 const lineTotal = item.sellingPrice * item.quantity;
-                invItems.innerHTML += `
-                    <div class="flex justify-between border-b border-dashed border-gray-200 pb-2">
-                        <span class="text-[10px]">${item.name} <span class="text-gray-400">x${item.quantity}</span></span>
-                        <span class="font-bold text-gray-700 text-[10px]">${lineTotal.toLocaleString()}</span>
-                    </div>`;
+                const lineProfit = item.profitPerUnit * item.quantity;
+                
+                totalProfit += lineProfit;
+                billTotal += lineTotal;
+                totalWeight += (item.weight * item.quantity);
+                
+                currentCartData.push({...item, id: docSnap.id});
+
+                const varString = item.variations ? Object.values(item.variations).join(' / ') : '';
+
+                container.innerHTML += `
+                <div class="bg-white border rounded-xl p-3 flex gap-3 relative group">
+                    <img src="${item.imageUrl}" class="w-14 h-14 object-cover rounded-lg">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-[10px] text-gray-800 line-clamp-1">${item.name}</h4>
+                        <p class="text-[8px] text-rose-500 font-bold">${varString}</p>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-[9px] font-bold">Qty: ${item.quantity}</span>
+                            <span class="text-xs font-black">Rs. ${lineTotal.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart('${docSnap.id}')" class="absolute top-2 right-2 text-gray-300 hover:text-rose-500"><i class="fa fa-trash-alt text-[10px]"></i></button>
+                </div>`;
             });
 
-            if(finalDeliveryFee > 0) {
-                invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-[10px]"><span>Delivery Charge</span><span>${finalDeliveryFee.toLocaleString()}</span></div>`;
-            }
-            
-            invTotal.innerText = finalGrandTotal.toLocaleString();
-            invDate.innerText = new Date().toLocaleDateString();
-            document.getElementById('invoiceModal').classList.remove('hidden');
-        };
+            window.tempItemsTotal = billTotal;
+            finalCartWeight = totalWeight;
+            document.getElementById('cartItemsTotal').innerText = billTotal.toLocaleString();
+            document.getElementById('cartProfitTotal').innerText = totalProfit.toLocaleString();
+            handlePaymentChange();
+        });
+    }
 
-        window.downloadInvoice = () => {
-            const element = document.getElementById('invoiceContent');
-            html2canvas(element).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `tutu-slip-${Date.now()}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
+    window.removeFromCart = (id) => deleteDoc(doc(db, usersPath, currentUser.uid, 'cart', id));
+
+    window.handlePaymentChange = () => {
+        const methodEl = document.querySelector('input[name="payment"]:checked');
+        const method = methodEl ? methodEl.value : 'cod';
+        let deliveryFee = 0;
+        if (method !== 'store_pickup' && finalCartWeight > 0) {
+            deliveryFee = 350 + (Math.max(0, Math.ceil(finalCartWeight - 1)) * 100);
+        }
+        finalDeliveryFee = deliveryFee;
+        finalGrandTotal = (window.tempItemsTotal || 0) + deliveryFee;
+        document.getElementById('deliveryFeeDisplay').innerText = `Rs. ${deliveryFee.toLocaleString()}`;
+        document.getElementById('cartGrandTotal').innerText = finalGrandTotal.toLocaleString();
+    };
+
+    window.toggleCart = () => {
+        const drawer = document.getElementById('cartDrawer');
+        drawer.classList.toggle('drawer-open');
+        drawer.classList.toggle('pointer-events-none');
+        document.getElementById('cartOverlay').classList.toggle('opacity-0');
+        document.getElementById('cartOverlay').classList.toggle('pointer-events-none');
+    };
+
+    window.placeOrderReal = async () => {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const address = document.getElementById('custAddress').value;
+        const method = document.querySelector('input[name="payment"]:checked').value;
+
+        if (!name || !phone || (method !== 'store_pickup' && !address)) return alert("Fill all details");
+
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled = true;
+
+        try {
+            let wholesaleSubtotal = 0, resellerProfit = 0;
+            currentCartData.forEach(d => {
+                wholesaleSubtotal += (d.wholesalePrice * d.quantity);
+                resellerProfit += (d.profitPerUnit * d.quantity);
             });
-        };
 
-        // EXPOSING GLOBALS
-        window.closeModal = closeModal;
-        window.filterCategory = filterCategory;
-        window.toggleCart = toggleCart;
-        window.handlePaymentChange = handlePaymentChange;
-        window.calcModalProfit = calcModalProfit;
-        window.addToCartReal = addToCartReal;
-        window.placeOrderReal = placeOrderReal;
-        window.generateCustomerInvoice = generateCustomerInvoice;
-        window.downloadInvoice = downloadInvoice;
-        window.copyTitle = copyTitle;
-        window.copyDesc = copyDesc;
+            const orderData = {
+                resellerId: currentUser.uid,
+                resellerEmail: currentUser.email,
+                customer: { name, phone, address },
+                items: currentCartData,
+                method,
+                financials: { wholesaleSubtotal, resellerProfit, delivery: finalDeliveryFee, grandTotal: finalGrandTotal },
+                status: 'Pending',
+                createdAt: serverTimestamp()
+            };
 
-    </script>
+            await addDoc(collection(db, 'reseller_orders'), orderData);
+            const batch = writeBatch(db);
+            currentCartData.forEach(item => batch.delete(doc(db, usersPath, currentUser.uid, 'cart', item.id)));
+            await batch.commit();
+            alert("Order Placed!");
+            toggleCart();
+        } catch(e) { console.error(e); }
+        finally { btn.disabled = false; }
+    };
+
+    // Helper functions
+    window.closeModal = () => document.getElementById('productModal').classList.add('hidden');
+    window.copyTitle = () => { navigator.clipboard.writeText(currentModalProduct.name); alert("Copied"); };
+    window.copyDesc = () => { navigator.clipboard.writeText(currentModalProduct.description); alert("Copied"); };
+    
+    // --- Invoice Generation ---
+    window.generateCustomerInvoice = () => {
+        const invItems = document.getElementById('invItems');
+        invItems.innerHTML = '';
+        currentCartData.forEach(item => {
+            const varInfo = item.variations ? ` (${Object.values(item.variations).join('/')})` : '';
+            invItems.innerHTML += `
+                <div class="flex justify-between border-b border-dashed py-2 text-[10px]">
+                    <span>${item.name}${varInfo} x${item.quantity}</span>
+                    <span class="font-bold">${(item.sellingPrice * item.quantity).toLocaleString()}</span>
+                </div>`;
+        });
+        if(finalDeliveryFee > 0) invItems.innerHTML += `<div class="flex justify-between py-1 text-[10px]"><span>Delivery</span><span>${finalDeliveryFee.toLocaleString()}</span></div>`;
+        document.getElementById('invTotal').innerText = finalGrandTotal.toLocaleString();
+        document.getElementById('invDate').innerText = new Date().toLocaleDateString();
+        document.getElementById('invoiceModal').classList.remove('hidden');
+    };
+
+    window.downloadInvoice = () => {
+        html2canvas(document.getElementById('invoiceContent')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `bill-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    };
+
+    // Global listeners
+    document.getElementById('scrollContainer').addEventListener('scroll', (e) => {
+        if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 50) loadProducts();
+    });
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchQuery = e.target.value.toLowerCase();
+        searchTimeout = setTimeout(() => loadProducts(true), 500);
+    });
+
+</script>
 </body>
 </html>
