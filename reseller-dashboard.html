@@ -546,15 +546,22 @@
                         currentVarPrices[vGroup.name] = optPrice;
                     }
 
-                    btn.onclick = () => {
-                        btnWrapper.querySelectorAll('button').forEach(b => {
-                            b.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-white text-gray-500 border-gray-200";
-                        });
-                        btn.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-rose-600 text-white border-rose-600";
-                        selectedVars[vGroup.name] = optName;
-                        currentVarPrices[vGroup.name] = optPrice;
-                        updateDynamicPrices();
-                    };
+                  btn.onclick = () => {
+    btnWrapper.querySelectorAll('button').forEach(b => {
+        b.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-white text-gray-500 border-gray-200";
+    });
+    btn.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-rose-600 text-white border-rose-600";
+    
+    selectedVars[vGroup.name] = optName;
+
+    // මෙතන තමයි වැදගත්ම වෙනස - keys දෙකම object එකක් ලෙස තියාගන්නවා
+    currentVarPrices[vGroup.name] = {
+        wholesale: parseFloat(opt.resellPrice) || 0,
+        market: parseFloat(opt.marketPrice) || 0
+    };
+    
+    updateDynamicPrices();
+};
                     btnWrapper.appendChild(btn);
                 });
                 groupDiv.appendChild(btnWrapper);
@@ -566,23 +573,31 @@
     };
 
     // --- 3. DYNAMIC PRICE UPDATER ---
-    function updateDynamicPrices() {
-        const varExtraTotal = Object.values(currentVarPrices).reduce((a, b) => a + b, 0);
-        
-        let baseWholesale = parseFloat(currentModalProduct.resellPrice) || 0;
-        let baseMarket = parseFloat(currentModalProduct.price) || baseWholesale;
+ function updateDynamicPrices() {
+    // තෝරාගත් සියලු variations වල wholesale සහ market මිලවල් එකතු කිරීම
+    const varWholesaleExtra = Object.values(currentVarPrices).reduce((a, b) => a + (b.wholesale || 0), 0);
+    const varMarketExtra = Object.values(currentVarPrices).reduce((a, b) => a + (b.market || 0), 0);
+    
+    // භාණ්ඩයේ මූලික මිල ගණන් (Base prices)
+    let baseWholesale = parseFloat(currentModalProduct.resellPrice) || 0;
+    let baseMarket = parseFloat(currentModalProduct.price) || baseWholesale;
 
-        // Variation එකේ මිල 0 ට වඩා වැඩි නම් ඒක wholesale එක ලෙස ගනී
-        const finalWholesale = varExtraTotal > 0 ? varExtraTotal : baseWholesale;
-        const finalMarket = varExtraTotal > 0 ? (varExtraTotal + (baseMarket - baseWholesale)) : baseMarket;
+    // Logic: Variation එකේ මිලක් ඇත්නම් එය භාවිතා කරයි, නැතිනම් base price එක ගනී
+    const finalWholesale = varWholesaleExtra > 0 ? varWholesaleExtra : baseWholesale;
+    const finalMarket = varMarketExtra > 0 ? varMarketExtra : baseMarket;
 
-        document.getElementById('modalBasePrice').innerText = finalWholesale.toLocaleString();
-        document.getElementById('modalResellPrice').innerText = finalMarket.toLocaleString();
-        document.getElementById('modalSellingPrice').value = finalMarket;
-        
-        currentModalProduct.currentActivePrice = finalWholesale; 
-        calcModalProfit();
-    }
+    // UI එකට අගයන් ලබා දීම
+    document.getElementById('modalBasePrice').innerText = finalWholesale.toLocaleString();
+    document.getElementById('modalResellPrice').innerText = finalMarket.toLocaleString();
+    
+    // Selling Price field එක Market Price එකට default සෙට් කිරීම
+    document.getElementById('modalSellingPrice').value = finalMarket;
+    
+    // මේක තමයි Order එක දාද්දී cost එක විදිහට යන්නේ
+    currentModalProduct.currentActivePrice = finalWholesale; 
+    
+    calcModalProfit();
+}
 
     window.calcModalProfit = () => {
         const selling = parseFloat(document.getElementById('modalSellingPrice').value) || 0;

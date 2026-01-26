@@ -84,99 +84,110 @@
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8">
-        <div id="product-skeleton" class="w-full">
-            <div class="grid lg:grid-cols-2 gap-12">
-                <div class="aspect-square skeleton rounded-[2.5rem]"></div>
-                <div class="space-y-6">
-                    <div class="h-12 w-3/4 skeleton rounded-xl"></div>
-                    <div class="h-8 w-1/4 skeleton rounded-xl"></div>
-                    <div class="h-40 w-full skeleton rounded-xl"></div>
+  <main class="container mx-auto px-4 py-8">
+    <div id="product-skeleton" class="w-full">
+        <div class="grid lg:grid-cols-2 gap-12">
+            <div class="aspect-square skeleton rounded-[2.5rem]"></div>
+            <div class="space-y-6">
+                <div class="h-12 w-3/4 skeleton rounded-xl"></div>
+                <div class="h-8 w-1/4 skeleton rounded-xl"></div>
+                <div class="h-40 w-full skeleton rounded-xl"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="product-content" class="hidden">
+        <div class="grid lg:grid-cols-3 gap-12">
+            <div class="lg:col-span-2 space-y-10">
+                <div class="grid lg:grid-cols-2 gap-10">
+                   <div class="lg:sticky lg:top-28 h-fit mb-10 lg:mb-0">
+    <div class="bg-gray-50 rounded-[2.5rem] p-6 mb-4 flex items-center justify-center overflow-hidden aspect-square">
+        <img id="main-product-image" class="w-full h-full object-contain mix-blend-multiply transition-transform hover:scale-105 duration-500" src="" alt="Product Image">
+    </div>
+</div>
+
+                    <div class="flex flex-col">
+                        <div class="flex justify-between items-start gap-4 mb-4">
+                            <h1 id="product-name" class="text-3xl md:text-4xl font-black text-gray-900 leading-tight">...</h1>
+                            <button id="share-btn" class="flex items-center justify-center min-w-[48px] h-[48px] rounded-2xl bg-pink-50 text-mudalali-green hover:bg-mudalali-green hover:text-white transition-all shadow-sm active:scale-90" title="Share Product">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="product-price-container" class="mb-8">
+                            <span class="text-4xl font-black text-mudalali-green">Rs. 0.00</span>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-pink-100 mb-8">
+                            <img id="seller-logo" src="https://placehold.co/100" class="w-10 h-10 rounded-full object-cover shadow-sm">
+                            <div class="flex-grow">
+                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Store Owner</p>
+                                <h4 id="seller-name" class="text-xs font-bold text-gray-800">Verified Seller</h4>
+                            </div>
+                            <a id="seller-store-link" href="#" class="text-[10px] font-bold text-mudalali-green bg-white px-3 py-2 rounded-xl border border-pink-100 hover:bg-pink-50">Visit Store</a>
+                        </div>
+
+                        <div id="product-variations" class="space-y-6 mb-8"></div>
+
+                        <div class="mb-10">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Select Quantity</label>
+                            <div class="flex items-center bg-gray-100 w-fit rounded-2xl p-1.5">
+                                <button id="qty-minus" class="w-10 h-10 rounded-xl hover:bg-white transition-all shadow-sm"><i class="fa fa-minus text-xs"></i></button>
+                                <input type="number" id="qty-input" value="1" readonly class="bg-transparent w-12 text-center font-bold text-lg">
+                                <button id="qty-plus" class="w-10 h-10 rounded-xl hover:bg-white transition-all shadow-sm"><i class="fa fa-plus text-xs"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button id="add-to-cart-btn" class="btn-secondary">Add to Cart</button>
+                            <button id="buy-now-btn" class="btn-primary">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm">
+                    <div class="flex bg-gray-50/50 border-b">
+                        <button id="desc-tab-btn" class="page-tab-btn active">Description</button>
+                        <button id="delivery-tab-btn" class="page-tab-btn">Delivery</button>
+                        <button id="reviews-tab-btn" class="page-tab-btn">Reviews</button>
+                    </div>
+                    <div class="p-8">
+                        <div id="desc-tab-panel" class="text-gray-600 leading-relaxed text-sm md:text-base">
+                            <div id="product-description"></div>
+                        </div>
+                        <div id="delivery-tab-panel" class="hidden text-gray-600 space-y-4">
+                            <div id="product-delivery"></div>
+                        </div>
+                        <div id="reviews-tab-panel" class="hidden">
+                            <div id="review-form-container" class="mb-8 p-6 bg-pink-50 rounded-2xl hidden">
+                                <h3 class="font-bold mb-4 text-gray-800">Share your feedback</h3>
+                                <form id="review-form" class="space-y-4">
+                                    <div class="rating-stars flex gap-2 mb-2 text-yellow-400">
+                                        <i class="star fa fa-star" data-value="1"></i>
+                                        <i class="star fa fa-star" data-value="2"></i>
+                                        <i class="star fa fa-star" data-value="3"></i>
+                                        <i class="star fa fa-star" data-value="4"></i>
+                                        <i class="star fa fa-star" data-value="5"></i>
+                                    </div>
+                                    <textarea id="review-text" class="w-full p-4 border-none rounded-xl bg-white text-sm focus:ring-2 focus:ring-mudalali-green" rows="3" placeholder="What did you think about this product?"></textarea>
+                                    <button type="submit" class="btn-primary py-2.5 px-6 text-sm">Post Review</button>
+                                </form>
+                            </div>
+                            <div id="reviews-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm sticky top-28">
+                    <h3 class="font-bold mb-6 border-l-4 border-mudalali-green pl-3">More for You</h3>
+                    <div id="related-products-grid" class="space-y-4"></div>
                 </div>
             </div>
         </div>
-
-        
-
-            <div class="grid lg:grid-cols-3 gap-12">
-                <div class="lg:col-span-2 space-y-10">
-                    <div class="grid lg:grid-cols-2 gap-10">
-                        <div class="sticky top-28 h-fit">
-                            <div class="bg-gray-50 rounded-[2.5rem] p-6 mb-4">
-                                <img id="main-product-image" class="w-full h-auto mix-blend-multiply rounded-2xl transition-transform hover:scale-105 duration-500">
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col">
-                            <h1 id="product-name" class="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-4">...</h1>
-                            
-                            <div id="product-price-container" class="mb-8">
-                                <span class="text-4xl font-black text-mudalali-green">Rs. 0.00</span>
-                            </div>
-
-                            <div id="product-variations" class="space-y-6 mb-8">
-                                </div>
-
-                            <div class="mb-10">
-                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Select Quantity</label>
-                                <div class="flex items-center bg-gray-100 w-fit rounded-2xl p-1.5">
-                                    <button id="qty-minus" class="w-10 h-10 rounded-xl hover:bg-white transition-all shadow-sm"><i class="fa fa-minus text-xs"></i></button>
-                                    <input type="number" id="qty-input" value="1" readonly class="bg-transparent w-12 text-center font-bold text-lg">
-                                    <button id="qty-plus" class="w-10 h-10 rounded-xl hover:bg-white transition-all shadow-sm"><i class="fa fa-plus text-xs"></i></button>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <button id="add-to-cart-btn" class="btn-secondary">Add to Cart</button>
-                                <button id="buy-now-btn" class="btn-primary">Buy Now</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm">
-                        <div class="flex bg-gray-50/50 border-b">
-                            <button id="desc-tab-btn" class="page-tab-btn active">Description</button>
-                            <button id="delivery-tab-btn" class="page-tab-btn">Delivery</button>
-                            <button id="reviews-tab-btn" class="page-tab-btn">Reviews</button>
-                        </div>
-                        <div class="p-8">
-                            <div id="desc-tab-panel" class="text-gray-600 leading-relaxed text-sm md:text-base">
-                                <div id="product-description"></div>
-                            </div>
-                            <div id="delivery-tab-panel" class="hidden text-gray-600 space-y-4">
-                                <div id="product-delivery"></div>
-                            </div>
-                            <div id="reviews-tab-panel" class="hidden">
-                                <div id="review-form-container" class="mb-8 p-6 bg-pink-50 rounded-2xl hidden">
-                                    <h3 class="font-bold mb-4">Share your feedback</h3>
-                                    <form id="review-form" class="space-y-4">
-                                        <div class="rating-stars flex gap-2 mb-2">
-                                            <i class="star fa fa-star" data-value="1"></i>
-                                            <i class="star fa fa-star" data-value="2"></i>
-                                            <i class="star fa fa-star" data-value="3"></i>
-                                            <i class="star fa fa-star" data-value="4"></i>
-                                            <i class="star fa fa-star" data-value="5"></i>
-                                        </div>
-                                        <textarea id="review-text" class="w-full p-4 border-none rounded-xl bg-white text-sm focus:ring-2 focus:ring-mudalali-green" rows="3" placeholder="What did you think about this product?"></textarea>
-                                        <button type="submit" class="btn-primary py-2.5 px-6 text-sm">Post Review</button>
-                                    </form>
-                                </div>
-                                <div id="reviews-list" class="space-y-4"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm sticky top-28">
-                        <h3 class="font-bold mb-6 border-l-4 border-mudalali-green pl-3">More for You</h3>
-                        <div id="related-products-grid" class="space-y-4">
-                            </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+    </div>
+</main>
 
     <div id="cart-drawer" class="drawer">
         <div class="drawer-overlay" id="cart-overlay"></div>
@@ -233,23 +244,48 @@ async function initProductPage() {
         if (!docSnap.exists()) return window.location.href = 'shop.html';
 
         productData = { id: docSnap.id, ...docSnap.data() };
-        renderProductUI();
         
+        renderProductUI();
         loadSellerData(productData.sellerUid);
-        loadRelatedProducts(); // Related products මෙතැනදී call වේ
+        loadRelatedProducts();
         loadReviews();
 
-        // Error Fix: Element එක තියෙනවාද කියා පරීක්ෂා කර පසුව Hide/Show කරන්න
-        const skeleton = document.getElementById('product-skeleton');
-        const content = document.getElementById('product-content'); // HTML එකේ මේ ID එක ඇති බව සහතික කරගන්න
-        
-        if (skeleton) skeleton.classList.add('hidden');
-        if (content) content.classList.remove('hidden');
+        // Error Fix: Skeleton එක අයින් කරලා Content එක පෙන්වීම
+        document.getElementById('product-skeleton')?.classList.add('hidden');
+        document.getElementById('product-content')?.classList.remove('hidden');
+
+        // Share Button එකට Click Event එක ලබා දීම
+        const shareBtn = document.getElementById('share-btn');
+        if (shareBtn) shareBtn.onclick = handleShare;
 
     } catch (e) { 
         console.error("Initialization Error:", e); 
     }
 }
+
+async function handleShare() {
+    if (!productData) return; // දත්ත නැතිනම් වැඩ නොකරන්න
+
+    const shareData = {
+        title: productData.name,
+        text: `Check out this ${productData.name} on Pink Store!`,
+        url: window.location.href,
+    };
+
+    try {
+        if (navigator.share) {
+            // Mobile devices වලදී
+            await navigator.share(shareData);
+        } else {
+            // Desktop වලදී (Copy to Clipboard)
+            await navigator.clipboard.writeText(window.location.href);
+            alert("Link copied to clipboard!");
+        }
+    } catch (err) {
+        console.error("Share failed:", err);
+    }
+}
+
  function renderProductUI() {
         const nameEl = document.getElementById('product-name');
         const imgEl = document.getElementById('main-product-image');
