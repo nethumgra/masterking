@@ -431,149 +431,155 @@
         currentCategory = catName;
         loadProducts(true);
     };
+// --- 1. LOAD PRODUCTS (Updated with Image Gallery Support) ---
+async function loadProducts(reset = false) {
+    if (isProductsLoading || (!hasMoreProducts && !reset)) return;
+    isProductsLoading = true;
+    document.getElementById('loadMoreSpinner').classList.remove('hidden');
+    const container = document.getElementById('products-grid');
 
-    // --- 1. LOAD PRODUCTS (Updated: Resell -> Wholesale, Price -> Market) ---
-    async function loadProducts(reset = false) {
-        if (isProductsLoading || (!hasMoreProducts && !reset)) return;
-        isProductsLoading = true;
-        document.getElementById('loadMoreSpinner').classList.remove('hidden');
-        const container = document.getElementById('products-grid');
-
-        if (reset) {
-            container.innerHTML = '';
-            lastVisibleProduct = null;
-            hasMoreProducts = true;
-            document.getElementById('endOfResults').classList.add('hidden');
-        }
-
-        try {
-            let q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(15));
-            if (currentCategory !== 'all') q = query(q, where('category', '==', currentCategory));
-            if (lastVisibleProduct) q = query(q, startAfter(lastVisibleProduct));
-
-            const snapshot = await getDocs(q);
-            if (snapshot.empty) {
-                hasMoreProducts = false;
-                document.getElementById('endOfResults').classList.remove('hidden');
-            } else {
-                lastVisibleProduct = snapshot.docs[snapshot.docs.length - 1];
-                snapshot.forEach(docSnap => {
-                    const p = docSnap.data();
-                    const pid = docSnap.id;
-                    productsCache[pid] = p;
-
-                    if (searchQuery && !p.name.toLowerCase().includes(searchQuery)) return;
-
-                    // FIX: මිල ගණන් මාරු කළා (Resell -> Wholesale, Price -> Market)
-                    const wholesalePrice = parseFloat(p.resellPrice) || 0; 
-                    const marketPrice = parseFloat(p.price) || wholesalePrice;
-                    const weight = parseFloat(p.weight) || 0;
-
-                    const card = `
-                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden border border-rose-50 flex flex-col h-full group relative">
-                        <div class="absolute top-2 right-2 z-10 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm font-bold">${weight} KG</div>
-                        <div class="relative aspect-square bg-gray-50 overflow-hidden">
-                             <img src="${p.imageUrl || 'https://via.placeholder.com/300'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        </div>
-                        <div class="p-3 flex flex-col flex-grow">
-                            <h3 class="font-bold text-gray-800 text-[11px] mb-2 line-clamp-2 h-8 leading-snug">${p.name}</h3>
-                            <div class="mt-auto space-y-1">
-                                <div class="flex justify-between items-end">
-                                    <div>
-                                        <p class="text-[8px] text-gray-400 uppercase font-bold">Wholesale (Cost)</p>
-                                        <p class="text-sm font-black text-rose-600">Rs. ${wholesalePrice.toLocaleString()}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[8px] text-green-500 uppercase font-bold">Market (Sell)</p>
-                                        <p class="text-sm font-black text-green-600">Rs. ${marketPrice.toLocaleString()}</p>
-                                    </div>
-                                </div>
-                                <button onclick="openModal('${pid}')" class="w-full mt-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[10px] font-bold py-2 rounded-lg transition-all border border-rose-100">
-                                    SELL NOW <i class="fa fa-arrow-right text-[8px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
-                    container.innerHTML += card;
-                });
-            }
-        } catch (e) { console.error(e); } 
-        finally {
-            isProductsLoading = false;
-            document.getElementById('loadMoreSpinner').classList.add('hidden');
-        }
+    if (reset) {
+        container.innerHTML = '';
+        lastVisibleProduct = null;
+        hasMoreProducts = true;
+        document.getElementById('endOfResults').classList.add('hidden');
     }
 
-    // --- 2. MODAL LOGIC (Variation Logic Integrated) ---
-    window.openModal = (id) => {
-        const product = productsCache[id];
-        if (!product) return;
+    try {
+        let q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(15));
+        if (currentCategory !== 'all') q = query(q, where('category', '==', currentCategory));
+        if (lastVisibleProduct) q = query(q, startAfter(lastVisibleProduct));
 
-        currentModalProduct = { ...product, id };
-        selectedVars = {};
-        currentVarPrices = {};
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            hasMoreProducts = false;
+            document.getElementById('endOfResults').classList.remove('hidden');
+        } else {
+            lastVisibleProduct = snapshot.docs[snapshot.docs.length - 1];
+            snapshot.forEach(docSnap => {
+                const p = docSnap.data();
+                const pid = docSnap.id;
+                productsCache[pid] = p;
 
-        document.getElementById('modalTitle').innerText = product.name;
-        document.getElementById('modalImg').src = product.imageUrl || 'https://via.placeholder.com/300';
-        document.getElementById('modalDesc').innerText = product.description || '';
-        document.getElementById('modalWeightBadge').innerText = `${product.weight || 0} KG`;
-        document.getElementById('modalDeliveryCost').innerText = (product.deliveryPrice || 350).toLocaleString();
+                if (searchQuery && !p.name.toLowerCase().includes(searchQuery)) return;
 
-        const varContainer = document.getElementById('modalVariationsContainer');
-        if (varContainer) {
-            varContainer.innerHTML = '';
-            const variations = product.variations ? (Array.isArray(product.variations) ? product.variations : Object.values(product.variations)) : [];
+                // මිල ගණන් සහ බර සකසා ගැනීම
+                const wholesalePrice = parseFloat(p.resellPrice) || 0; 
+                const marketPrice = parseFloat(p.price) || wholesalePrice;
+                const weight = parseFloat(p.weight) || 0;
 
-            variations.forEach(vGroup => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = "mb-4";
-                groupDiv.innerHTML = `<p class="text-[10px] font-bold text-gray-400 uppercase mb-2">${vGroup.name}</p>`;
-                
-                const btnWrapper = document.createElement('div');
-                btnWrapper.className = "flex flex-wrap gap-2";
+                // --- IMAGE LOGIC FIX ---
+                // ඇඩ්මින් එකෙන් එවන images array එකේ පළවෙනි එක බලනවා, නැත්නම් පරණ imageUrl එක ගන්නවා
+                const productImg = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || 'https://via.placeholder.com/300');
 
-                const options = Array.isArray(vGroup.options) ? vGroup.options : Object.values(vGroup.options);
-                options.forEach((opt, idx) => {
-                    const optName = typeof opt === 'object' ? (opt.name || opt.label) : opt;
-                    const optPrice = typeof opt === 'object' ? (parseFloat(opt.price) || 0) : 0;
-
-                    const btn = document.createElement('button');
-                    btn.innerText = optName;
-                    btn.className = `px-3 py-1.5 border rounded-lg text-xs font-medium transition-all ${idx === 0 ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-gray-500 border-gray-200'}`;
-                    
-                    if(idx === 0) {
-                        selectedVars[vGroup.name] = optName;
-                        currentVarPrices[vGroup.name] = optPrice;
-                    }
-
-                  btn.onclick = () => {
-    btnWrapper.querySelectorAll('button').forEach(b => {
-        b.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-white text-gray-500 border-gray-200";
-    });
-    btn.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-rose-600 text-white border-rose-600";
-    
-    selectedVars[vGroup.name] = optName;
-
-    // මෙතන තමයි වැදගත්ම වෙනස - keys දෙකම object එකක් ලෙස තියාගන්නවා
-    currentVarPrices[vGroup.name] = {
-        wholesale: parseFloat(opt.resellPrice) || 0,
-        market: parseFloat(opt.marketPrice) || 0
-    };
-    
-    updateDynamicPrices();
-};
-                    btnWrapper.appendChild(btn);
-                });
-                groupDiv.appendChild(btnWrapper);
-                varContainer.appendChild(groupDiv);
+                const card = `
+                <div class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden border border-rose-50 flex flex-col h-full group relative">
+                    <div class="absolute top-2 right-2 z-10 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-sm font-bold">${weight} KG</div>
+                    <div class="relative aspect-square bg-gray-50 overflow-hidden">
+                         <img src="${productImg}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="p-3 flex flex-col flex-grow">
+                        <h3 class="font-bold text-gray-800 text-[11px] mb-2 line-clamp-2 h-8 leading-snug">${p.name}</h3>
+                        <div class="mt-auto space-y-1">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-[8px] text-gray-400 uppercase font-bold">Wholesale (Cost)</p>
+                                    <p class="text-sm font-black text-rose-600">Rs. ${wholesalePrice.toLocaleString()}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[8px] text-green-500 uppercase font-bold">Market (Sell)</p>
+                                    <p class="text-sm font-black text-green-600">Rs. ${marketPrice.toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <button onclick="openModal('${pid}')" class="w-full mt-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[10px] font-bold py-2 rounded-lg transition-all border border-rose-100">
+                                SELL NOW <i class="fa fa-arrow-right text-[8px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+                container.innerHTML += card;
             });
         }
-        updateDynamicPrices(); 
-        document.getElementById('productModal').classList.remove('hidden');
-    };
+    } catch (e) { 
+        console.error(e); 
+    } finally {
+        isProductsLoading = false;
+        document.getElementById('loadMoreSpinner').classList.add('hidden');
+    }
+}
 
-    // --- 3. DYNAMIC PRICE UPDATER ---
- function updateDynamicPrices() {
+// --- 2. MODAL LOGIC (Variation & Image Handling Fix) ---
+window.openModal = (id) => {
+    const product = productsCache[id];
+    if (!product) return;
+
+    currentModalProduct = { ...product, id };
+    selectedVars = {};
+    currentVarPrices = {};
+
+    document.getElementById('modalTitle').innerText = product.name;
+    
+    // පින්තූරය Gallery එකෙන් හෝ URL එකෙන් තෝරාගැනීම
+    const modalImgSrc = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || 'https://via.placeholder.com/300');
+    document.getElementById('modalImg').src = modalImgSrc;
+    
+    document.getElementById('modalDesc').innerText = product.description || '';
+    document.getElementById('modalWeightBadge').innerText = `${product.weight || 0} KG`;
+    document.getElementById('modalDeliveryCost').innerText = (product.deliveryPrice || 350).toLocaleString();
+
+    const varContainer = document.getElementById('modalVariationsContainer');
+    if (varContainer) {
+        varContainer.innerHTML = '';
+        const variations = product.variations ? (Array.isArray(product.variations) ? product.variations : Object.values(product.variations)) : [];
+
+        variations.forEach(vGroup => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = "mb-4";
+            groupDiv.innerHTML = `<p class="text-[10px] font-bold text-gray-400 uppercase mb-2">${vGroup.name}</p>`;
+            
+            const btnWrapper = document.createElement('div');
+            btnWrapper.className = "flex flex-wrap gap-2";
+
+            const options = Array.isArray(vGroup.options) ? vGroup.options : Object.values(vGroup.options);
+            options.forEach((opt, idx) => {
+                const optName = typeof opt === 'object' ? (opt.name || opt.label) : opt;
+
+                const btn = document.createElement('button');
+                btn.innerText = optName;
+                btn.className = `px-3 py-1.5 border rounded-lg text-xs font-medium transition-all ${idx === 0 ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-gray-500 border-gray-200'}`;
+                
+                if(idx === 0) {
+                    selectedVars[vGroup.name] = optName;
+                    currentVarPrices[vGroup.name] = {
+                        wholesale: parseFloat(opt.resellPrice) || 0,
+                        market: parseFloat(opt.marketPrice) || 0
+                    };
+                }
+
+                btn.onclick = () => {
+                    btnWrapper.querySelectorAll('button').forEach(b => {
+                        b.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-white text-gray-500 border-gray-200";
+                    });
+                    btn.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-rose-600 text-white border-rose-600";
+                    
+                    selectedVars[vGroup.name] = optName;
+                    currentVarPrices[vGroup.name] = {
+                        wholesale: parseFloat(opt.resellPrice) || 0,
+                        market: parseFloat(opt.marketPrice) || 0
+                    };
+                    updateDynamicPrices();
+                };
+                btnWrapper.appendChild(btn);
+            });
+            varContainer.appendChild(groupDiv);
+        });
+    }
+    updateDynamicPrices(); 
+    document.getElementById('productModal').classList.remove('hidden');
+};
+
+// --- 3. DYNAMIC PRICE UPDATER ---
+function updateDynamicPrices() {
     // තෝරාගත් සියලු variations වල wholesale සහ market මිලවල් එකතු කිරීම
     const varWholesaleExtra = Object.values(currentVarPrices).reduce((a, b) => a + (b.wholesale || 0), 0);
     const varMarketExtra = Object.values(currentVarPrices).reduce((a, b) => a + (b.market || 0), 0);
@@ -582,20 +588,15 @@
     let baseWholesale = parseFloat(currentModalProduct.resellPrice) || 0;
     let baseMarket = parseFloat(currentModalProduct.price) || baseWholesale;
 
-    // Logic: Variation එකේ මිලක් ඇත්නම් එය භාවිතා කරයි, නැතිනම් base price එක ගනී
+    // Variation එකේ මිලක් ඇත්නම් එය භාවිතා කරයි, නැතිනම් base price එක ගනී
     const finalWholesale = varWholesaleExtra > 0 ? varWholesaleExtra : baseWholesale;
     const finalMarket = varMarketExtra > 0 ? varMarketExtra : baseMarket;
 
-    // UI එකට අගයන් ලබා දීම
     document.getElementById('modalBasePrice').innerText = finalWholesale.toLocaleString();
     document.getElementById('modalResellPrice').innerText = finalMarket.toLocaleString();
-    
-    // Selling Price field එක Market Price එකට default සෙට් කිරීම
     document.getElementById('modalSellingPrice').value = finalMarket;
     
-    // මේක තමයි Order එක දාද්දී cost එක විදිහට යන්නේ
     currentModalProduct.currentActivePrice = finalWholesale; 
-    
     calcModalProfit();
 }
 
@@ -750,16 +751,22 @@
                 resellerProfit += (d.profitPerUnit * d.quantity);
             });
 
-            const orderData = {
-                resellerId: currentUser.uid,
-                resellerEmail: currentUser.email,
-                customer: { name, phone, address },
-                items: currentCartData,
-                method,
-                financials: { wholesaleSubtotal, resellerProfit, delivery: finalDeliveryFee, grandTotal: finalGrandTotal },
-                status: 'Pending',
-                createdAt: serverTimestamp()
-            };
+          const orderData = {
+    resellerId: currentUser.uid,
+    resellerEmail: currentUser.email,
+    customer: { name, phone, address },
+    items: currentCartData,
+    method,
+   financials: { 
+    wholesaleSubtotal: wholesaleSubtotal, 
+    resellerProfit: resellerProfit,     
+    delivery: finalDeliveryFee, 
+    grandTotal: finalGrandTotal,         
+    platformFee: (wholesaleSubtotal * 0.05) 
+},
+    status: 'Pending',
+    createdAt: serverTimestamp()
+};
 
             await addDoc(collection(db, 'reseller_orders'), orderData);
             const batch = writeBatch(db);

@@ -923,7 +923,8 @@
                         const productId = doc.id;
                         let badgeHtml = product.saleTag ? `<div class="absolute top-4 left-4 z-10 rounded-full bg-mudalali-green px-3 py-1 text-xs font-bold text-white shadow-md">${product.saleTag}</div>` : `<div class="absolute top-4 left-4 z-10 rounded-full bg-pink-400 px-3 py-1 text-xs font-bold text-white shadow-md">NEW</div>`;
                         let priceHtml = formatPrice(product); 
-                        const imageUrl = product.imageUrl || 'https://placehold.co/400x400';
+                        const imageUrl = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || product.image || 'https://placehold.co/400x400');
+
                         const imageHtml = `<img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />`;
                         
                         const productEl = document.createElement('a');
@@ -1032,11 +1033,12 @@
                         const productId = doc.id;
                         let badgeHtml = product.saleTag ? `<div class="absolute top-4 left-4 z-10 rounded-full bg-mudalali-green px-3 py-1 text-xs font-bold text-white shadow-sm">${product.saleTag}</div>` : `<div class="absolute top-4 left-4 z-10 rounded-full bg-pink-400 px-3 py-1 text-xs font-bold text-white shadow-sm">NEW</div>`;
                         let priceHtml = formatPrice(product); 
-                        const imageUrl = product.imageUrl || 'https://placehold.co/400x400';
+                
+                        const imageUrl = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || product.image || 'https://placehold.co/400x400');
                         
                         const productEl = document.createElement('a'); 
                         productEl.href = `product.html?id=${productId}`;
-                       productEl.className = "product-card group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg w-full block cursor-pointer";
+                        productEl.className = "product-card group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg w-full block cursor-pointer";
                         
                         productEl.innerHTML = `
                             <div class="relative h-48 md:h-64 overflow-hidden bg-gray-50">

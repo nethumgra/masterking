@@ -352,77 +352,77 @@
                 document.getElementById('loadingSpinner').classList.add('hidden');
             }
         }
-
-        // --- RENDER (Updated with Total & Profit) ---
-        function renderOrders(docs) {
-            const container = document.getElementById('ordersContainer');
-            
-            docs.forEach(doc => {
-                const order = doc.data();
-                const oid = doc.id;
-                
-                if (currentFilters.search) {
-                    const str = (oid + order.customer.name).toLowerCase();
-                    if (!str.includes(currentFilters.search)) return;
-                }
-
-                const status = order.status || 'Pending';
-                const date = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
-                
-                let statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
-                let icon = 'fa-clock';
-                if (status === 'Shipped') { statusClass = 'bg-blue-100 text-blue-700 border-blue-200'; icon = 'fa-truck'; }
-                if (status === 'Delivered') { statusClass = 'bg-green-100 text-green-700 border-green-200'; icon = 'fa-check-circle'; }
-                if (status === 'Cancelled') { statusClass = 'bg-red-100 text-red-700 border-red-200'; icon = 'fa-times-circle'; }
-
-                const itemsSummary = order.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
-
-                let cancelButton = '';
-                if(status === 'Pending') {
-                    cancelButton = `<button onclick="initCancel('${oid}')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><i class="fa fa-ban"></i> Cancel</button>`;
-                }
-
-                const html = `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 ${status === 'Delivered' ? 'bg-green-500' : (status === 'Cancelled' ? 'bg-red-500' : 'bg-yellow-500')}"></div>
-                    
-                    <div class="flex flex-col md:flex-row justify-between gap-4">
-                        <div class="flex-1 pl-3">
-                            <div class="flex items-center gap-3 mb-2">
-                                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">#${oid.slice(0, 8)}</span>
-                                <span class="text-[10px] px-2 py-0.5 rounded border flex items-center gap-1 font-bold ${statusClass}">
-                                    <i class="fa ${icon}"></i> ${status}
-                                </span>
-                                <span class="text-xs text-gray-400 ml-auto md:ml-0">${date}</span>
-                            </div>
-                            <h3 class="font-bold text-gray-800 text-sm mb-1">${order.customer.name}</h3>
-                            <p class="text-xs text-gray-500 mb-2"><i class="fa fa-map-marker-alt text-rose-400 mr-1"></i> ${order.customer.address}</p>
-                            <p class="text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 inline-block">
-                                <span class="font-bold">Items:</span> ${itemsSummary}
-                            </p>
-                        </div>
-
-                        <div class="flex flex-col items-end justify-between gap-3 min-w-[150px] border-t md:border-t-0 border-gray-100 pt-3 md:pt-0">
-                            <div class="text-right">
-                                <p class="text-[10px] text-gray-400 font-bold uppercase">Cust. Pay</p>
-                                <p class="text-sm font-bold text-gray-800">LKR ${(order.financials?.total || 0).toLocaleString()}</p>
-                                
-                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">My Profit</p>
-                                <p class="text-lg font-black ${status==='Cancelled'?'text-gray-400 line-through':'text-green-600'}">+ LKR ${(order.financials?.profit || 0).toLocaleString()}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                ${cancelButton}
-                                <button onclick='viewSlip(${JSON.stringify(order).replace(/'/g, "&apos;")})' class="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
-                                    <i class="fa fa-file-invoice"></i> Slip
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            });
+function renderOrders(docs) {
+    const container = document.getElementById('ordersContainer');
+    
+    docs.forEach(doc => {
+        const order = doc.data();
+        const oid = doc.id;
+        
+        if (currentFilters.search) {
+            const str = (oid + order.customer.name).toLowerCase();
+            if (!str.includes(currentFilters.search)) return;
         }
 
+        const status = order.status || 'Pending';
+        const date = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+        
+        // ස්ටේටස් එක අනුව වර්ණ තීරණය කිරීම
+        let statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        let icon = 'fa-clock';
+        if (status === 'Shipped') { statusClass = 'bg-blue-100 text-blue-700 border-blue-200'; icon = 'fa-truck'; }
+        if (status === 'Delivered') { statusClass = 'bg-green-100 text-green-700 border-green-200'; icon = 'fa-check-circle'; }
+        if (status === 'Cancelled') { statusClass = 'bg-red-100 text-red-700 border-red-200'; icon = 'fa-times-circle'; }
+
+        const itemsSummary = order.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
+
+        // Keys නිවැරදි කිරීම: grandTotal සහ resellerProfit ලෙස වෙනස් කර ඇත
+        const customerPay = order.financials?.grandTotal || 0;
+        const myProfit = order.financials?.resellerProfit || 0;
+
+        let cancelButton = '';
+        if(status === 'Pending') {
+            cancelButton = `<button onclick="initCancel('${oid}')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><i class="fa fa-ban"></i> Cancel</button>`;
+        }
+
+        const html = `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all relative overflow-hidden group">
+            <div class="absolute left-0 top-0 bottom-0 w-1 ${status === 'Delivered' ? 'bg-green-500' : (status === 'Cancelled' ? 'bg-red-500' : 'bg-yellow-500')}"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between gap-4">
+                <div class="flex-1 pl-3">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">#${oid.slice(0, 8)}</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded border flex items-center gap-1 font-bold ${statusClass}">
+                            <i class="fa ${icon}"></i> ${status}
+                        </span>
+                        <span class="text-xs text-gray-400 ml-auto md:ml-0">${date}</span>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-sm mb-1">${order.customer.name}</h3>
+                    <p class="text-xs text-gray-500 mb-2"><i class="fa fa-map-marker-alt text-rose-400 mr-1"></i> ${order.customer.address}</p>
+                </div>
+
+                <div class="flex flex-col items-end justify-between gap-3 min-w-[150px] border-t md:border-t-0 border-gray-100 pt-3 md:pt-0 text-right">
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">Cust. Pay</p>
+                        <p class="text-sm font-bold text-gray-800">LKR ${customerPay.toLocaleString()}</p>
+                        
+                        <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">My Profit</p>
+                        <p class="text-lg font-black ${status==='Cancelled'?'text-gray-400 line-through':'text-green-600'}">+ LKR ${myProfit.toLocaleString()}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        ${cancelButton}
+                        <button onclick='viewSlip(${JSON.stringify(order).replace(/'/g, "&apos;")})' class="text-xs font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fa fa-file-invoice"></i> Slip
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+}
+        
         window.initCancel = (oid) => {
             orderToCancelId = oid;
             document.getElementById('cancelModal').classList.remove('hidden');
@@ -489,8 +489,7 @@
             }
         });
 
-        // --- INVOICE WITH WEIGHT ---
-        window.viewSlip = (order) => {
+     window.viewSlip = (order) => {
             const invItems = document.getElementById('invItems');
             const invTotal = document.getElementById('invTotal');
             const invDate = document.getElementById('invDate');
@@ -506,13 +505,12 @@
             });
 
             if(order.financials?.delivery > 0) {
-                // Show Weight if available
-                const weightText = order.financials.totalWeight ? `(${order.financials.totalWeight} KG)` : '';
-                invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-xs"><span>Delivery Fee ${weightText}</span><span>${order.financials.delivery}</span></div>`;
+                invItems.innerHTML += `<div class="flex justify-between pt-1 text-gray-500 text-xs"><span>Delivery Fee</span><span>${order.financials.delivery}</span></div>`;
             }
 
-            invTotal.innerText = order.financials.total.toLocaleString();
-            invDate.innerText = new Date(order.createdAt.seconds * 1000).toLocaleDateString();
+            // Updated from grandTotal to total
+            invTotal.innerText = (order.financials?.total || 0).toLocaleString();
+            invDate.innerText = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
             document.getElementById('invoiceModal').classList.remove('hidden');
         };
 
