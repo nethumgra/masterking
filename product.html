@@ -318,18 +318,19 @@ async function handleShare() {
             
             const options = Array.isArray(vGroup.options) ? vGroup.options : Object.values(vGroup.options);
 
-            options.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = `variation-btn ${i === 0 ? 'active' : ''}`;
-                
-                let optName, optPrice;
-                if (typeof opt === 'object' && opt !== null) {
-                    optName = opt.name || opt.label;
-                    optPrice = parseFloat(opt.price) || 0;
-                } else {
-                    optName = opt;
-                    optPrice = 0;
-                }
+          options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = `variation-btn ${i === 0 ? 'active' : ''}`;
+    
+    let optName, optPrice;
+    if (typeof opt === 'object' && opt !== null) {
+        optName = opt.name || opt.label;
+        // මෙතැනදී 'price' වෙනුවට 'marketPrice' භාවිතා කරන්න
+        optPrice = parseFloat(opt.marketPrice) || 0; 
+    } else {
+        optName = opt;
+        optPrice = 0;
+    }
 
                 btn.textContent = optName;
                 
@@ -459,17 +460,23 @@ function updatePriceDisplay(amount) {
             });
         }
 
-  async function addToCart(buyNow = false) {
+ // product.html ඇතුළේ addToCart function එක මෙහෙම වෙනස් කරන්න
+async function addToCart(buyNow = false) {
     if (!currentUser) {
         alert("Please login to continue!");
-        document.getElementById('account-drawer-modal')?.classList.remove('hidden');
         return;
     }
     
     const btn = buyNow ? document.getElementById('buy-now-btn') : document.getElementById('add-to-cart-btn');
     btn.disabled = true;
 
-    // Variation අනුව unique cart ID එකක් හදනවා
+    // --- මිල ගණනය කිරීම ---
+    let basePrice = parseFloat(productData.price) || 0;
+    let extraPrice = Object.values(selectedVariationPrices).reduce((a, b) => a + b, 0);
+    
+    // Variation එකේ මිලක් තිබේ නම් එය ගනී, නැත්නම් base price ගනී
+    let finalPriceToSave = extraPrice > 0 ? extraPrice : basePrice;
+
     const varSuffix = Object.values(selectedVars).join('').replace(/\s/g, '');
     const cartId = productId + varSuffix;
     
@@ -477,26 +484,23 @@ function updatePriceDisplay(amount) {
         const cartData = {
             productId: productId,
             name: productData.name,
-            price: parseFloat(productData.price),
+            price: finalPriceToSave, // <--- මෙතනට දැන් නිවැරදි මිල ලැබෙනවා
             imageUrl: productData.images?.[0] || productData.imageUrl,
             quantity: increment(quantity), 
             variations: selectedVars,
+            sellerUid: productData.sellerUid || '', // Order එක බෙදා වෙන් කරගන්න මේක වැදගත්
             addedAt: serverTimestamp()
         };
 
-        // Data එක Database එකට යනකම් හරියටම නවතිනවා (await)
-// product.html ඇතුළේ
-await setDoc(doc(db, 'users', currentUser.uid, 'cart', cartId), cartData, { merge: true });
-if (buyNow) {
-    setTimeout(() => {
-        window.location.href = 'checkout.html';
-    }, 1000); // 1 second delay
-} else {
+        await setDoc(doc(db, 'users', currentUser.uid, 'cart', cartId), cartData, { merge: true });
+        
+        if (buyNow) {
+            window.location.href = 'checkout.html';
+        } else {
             document.getElementById('cart-drawer').classList.add('open');
         }
     } catch (e) {
         console.error("Cart Error:", e);
-        alert("Failed to add to cart.");
     } finally {
         btn.disabled = false;
     }

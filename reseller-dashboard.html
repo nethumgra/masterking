@@ -508,21 +508,18 @@ async function loadProducts(reset = false) {
     }
 }
 
-// --- 2. MODAL LOGIC (Variation & Image Handling Fix) ---
+// --- 1. ප්ලග්-ඇන්ඩ්-ප්ලේ විදිහට වැඩ කරන OPEN MODAL එක ---
 window.openModal = (id) => {
     const product = productsCache[id];
     if (!product) return;
 
     currentModalProduct = { ...product, id };
-    selectedVars = {};
-    currentVarPrices = {};
+    selectedVars = {}; // තෝරාගත් නම (e.g. Size: M)
+    currentVarPrices = {}; // තෝරාගත් මිල (e.g. Size: { wholesale: 500, market: 700 })
 
     document.getElementById('modalTitle').innerText = product.name;
-    
-    // පින්තූරය Gallery එකෙන් හෝ URL එකෙන් තෝරාගැනීම
     const modalImgSrc = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || 'https://via.placeholder.com/300');
     document.getElementById('modalImg').src = modalImgSrc;
-    
     document.getElementById('modalDesc').innerText = product.description || '';
     document.getElementById('modalWeightBadge').innerText = `${product.weight || 0} KG`;
     document.getElementById('modalDeliveryCost').innerText = (product.deliveryPrice || 350).toLocaleString();
@@ -530,9 +527,11 @@ window.openModal = (id) => {
     const varContainer = document.getElementById('modalVariationsContainer');
     if (varContainer) {
         varContainer.innerHTML = '';
-        const variations = product.variations ? (Array.isArray(product.variations) ? product.variations : Object.values(product.variations)) : [];
+        
+        // Admin එකේ save වෙන Array එක හරියටම ගමු
+        const variations = Array.isArray(product.variations) ? product.variations : [];
 
-        variations.forEach(vGroup => {
+        variations.forEach((vGroup, gIdx) => {
             const groupDiv = document.createElement('div');
             groupDiv.className = "mb-4";
             groupDiv.innerHTML = `<p class="text-[10px] font-bold text-gray-400 uppercase mb-2">${vGroup.name}</p>`;
@@ -540,15 +539,21 @@ window.openModal = (id) => {
             const btnWrapper = document.createElement('div');
             btnWrapper.className = "flex flex-wrap gap-2";
 
-            const options = Array.isArray(vGroup.options) ? vGroup.options : Object.values(vGroup.options);
-            options.forEach((opt, idx) => {
-                const optName = typeof opt === 'object' ? (opt.name || opt.label) : opt;
-
+            const options = Array.isArray(vGroup.options) ? vGroup.options : [];
+            
+            options.forEach((opt, oIdx) => {
+                const optName = opt.name || opt.label || opt; 
                 const btn = document.createElement('button');
                 btn.innerText = optName;
-                btn.className = `px-3 py-1.5 border rounded-lg text-xs font-medium transition-all ${idx === 0 ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-gray-500 border-gray-200'}`;
                 
-                if(idx === 0) {
+                // Styles (තෝරාගත් විට සහ නැති විට)
+                const activeCls = "px-3 py-1.5 border border-rose-600 rounded-lg text-xs font-medium bg-rose-600 text-white shadow-sm transition-all";
+                const inactiveCls = "px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium bg-white text-gray-500 hover:border-rose-300 transition-all";
+                
+                btn.className = oIdx === 0 ? activeCls : inactiveCls;
+                
+                // මුලින්ම පේන එක default තෝරාගන්නවා
+                if(oIdx === 0) {
                     selectedVars[vGroup.name] = optName;
                     currentVarPrices[vGroup.name] = {
                         wholesale: parseFloat(opt.resellPrice) || 0,
@@ -557,20 +562,23 @@ window.openModal = (id) => {
                 }
 
                 btn.onclick = () => {
-                    btnWrapper.querySelectorAll('button').forEach(b => {
-                        b.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-white text-gray-500 border-gray-200";
-                    });
-                    btn.className = "px-3 py-1.5 border rounded-lg text-xs font-medium bg-rose-600 text-white border-rose-600";
+                    // බටන් එකේ පෙනුම වෙනස් කිරීම
+                    btnWrapper.querySelectorAll('button').forEach(b => b.className = inactiveCls);
+                    btn.className = activeCls;
                     
+                    // තෝරාගත් අගයන් update කිරීම
                     selectedVars[vGroup.name] = optName;
                     currentVarPrices[vGroup.name] = {
                         wholesale: parseFloat(opt.resellPrice) || 0,
                         market: parseFloat(opt.marketPrice) || 0
                     };
-                    updateDynamicPrices();
+                    updateDynamicPrices(); 
                 };
                 btnWrapper.appendChild(btn);
             });
+            
+            // මේ පේළිය අත්‍යවශ්‍යයි! Buttons ටික Container එකට එකතු කරනවා.
+            groupDiv.appendChild(btnWrapper); 
             varContainer.appendChild(groupDiv);
         });
     }
@@ -578,27 +586,37 @@ window.openModal = (id) => {
     document.getElementById('productModal').classList.remove('hidden');
 };
 
-// --- 3. DYNAMIC PRICE UPDATER ---
-function updateDynamicPrices() {
-    // තෝරාගත් සියලු variations වල wholesale සහ market මිලවල් එකතු කිරීම
-    const varWholesaleExtra = Object.values(currentVarPrices).reduce((a, b) => a + (b.wholesale || 0), 0);
-    const varMarketExtra = Object.values(currentVarPrices).reduce((a, b) => a + (b.market || 0), 0);
-    
-    // භාණ්ඩයේ මූලික මිල ගණන් (Base prices)
-    let baseWholesale = parseFloat(currentModalProduct.resellPrice) || 0;
-    let baseMarket = parseFloat(currentModalProduct.price) || baseWholesale;
+// --- 2. මිළ ගණන් හරියටම ගණනය කරන FUNCTION එක ---
+window.updateDynamicPrices = () => {
+    let varWholesale = 0;
+    let varMarket = 0;
+    let hasPricedVar = false;
 
-    // Variation එකේ මිලක් ඇත්නම් එය භාවිතා කරයි, නැතිනම් base price එක ගනී
-    const finalWholesale = varWholesaleExtra > 0 ? varWholesaleExtra : baseWholesale;
-    const finalMarket = varMarketExtra > 0 ? varMarketExtra : baseMarket;
+    // තෝරාගත් Variation වල මිලවල් එකතු කිරීම
+    Object.values(currentVarPrices).forEach(p => {
+        if(p.wholesale > 0) {
+            varWholesale += p.wholesale;
+            varMarket += p.market;
+            hasPricedVar = true;
+        }
+    });
+
+    // Base prices (Variation එකක් නැතිනම් පාවිච්චි කිරීමට)
+    const baseWholesale = parseFloat(currentModalProduct.resellPrice) || 0;
+    const baseMarket = parseFloat(currentModalProduct.price) || baseWholesale;
+
+    // Variation වල මිලක් තිබේනම් එය පෙන්වයි, නැතිනම් Base Price පෙන්වයි
+    const finalWholesale = hasPricedVar ? varWholesale : baseWholesale;
+    const finalMarket = hasPricedVar ? varMarket : baseMarket;
 
     document.getElementById('modalBasePrice').innerText = finalWholesale.toLocaleString();
     document.getElementById('modalResellPrice').innerText = finalMarket.toLocaleString();
     document.getElementById('modalSellingPrice').value = finalMarket;
     
+    // Profit Calculator එකට අවශ්‍ය wholesale අගය
     currentModalProduct.currentActivePrice = finalWholesale; 
-    calcModalProfit();
-}
+    window.calcModalProfit();
+};
 
     window.calcModalProfit = () => {
         const selling = parseFloat(document.getElementById('modalSellingPrice').value) || 0;
@@ -614,43 +632,68 @@ function updateDynamicPrices() {
         display.classList.toggle('text-green-600', totalProfit >= 0);
     };
 
-    // --- 4. ADD TO CART ---
-    window.addToCartReal = async () => {
-        if (!currentUser) return;
-        const sellingPrice = parseFloat(document.getElementById('modalSellingPrice').value);
-        const qty = parseInt(document.getElementById('modalQty').value);
-        const wholesale = currentModalProduct.currentActivePrice || 0;
+   window.addToCartReal = async () => {
+    if (!currentUser) {
+        alert("Please login first!");
+        return;
+    }
 
-        if (sellingPrice < wholesale && !confirm("Selling below cost? You will lose money.")) return;
+    const sellingPrice = parseFloat(document.getElementById('modalSellingPrice').value);
+    const qty = parseInt(document.getElementById('modalQty').value);
+    
+    // වැදගත්: Modal එකේදී අපි calculate කරගත් wholesale price එක මෙතනින් ගමු
+    const wholesale = currentModalProduct.currentActivePrice || 0;
 
-        const btn = document.getElementById('addToCartBtn');
-        btn.disabled = true;
+    // විකුණන මිල අඩුවෙන් දාලා නම් පොඩි warning එකක්
+    if (sellingPrice < wholesale) {
+        if (!confirm("Your selling price is below cost! You will lose money. Continue?")) return;
+    }
 
-        try {
-            const varSuffix = Object.values(selectedVars).join('-').replace(/\s+/g, '');
-            const cartId = currentModalProduct.id + (varSuffix ? '-' + varSuffix : '');
-            
-            const cartRef = doc(db, usersPath, currentUser.uid, 'cart', cartId);
-            
-            const data = {
-                productId: currentModalProduct.id,
-                name: currentModalProduct.name,
-                wholesalePrice: wholesale,
-                sellingPrice: sellingPrice,
-                profitPerUnit: sellingPrice - wholesale,
-                imageUrl: currentModalProduct.imageUrl,
-                weight: currentModalProduct.weight || 0,
-                variations: selectedVars,
-                quantity: qty,
-                addedAt: serverTimestamp()
-            };
-            
-            await setDoc(cartRef, data, { merge: true });
-            closeModal();
-            toggleCart();
-        } catch (e) { alert("Failed to add to cart"); }
-        finally { btn.disabled = false; }
-    };
+    const btn = document.getElementById('addToCartBtn');
+    btn.disabled = true;
+    btn.innerHTML = 'Adding... <i class="fa fa-spinner fa-spin"></i>';
+
+    try {
+        // Variation එක අනුව Cart එකට Unique ID එකක් හදාගන්න (e.g. pid-Red-M)
+        const varSuffix = Object.values(selectedVars).join('-').replace(/\s+/g, '');
+        const cartId = currentModalProduct.id + (varSuffix ? '-' + varSuffix : '');
+        
+        // Firestore Path: users/{uid}/cart/{cartId}
+        const cartRef = doc(db, usersPath, currentUser.uid, 'cart', cartId);
+        
+        // පළවෙනි image එක පාවිච්චි කරමු
+        const cartImg = (currentModalProduct.images && currentModalProduct.images.length > 0) 
+                        ? currentModalProduct.images[0] 
+                        : (currentModalProduct.imageUrl || 'https://via.placeholder.com/300');
+
+        const data = {
+            productId: currentModalProduct.id,
+            name: currentModalProduct.name,
+            wholesalePrice: wholesale,
+            sellingPrice: sellingPrice,
+            profitPerUnit: sellingPrice - wholesale,
+            imageUrl: cartImg,
+            weight: parseFloat(currentModalProduct.weight) || 0,
+            variations: selectedVars, // තෝරාගත් Size/Color ටික
+            quantity: qty,
+            addedAt: serverTimestamp()
+        };
+        
+        // Cart එකට save කිරීම
+        await setDoc(cartRef, data, { merge: true });
+        
+        // Modal එක වහලා Cart එක open කරමු
+        closeModal();
+        toggleCart();
+        
+    } catch (e) { 
+        console.error("Cart Add Error:", e);
+        alert("Failed to add to cart: " + e.message); 
+    } finally { 
+        btn.disabled = false; 
+        btn.innerHTML = 'ADD TO CART <i class="fa fa-cart-plus"></i>';
+    }
+};
 
     // --- 5. CART LISTENER ---
     function listenToCart(uid) {

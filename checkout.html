@@ -545,17 +545,27 @@ async function loadOrderSummary(userId) {
                 ? `<p class="text-[10px] text-mudalali-green font-bold uppercase">Selection: ${Object.values(item.variations).join(', ')}</p>` 
                 : '';
 
-            return `
-                <div class="flex justify-between items-center py-4 border-b border-pink-50 last:border-0">
-                    <div class="flex items-center gap-3">
-                        <img src="${item.imageUrl}" class="w-14 h-14 rounded-lg object-contain border p-1 bg-white">
-                        <div>
-                            <p class="font-bold text-sm text-gray-800 line-clamp-1">${item.name}</p>
-                            ${variationHtml}
-                        </div>
-                    </div>
-                    <span class="text-sm font-bold text-gray-700">Rs. ${itemTotalLKR.toLocaleString()}</span>
-                </div>`;
+           return `
+    <div class="flex justify-between items-center py-4 border-b border-pink-50 last:border-0 group">
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <img src="${item.imageUrl}" class="w-16 h-16 rounded-2xl object-contain border p-1 bg-white shadow-sm group-hover:scale-105 transition-transform">
+                <span class="absolute -top-2 -right-2 bg-mudalali-green text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white shadow-sm">
+                    x${quantity}
+                </span>
+            </div>
+            
+            <div class="min-w-0">
+                <p class="font-bold text-sm text-gray-800 truncate leading-tight">${item.name}</p>
+                ${variationHtml}
+                <p class="text-[10px] text-gray-400 mt-1">Rs. ${priceLKR.toLocaleString()} per unit</p>
+            </div>
+        </div>
+        
+        <div class="text-right">
+            <span class="text-sm font-black text-gray-900">Rs. ${itemTotalLKR.toLocaleString()}</span>
+        </div>
+    </div>`;
         });
 
         const htmlResults = await Promise.all(cartItemPromises);
