@@ -233,6 +233,7 @@
         let isLoading = false;
         let hasMore = true;
         let orderToCancelId = null;
+        let currentPotentialProfit = 0;
         
         
         let currentFilters = {
@@ -280,79 +281,95 @@
             } catch (e) { console.error(e); }
         }
 
-        window.applyFilters = async () => {
-            currentFilters.year = document.getElementById('filterYear').value;
-            currentFilters.month = document.getElementById('filterMonth').value;
-            currentFilters.status = document.getElementById('filterStatus').value;
-            currentFilters.search = document.getElementById('searchOrders').value.toLowerCase();
+    window.applyFilters = async () => {
+    currentFilters.year = document.getElementById('filterYear').value;
+    currentFilters.month = document.getElementById('filterMonth').value;
+    currentFilters.status = document.getElementById('filterStatus').value;
+    currentFilters.search = document.getElementById('searchOrders').value.toLowerCase();
 
-            document.getElementById('ordersContainer').innerHTML = '';
-            lastVisible = null;
-            hasMore = true;
-            document.getElementById('endOfResults').classList.add('hidden');
-            
-            await updateStats();
-            await loadOrders();
-        };
+    document.getElementById('ordersContainer').innerHTML = '';
+    lastVisible = null;
+    hasMore = true;
+    
+    // Profit එක reset කිරීම
+    currentPotentialProfit = 0;
+    document.getElementById('totalProfit').innerText = "0";
+    
+    document.getElementById('endOfResults').classList.add('hidden');
+    
+    await updateStats();
+    await loadOrders();
+};
 
-        async function loadOrders() {
-            if (isLoading || !hasMore) return;
-            isLoading = true;
-            document.getElementById('loadingSpinner').classList.remove('hidden');
+       async function loadOrders() {
+    if (isLoading || !hasMore) return;
+    isLoading = true;
+    document.getElementById('loadingSpinner').classList.remove('hidden');
 
-            try {
-                let constraints = [
-                    collection(db, 'reseller_orders'),
-                    where('resellerId', '==', currentUser.uid),
-                    orderBy('createdAt', 'desc')
-                ];
+    try {
+        let constraints = [
+            collection(db, 'reseller_orders'),
+            where('resellerId', '==', currentUser.uid),
+            orderBy('createdAt', 'desc')
+        ];
 
-                if (currentFilters.status !== 'all') {
-                    constraints.push(where('status', '==', currentFilters.status));
-                }
-
-                if (currentFilters.year !== 'all') {
-                    const year = parseInt(currentFilters.year);
-                    let start, end;
-                    if (currentFilters.month !== 'all') {
-                        const month = parseInt(currentFilters.month);
-                        start = new Date(year, month, 1);
-                        end = new Date(year, month + 1, 0, 23, 59, 59); 
-                    } else {
-                        start = new Date(year, 0, 1);
-                        end = new Date(year, 11, 31, 23, 59, 59);
-                    }
-                    constraints.push(where('createdAt', '>=', Timestamp.fromDate(start)));
-                    constraints.push(where('createdAt', '<=', Timestamp.fromDate(end)));
-                }
-
-                constraints.push(limit(20));
-                if (lastVisible) constraints.push(startAfter(lastVisible));
-
-                const q = query(...constraints);
-                const snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    hasMore = false;
-                    document.getElementById('endOfResults').classList.remove('hidden');
-                    if (!lastVisible) {
-                        document.getElementById('ordersContainer').innerHTML = `
-                            <div class="text-center py-12">
-                                <i class="fa fa-folder-open text-4xl text-gray-200 mb-3"></i>
-                                <p class="text-gray-400">No orders found for this period.</p>
-                            </div>`;
-                    }
-                } else {
-                    lastVisible = snapshot.docs[snapshot.docs.length - 1];
-                    renderOrders(snapshot.docs);
-                }
-
-            } catch (e) { console.error("Load error:", e); } 
-            finally {
-                isLoading = false;
-                document.getElementById('loadingSpinner').classList.add('hidden');
-            }
+        // Filters පරීක්ෂා කිරීම (කලින් තිබූ පරිදිම)
+        if (currentFilters.status !== 'all') {
+            constraints.push(where('status', '==', currentFilters.status));
         }
+        if (currentFilters.year !== 'all') {
+            const year = parseInt(currentFilters.year);
+            let start, end;
+            if (currentFilters.month !== 'all') {
+                const month = parseInt(currentFilters.month);
+                start = new Date(year, month, 1);
+                end = new Date(year, month + 1, 0, 23, 59, 59); 
+            } else {
+                start = new Date(year, 0, 1);
+                end = new Date(year, 11, 31, 23, 59, 59);
+            }
+            constraints.push(where('createdAt', '>=', Timestamp.fromDate(start)));
+            constraints.push(where('createdAt', '<=', Timestamp.fromDate(end)));
+        }
+
+        constraints.push(limit(20));
+        if (lastVisible) constraints.push(startAfter(lastVisible));
+
+        const q = query(...constraints);
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            hasMore = false;
+            document.getElementById('endOfResults').classList.remove('hidden');
+            if (!lastVisible) {
+                document.getElementById('ordersContainer').innerHTML = `<div class="text-center py-12"><p class="text-gray-400">No orders found.</p></div>`;
+            }
+        } else {
+            lastVisible = snapshot.docs[snapshot.docs.length - 1];
+            
+            // ලාභය ගණනය කිරීමේ කොටස
+            snapshot.docs.forEach(docSnap => {
+                const order = docSnap.data();
+                // Cancelled orders වල ලාභය එකතු කරන්නේ නැහැ
+                if (order.status !== 'Cancelled') {
+                    currentPotentialProfit += parseFloat(order.financials?.resellerProfit || 0);
+                }
+            });
+            
+            // UI එකට Profit එක පෙන්වීම
+            document.getElementById('totalProfit').innerText = currentPotentialProfit.toLocaleString();
+            
+            renderOrders(snapshot.docs);
+        }
+
+    } catch (e) { 
+        console.error("Load error:", e); 
+    } finally {
+        isLoading = false;
+        document.getElementById('loadingSpinner').classList.add('hidden');
+    }
+}
+
 function renderOrders(docs) {
     const container = document.getElementById('ordersContainer');
     
