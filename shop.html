@@ -651,22 +651,35 @@
             });
         }
 
-        function renderProductCard(product, productId, container) {
+       function renderProductCard(product, productId, container) {
+            // 🖼️ Image එක ගන්නා විදිහ නිවැරදි කිරීම (index.html එකේ වගේම)
+            const imageUrl = (product.images && product.images.length > 0) 
+                ? product.images[0] 
+                : (product.imageUrl || product.image || 'https://placehold.co/400x400');
+            
+            // Hover එකට දෙවැනි image එකක් ඇත්නම් එය ලබාගැනීම
+            const hoverImageUrl = (product.images && product.images.length > 1) 
+                ? product.images[1] 
+                : imageUrl;
+
             let badgeHtml = product.saleTag 
                 ? `<div class="absolute top-4 left-4 z-10 rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white shadow-md">${product.saleTag}</div>`
                 : `<div class="absolute top-4 left-4 z-10 rounded-full bg-mudalali-green px-3 py-1 text-xs font-bold text-white shadow-md">NEW</div>`;
             
             let priceHtml = formatPrice(product); 
-            const imageUrl = product.imageUrl || 'https://placehold.co/400x400';
             
             const productEl = document.createElement('div');
             productEl.className = "group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 ease-in-out hover:shadow-xl";
             
             productEl.innerHTML = `
                 <a href="product.html?id=${productId}" class="block product-link">
-                    <div class="relative h-48 md:h-64 overflow-hidden">
-                         <img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-opacity duration-500 ease-in-out opacity-100 group-hover:opacity-0" />
-                        <img src="${imageUrl}" alt="${product.name} hover" class="absolute h-full w-full object-cover transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100" />
+                    <div class="relative h-48 md:h-64 overflow-hidden bg-gray-50">
+                        <img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" />
+                        
+                        ${product.images && product.images.length > 1 ? `
+                        <img src="${hoverImageUrl}" alt="${product.name} hover" class="absolute h-full w-full object-cover transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100" />
+                        ` : ''}
+                        
                         ${badgeHtml}
                     </div>
                 </a>
@@ -691,7 +704,7 @@
                 name: product.name, 
                 price: product.price, 
                 priceUSDT: product.priceUSDT || null,
-                imageUrl: product.imageUrl 
+                imageUrl: imageUrl // Array එකේ පළමු රූපයම Cart එකට යැවීම
             };
             
             // Attach event listener
