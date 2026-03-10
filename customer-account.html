@@ -500,54 +500,13 @@
 
     <script type="module">
         // Firebase Imports (v11.6.1 from index.html)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged, 
-            signOut 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            getDocs, 
-            collection, 
-            onSnapshot, 
-            query, 
-            where, 
-            orderBy, 
-            limit, 
-            setDoc, 
-            addDoc, 
-            updateDoc, 
-            deleteDoc, 
-            increment, 
-            serverTimestamp, 
-            runTransaction, 
-            writeBatch // Added for address logic
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+                // ── Firebase shared config (no more duplicates!) ──
+        import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
+        import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Firebase Config (from index.html)
-       const firebaseConfig = {
-  apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-  authDomain: "masterking-fa629.firebaseapp.com",
-  projectId: "masterking-fa629",
-  storageBucket: "masterking-fa629.firebasestorage.app",
-  messagingSenderId: "680021576286",
-  appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-  measurementId: "G-9443L8L88Q"
-};
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); 
-        
-        // Paths (from index.html)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`; 
+        const publicDataPath = PUBLIC_PATH;
+        const usersPath = USERS_PATH;
 
         // Global State
         let currentUser = null;
@@ -666,7 +625,21 @@
                 if(accountContainer) accountContainer.classList.remove('hidden');
                 
                 await loadUserProfile(); // Load profile details
-                showView('dashboard');   // Show default view
+
+                // Auto-navigate to correct view based on ?view= URL param
+                const urlViewParam = new URLSearchParams(window.location.search).get('view');
+                if (urlViewParam === 'orders') {
+                    showView('orders');
+                    loadUserOrders(false);
+                } else if (urlViewParam === 'wishlist') {
+                    showView('wishlist');
+                    renderWishlist();
+                } else if (urlViewParam === 'addresses') {
+                    showView('addresses');
+                    loadUserAddresses();
+                } else {
+                    showView('dashboard'); // Default view
+                }
 
             } else {
                 // User is logged out, redirect to the login page
@@ -963,19 +936,27 @@
                 return; 
              }
              try {
-                 const q = query(collection(db, 'orders'), where("userId", "==", user.uid), orderBy("createdAt", "desc")); 
+                 // NOTE: orderBy+where combo needs Firestore composite index.
+                 // Sort client-side instead to avoid index errors.
+                 const q = query(collection(db, 'orders'), where("userId", "==", user.uid)); 
                  const snap = await getDocs(q);
                  if (snap.empty) { 
                     container.innerHTML = ` <div class="text-center p-8 border rounded-md bg-gray-50"> <h3 class="text-xl font-semibold text-slate-700 mb-4">No Orders Found</h3> <p class="text-slate-500">You haven't placed any orders yet.</p> </div>`; 
                     return; 
                  }
-                 container.innerHTML = snap.docs.map(doc => { 
+                 // Sort client-side: newest first
+                 const sortedDocs = snap.docs.sort((a, b) => {
+                     const aTime = a.data().createdAt?.seconds || 0;
+                     const bTime = b.data().createdAt?.seconds || 0;
+                     return bTime - aTime;
+                 });
+                 container.innerHTML = sortedDocs.map(doc => { 
                     const o = doc.data() || {}; const id = doc.id; 
                     const date = o.createdAt ? o.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
                     
                     const itemsHtml = (o.items || []).map(item => 
                         `<div class="flex items-center gap-3 py-2 border-b last:border-b-0 border-slate-200"> 
-                            <img src="${item.imageUrl || 'https://placehold.co/60'}" alt="${item.name || 'Item'}" class="w-12 h-12 object-contain rounded border p-1 bg-white"> 
+                            <img src="${(item.images && item.images[0]) || item.imageUrl || item.image || 'https://placehold.co/60'}" alt="${item.name || 'Item'}" class="w-12 h-12 object-contain rounded border p-1 bg-white"> 
                             <div> 
                                 <p class="text-sm font-medium text-gray-700">${item.name || 'Item'}</p> 
                                 <p class="text-xs text-gray-500">Qty: ${item.quantity || 1} | Price: Rs. ${parseFloat(item.price || 0).toFixed(2)}</p> 

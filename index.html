@@ -132,6 +132,16 @@
         .rotate-180 {
             transform: rotate(180deg);
         }
+    
+        @keyframes notif-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        #notif-panel { animation: fadeInDown 0.15s ease-out; }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="pb-20 md:pb-0"> 
@@ -151,7 +161,7 @@
 </form>
             </div>
 
-            <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-6 relative">
                 <div class="text-right">
                     <div class="text-xs font-semibold text-gray-400">Hotline</div>
                     <div id="header-hotline" class="text-lg font-bold text-mudalali-green-dark">...</div>
@@ -160,6 +170,28 @@
                     <i class="fa fa-user text-xl"></i>
                     <span class="text-xs">Account</span>
                 </a>
+                <!-- 🔔 HALO NOTIFICATION BELL -->
+                <button id="notif-bell-btn" class="relative flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
+                    <i class="fa fa-bell text-xl"></i>
+                    <span id="notif-count-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 hidden">0</span>
+                    <span class="text-xs">Alerts</span>
+                </button>
+                <!-- Notification Dropdown Panel -->
+                <div id="notif-panel" class="hidden absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[300] overflow-hidden" style="margin-top: 8px;">
+                    <div class="flex items-center justify-between px-4 py-3 border-b bg-pink-50">
+                        <h3 class="font-bold text-gray-800 text-sm">🔔 Notifications</h3>
+                        <button id="notif-mark-all-btn" class="text-xs text-mudalali-green font-semibold hover:underline">Mark all read</button>
+                    </div>
+                    <div id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                        <div class="px-4 py-8 text-center text-gray-400 text-sm">
+                            <i class="fa fa-bell-slash text-3xl mb-2 block opacity-30"></i>
+                            No notifications yet
+                        </div>
+                    </div>
+                    <div class="px-4 py-2 border-t text-center">
+                        <a href="account.html" class="text-xs text-mudalali-green font-semibold hover:underline">View all in Account →</a>
+                    </div>
+                </div>
                 <a href="wishlist.html" class="relative flex flex-col items-center text-gray-500 hover:text-mudalali-green transition-colors">
                     <i class="fa fa-heart text-xl"></i>
                     <span id="wishlist-count-badge" class="absolute -top-2 -right-2 bg-mudalali-green text-white text-xs rounded-full px-1.5 py-0.5">0</span>
@@ -192,17 +224,100 @@
         </div>
     </nav>
 
-    <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
-        <button id="mobile-menu-btn" class="text-2xl text-mudalali-green">
-            <i class="fa fa-bars"></i>
-        </button>
-      <a href="index.html" id="mobile-logo-link" class="flex items-center">
-    <img src="logo.png" alt="Logo" class="h-8 w-auto object-contain">
-</a>
-        <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
-            <i class="fa fa-user"></i>
-        </a>
+    <!-- ===== MOBILE HEADER ===== -->
+    <header class="bg-white shadow-sm sticky top-0 z-[50] md:hidden overflow-hidden">
+
+        <!-- Normal row: Menu | Logo | Search Icon | Account -->
+        <div id="mobile-header-normal" class="flex items-center justify-between px-4 py-3 transition-all duration-300">
+            <button id="mobile-menu-btn" class="text-2xl text-mudalali-green w-8 flex-shrink-0">
+                <i class="fa fa-bars"></i>
+            </button>
+            <a href="index.html" id="mobile-logo-link" class="flex items-center flex-1 justify-center">
+                <img src="logo.png" alt="Logo" class="h-8 w-auto object-contain">
+            </a>
+            <!-- 🔍 Search icon - click to expand -->
+            <button id="mobile-search-toggle" class="text-2xl text-gray-600 w-8 flex justify-center items-center hover:text-mudalali-green transition-colors">
+                <i class="fa fa-search"></i>
+            </button>
+            <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right flex-shrink-0">
+                <i class="fa fa-user"></i>
+            </a>
+        </div>
+
+        <!-- Expanded search row (hidden by default, slides in) -->
+        <div id="mobile-header-search"
+             class="flex items-center gap-2 px-3 py-2 bg-white border-t border-pink-50
+                    transition-all duration-300 ease-in-out
+                    max-h-0 overflow-hidden opacity-0 pointer-events-none">
+            <!-- Back / close button -->
+            <button id="mobile-search-close" class="text-gray-400 hover:text-mudalali-green text-xl flex-shrink-0 w-8">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+            <form id="search-form-mobile" class="flex flex-1 relative">
+                <input type="text" id="search-input-mobile"
+                    placeholder="Search for anything..."
+                    autocomplete="off"
+                    class="w-full pl-4 pr-2 py-2.5 text-sm border border-pink-200 rounded-l-full focus:outline-none focus:ring-2 focus:ring-mudalali-green bg-pink-50/20">
+                <button type="submit" class="bg-mudalali-green text-white px-5 py-2.5 rounded-r-full hover:bg-mudalali-green-dark transition-colors">
+                    <i class="fa fa-search text-sm"></i>
+                </button>
+            </form>
+        </div>
+
     </header>
+
+    <script>
+    // Mobile search expand/collapse (inline - runs before module script)
+    (function() {
+        function initMobileSearch() {
+            const toggle  = document.getElementById('mobile-search-toggle');
+            const close   = document.getElementById('mobile-search-close');
+            const searchRow = document.getElementById('mobile-header-search');
+            const normalRow = document.getElementById('mobile-header-normal');
+            const input   = document.getElementById('search-input-mobile');
+            if (!toggle || !searchRow) return;
+
+            function openSearch() {
+                // Slide down search row
+                searchRow.style.maxHeight = '70px';
+                searchRow.style.opacity   = '1';
+                searchRow.style.pointerEvents = 'auto';
+                // Fade out normal icons (keep menu + logo visible, hide search+account for clean look)
+                normalRow.style.opacity = '0';
+                normalRow.style.maxHeight = '0';
+                normalRow.style.overflow = 'hidden';
+                normalRow.style.paddingTop = '0';
+                normalRow.style.paddingBottom = '0';
+                setTimeout(() => input && input.focus(), 200);
+            }
+
+            function closeSearch() {
+                searchRow.style.maxHeight = '0';
+                searchRow.style.opacity   = '0';
+                searchRow.style.pointerEvents = 'none';
+                normalRow.style.opacity = '1';
+                normalRow.style.maxHeight = '80px';
+                normalRow.style.overflow = 'visible';
+                normalRow.style.paddingTop = '';
+                normalRow.style.paddingBottom = '';
+            }
+
+            toggle.addEventListener('click', openSearch);
+            close.addEventListener('click',  closeSearch);
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeSearch();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMobileSearch);
+        } else {
+            initMobileSearch();
+        }
+    })();
+    </script>
 
     <main id="homepage-container" class="container mx-auto px-4 py-8">
         <div class="w-full text-center py-10">
@@ -347,26 +462,13 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // ── Firebase: shared config (single source of truth) ──
+        import { db, auth, PUBLIC_PATH, USERS_PATH, sanitize } from "./firebase-config.js";
+        import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-            authDomain: "masterking-fa629.firebaseapp.com",
-            projectId: "masterking-fa629",
-            storageBucket: "masterking-fa629.firebasestorage.app",
-            messagingSenderId: "680021576286",
-            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-            measurementId: "G-9443L8L88Q"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); 
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`; 
+        const publicDataPath = PUBLIC_PATH;
+        const usersPath = USERS_PATH; 
 
         let currentUser = null;
         let currentUserData = null;
@@ -400,17 +502,28 @@
             startScroll(); 
         }
 
+        // Stub for loadFooter - footer is handled by footer.js separately
+        function loadFooter() {
+            // Footer content is static HTML in this page - nothing to load
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             if (pageLoader) pageLoader.style.width = '30%';
             localStorage.setItem('selectedCurrency', 'LKR');
+
+            // UI setup first (drawers/tabs must work immediately on load)
+            setupMobileDrawers();
+            setupMenuDrawerTabs();
+            updateWishlistCountBadge();
+
+            // Data loading (async - errors here won't break UI)
             loadSiteConfig();
             buildHomepage();
             loadDesktopNavCategories();
-            loadFooter();
-            setupMobileDrawers(); 
-            updateWishlistCountBadge();
             setupCommentDrawer();
-            setupMenuDrawerTabs(); // New: Setup tabs for the new menu drawer
+
+            // Footer load - wrapped safely (footer.js uses different module path)
+            try { loadFooter(); } catch(e) { /* footer.js not available in this setup */ }
         });
 
         function getSelectedCurrency() { return localStorage.getItem('selectedCurrency') || 'LKR'; }
@@ -765,18 +878,23 @@
                 } else {
                     layout = defaultLayout;
                 }
-                for (const item of layout) {
-                    if (!item.visible) continue; 
-                    switch (item.type) {
-                        case 'hero': await buildHeroSlider(mainContainer, item); break;
-                        case 'popularCategories': await buildPopularCategories(mainContainer, item); break;
-                        case 'smallBanners': await buildSmallBanners(mainContainer, item); break;
-                        case 'newArrivals': await buildNewArrivals(mainContainer, item); break;
-                        case 'shopByCategory': await buildShopByCategory(mainContainer, item); break;
-                        case 'productPromoArea': await buildProductPromoArea(mainContainer, item); break;
-                        case 'sellerStories': await buildSellerStories(mainContainer, item); break;
-                    }
-                }
+                // PERF FIX: Build all sections in parallel instead of sequentially.
+                // Each section renders a skeleton placeholder first, then loads its data.
+                const buildPromises = layout
+                    .filter(item => item.visible)
+                    .map(item => {
+                        switch (item.type) {
+                            case 'hero':             return buildHeroSlider(mainContainer, item);
+                            case 'popularCategories':return buildPopularCategories(mainContainer, item);
+                            case 'smallBanners':     return buildSmallBanners(mainContainer, item);
+                            case 'newArrivals':      return buildNewArrivals(mainContainer, item);
+                            case 'shopByCategory':   return buildShopByCategory(mainContainer, item);
+                            case 'productPromoArea': return buildProductPromoArea(mainContainer, item);
+                            case 'sellerStories':    return buildSellerStories(mainContainer, item);
+                            default: return Promise.resolve();
+                        }
+                    });
+                await Promise.all(buildPromises);
             } catch (error) {
                 console.error("Error building homepage layout:", error);
                 mainContainer.innerHTML = '<p class="text-center text-red-500">Error loading homepage. Please try again later.</p>';
@@ -799,11 +917,11 @@
             const nextBtn = section.querySelector('#slider-next');
             const prevBtn = section.querySelector('#slider-prev');
             const bannerNames = ['heroBanner1', 'heroBanner2', 'heroBanner3'];
-            const banners = [];
-            for (const name of bannerNames) {
-                const docRef = doc(db, publicDataPath, 'siteContent', name);
-                try { const docSnap = await getDoc(docRef); if (docSnap.exists()) { banners.push(docSnap.data()); } } catch (e) { console.error(`Error loading ${name}: `, e); }
-            }
+            // PERF FIX: Fetch all 3 banners in parallel
+            const bannerSnaps = await Promise.all(
+                bannerNames.map(name => getDoc(doc(db, publicDataPath, 'siteContent', name)).catch(() => null))
+            );
+            const banners = bannerSnaps.filter(s => s && s.exists()).map(s => s.data());
             sliderContainer.innerHTML = ''; dotsContainer.innerHTML = '';
             if (banners.length === 0) {
                 sliderContainer.innerHTML = '<div class="w-full h-full bg-pink-100 flex items-center justify-center"><p class="text-gray-500">No banners found.</p></div>';
@@ -814,7 +932,7 @@
                 const pcImg = banner.imageUrl_pc || banner.imageUrl || defaultImg;
                 const tabImg = banner.imageUrl_tab || pcImg;
                 const mobImg = banner.imageUrl_mob || pcImg;
-                const pictureHtml = `<picture><source media="(min-width: 1024px)" srcset="${pcImg}"><source media="(min-width: 768px)" srcset="${tabImg}"><img src="${mobImg}" alt="Hero Banner ${index + 1}" class="w-full h-full object-cover object-center"></picture>`;
+                const pictureHtml = `<picture><source media="(min-width: 1024px)" srcset="${pcImg}"><source media="(min-width: 768px)" srcset="${tabImg}"><img src="${mobImg}" alt="Hero Banner ${index + 1}" class="w-full h-full object-cover object-center" fetchpriority="high"></picture>`;
                 sliderContainer.innerHTML += `<a href="${banner.linkUrl || '#'}" class="hero-slide ${index === 0 ? 'active' : ''}">${pictureHtml}</a>`;
                 dotsContainer.innerHTML += `<button class="slider-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></button>`;
             });
@@ -840,13 +958,16 @@
             section.id = 'dynamic-ad-banners';
             section.className = 'flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:gap-6 mb-8 scroll-snap-type-x-mandatory no-scrollbar';
             const bannerIds = ['smallBanner1', 'smallBanner2', 'smallBanner3'];
-            for (let i = 0; i < bannerIds.length; i++) {
+            // PERF FIX: Fetch all small banners in parallel
+            const smallSnaps = await Promise.all(
+                bannerIds.map((id, i) => getDoc(doc(db, publicDataPath, 'siteContent', id)).catch(() => null))
+            );
+            smallSnaps.forEach((docSnap, i) => {
                 const id = bannerIds[i];
-                const docRef = doc(db, publicDataPath, 'siteContent', id);
                 let link = '#'; let img = `https://placehold.co/400x200/fce7f3/db2777?text=Ad+Banner+${i+1}`;
-                try { const docSnap = await getDoc(docRef); if (docSnap.exists()) { link = docSnap.data().linkUrl || '#'; img = docSnap.data().imageUrl || img; } } catch (e) { console.error(`Error loading ${id}: `, e); }
-                section.innerHTML += `<a href="${link}" class="block rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow w-[80vw] flex-shrink-0 md:w-auto scroll-snap-align-start border border-pink-100"><img src="${img}" alt="Banner ${i+1}" class="w-full object-cover"></a>`;
-            }
+                if (docSnap && docSnap.exists()) { link = docSnap.data().linkUrl || '#'; img = docSnap.data().imageUrl || img; }
+                section.innerHTML += `<a href="${link}" class="block rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow w-[80vw] flex-shrink-0 md:w-auto scroll-snap-align-start border border-pink-100"><img src="${img}" alt="Banner ${i+1}" class="w-full object-cover" loading="lazy"></a>`;
+            });
             mainContainer.appendChild(section);
             if (window.innerWidth < 768) { setupAutoScroll(section); }
         }
@@ -875,7 +996,7 @@
                     grid.innerHTML += `
                     <a href="shop.html?category=${encodeURIComponent(category.name)}" class="group w-[22vw] md:w-[14vw] lg:w-[10vw] flex-shrink-0">
                         <div class="rounded-full p-4 shadow-md group-hover:shadow-lg transform group-hover:scale-105 transition-all" style="background-color: ${bgColor};">
-                            <img src="${category.imageUrl}" alt="${category.name}" class="w-full h-auto object-contain aspect-square">
+                            <img src="${category.imageUrl}" alt="${category.name}" class="w-full h-auto object-contain aspect-square" loading="lazy">
                         </div>
                         <span class="mt-2 block font-semibold text-sm text-gray-700 group-hover:text-mudalali-green">${category.name}</span>
                     </a>`;
@@ -895,8 +1016,16 @@
                 section.appendChild(titleEl);
             }
             const gridEl = document.createElement('div');
-            gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4'; 
-            gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading products...</p>';
+            gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4';
+            // PERF FIX: Skeleton shimmer while products load
+            gridEl.innerHTML = Array(6).fill(0).map(() => `
+                <div class="rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+                    <div class="h-40 md:h-52 bg-pink-100"></div>
+                    <div class="p-3 space-y-2">
+                        <div class="h-3 bg-pink-100 rounded w-3/4 mx-auto"></div>
+                        <div class="h-4 bg-pink-100 rounded w-1/2 mx-auto"></div>
+                    </div>
+                </div>`).join('');
             section.appendChild(gridEl);
             
             const mobileViewAllBtn = document.createElement('a');
@@ -925,7 +1054,7 @@
                         let priceHtml = formatPrice(product); 
                         const imageUrl = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || product.image || 'https://placehold.co/400x400');
 
-                        const imageHtml = `<img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />`;
+                        const imageHtml = `<img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />`;
                         
                         const productEl = document.createElement('a');
                         productEl.href = `product.html?id=${productId}`;
@@ -976,7 +1105,7 @@
                     const banner = doc.data();
                     const link = banner.linkUrl || '#';
                     const img = banner.imageUrl || 'https://placehold.co/400x200/fbcfe8/be185d?text=Collection';
-                    gridEl.innerHTML += `<a href="${link}" class="block rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all w-[80vw] flex-shrink-0 md:w-auto scroll-snap-align-start group"><div class="relative overflow-hidden"><img src="${img}" alt="Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"><div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all"></div></div></a>`;
+                    gridEl.innerHTML += `<a href="${link}" class="block rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all w-[80vw] flex-shrink-0 md:w-auto scroll-snap-align-start group"><div class="relative overflow-hidden"><img src="${img}" alt="Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"><div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all"></div></div></a>`;
                 });
                 setupAutoScroll(gridEl);
             }, (error) => { console.error("Error loading banners: ", error); });
@@ -1019,7 +1148,14 @@
             section.appendChild(titleEl);
             const gridEl = document.createElement('div');
             gridEl.className = 'grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6 md:gap-6 pb-4';
-            gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">Loading...</p>';
+            gridEl.innerHTML = Array(6).fill(0).map(() => `
+                <div class="rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+                    <div class="h-40 md:h-52 bg-pink-100"></div>
+                    <div class="p-3 space-y-2">
+                        <div class="h-3 bg-pink-100 rounded w-3/4 mx-auto"></div>
+                        <div class="h-4 bg-pink-100 rounded w-1/2 mx-auto"></div>
+                    </div>
+                </div>`).join('');
             section.appendChild(gridEl);
             mainContainer.appendChild(section);
             try {
@@ -1042,7 +1178,7 @@
                         
                         productEl.innerHTML = `
                             <div class="relative h-48 md:h-64 overflow-hidden bg-gray-50">
-                                <img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                <img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
                                 ${badgeHtml}
                             </div>
                             <div class="p-4 text-center">
@@ -1100,7 +1236,7 @@
                         storyCard.className = "bg-white rounded-2xl shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col w-[80vw] flex-shrink-0 scroll-snap-align-start md:w-[300px]";
                         let taggedProductHtml = '';
                         if (story.taggedProductId && story.taggedProductName) {
-                            taggedProductHtml = `<a href="product.html?id=${story.taggedProductId}" class="block p-3 bg-pink-50 hover:bg-pink-100 transition-colors border-t border-pink-100"><div class="flex items-center gap-3"><img src="${story.taggedProductImageUrl || 'https://placehold.co/60x60'}" class="w-10 h-10 object-cover rounded-md border flex-shrink-0"><div class="flex-grow min-w-0"><p class="text-[10px] text-gray-400 font-bold uppercase">Featured</p><p class="text-xs font-bold text-gray-800 truncate">${story.taggedProductName}</p></div><button class="bg-mudalali-green text-white text-[10px] font-bold px-3 py-1.5 rounded-full hover:bg-mudalali-green-dark">Shop</button></div></a>`;
+                            taggedProductHtml = `<a href="product.html?id=${story.taggedProductId}" class="block p-3 bg-pink-50 hover:bg-pink-100 transition-colors border-t border-pink-100"><div class="flex items-center gap-3"><img src="${story.taggedProductImageUrl || 'https://placehold.co/60x60'}" class="w-10 h-10 object-cover rounded-md border flex-shrink-0" loading="lazy"><div class="flex-grow min-w-0"><p class="text-[10px] text-gray-400 font-bold uppercase">Featured</p><p class="text-xs font-bold text-gray-800 truncate">${story.taggedProductName}</p></div><button class="bg-mudalali-green text-white text-[10px] font-bold px-3 py-1.5 rounded-full hover:bg-mudalali-green-dark">Shop</button></div></a>`;
                         }
                         storyCard.innerHTML = `<div class="p-4 flex items-center justify-between"><div class="flex items-center"><img class="h-8 w-8 rounded-full object-cover ring-2 ring-pink-100" src="${sellerProfilePic}" alt="${sellerName}"><div class="ml-2"><h4 class="text-xs font-bold text-gray-800">${sellerName}</h4></div></div></div><a href="story-detail.html?id=${storyId}" class="block relative w-full aspect-square bg-gray-100"><img class="w-full h-full object-cover" src="${story.imageUrl || 'https://placehold.co/400x400'}" alt="Story"></a><div class="p-3"><p class="text-gray-600 text-xs leading-relaxed line-clamp-2 mb-3">${story.content || '...'}</p></div>${taggedProductHtml}<div class="p-2 flex justify-around items-center border-t border-gray-50"><button class="${likeBtnClass} flex items-center justify-center gap-1" data-story-id="${storyId}"><i class="fa fa-heart"></i> <span class="like-count-text text-xs">${likeCount}</span></button><button class="comment-btn flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-100 rounded-full flex items-center justify-center gap-1 transition-colors" data-story-id="${storyId}" data-seller-id="${sellerUid}"><i class="fa fa-comment"></i><span class="text-xs">${commentCount}</span></button><button class="share-story-btn flex-1 py-2 text-gray-500 font-semibold hover:bg-pink-100 rounded-full transition-colors" data-story-id="${storyId}" data-content="${story.content ? story.content.replace(/"/g, '&quot;') : ''}"><i class="fa fa-share"></i></button></div>`;
                         gridEl.appendChild(storyCard);
@@ -1270,63 +1406,242 @@
             });
         }
 // ==========================================
-// 🔍 SEARCH FUNCTIONALITY FIX (UPDATED)
-// ==========================================
+// ================================================================
+// ================================================================
+// 🔔 HALO NOTIFICATION SYSTEM
+// Reads from Firestore: /notifications/{userId} subcollection
+// OR /publicNotifications for site-wide announcements
+// ================================================================
+(function setupNotifications() {
+    const bellBtn    = document.getElementById('notif-bell-btn');
+    const panel      = document.getElementById('notif-panel');
+    const badge      = document.getElementById('notif-count-badge');
+    const list       = document.getElementById('notif-list');
+    const markAllBtn = document.getElementById('notif-mark-all-btn');
 
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const homeContainer = document.getElementById('homepage-container');
+    if (!bellBtn || !panel) return;
 
-if (searchForm) {
-    // Form එක Submit වෙනකොට Page එක Refresh වෙන එක නවත්තන්න
-    searchForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        filterProducts(searchTerm);
+    let unsubNotif = null;
+    let notifOpen  = false;
+
+    // Toggle panel open/close
+    bellBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifOpen = !notifOpen;
+        panel.classList.toggle('hidden', !notifOpen);
+        if (notifOpen) markAllAsRead();
     });
-}
 
-if (searchInput) {
-    // Type කරනකොටම Live Filter වෙන්න
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        filterProducts(searchTerm);
-    });
-}
-
-function filterProducts(term) {
-    const productCards = document.querySelectorAll('.product-card');
-    let foundCount = 0;
-
-    productCards.forEach(card => {
-        // Card එක ඇතුලේ තියෙන product නම තියෙන H3 එක ගන්න
-        const productName = card.querySelector('h3').textContent.toLowerCase();
-        
-        if (productName.includes(term)) {
-            card.style.display = 'block';
-            foundCount++;
-        } else {
-            card.style.display = 'none';
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#notif-bell-btn') && !e.target.closest('#notif-panel')) {
+            panel.classList.add('hidden');
+            notifOpen = false;
         }
     });
 
-    // කිසිම දෙයක් නැත්නම් message එකක් පෙන්නන්න
-    let noResults = document.getElementById('no-results-msg');
-    if (foundCount === 0 && term !== "") {
-        if (!noResults) {
-            noResults = document.createElement('div');
-            noResults.id = 'no-results-msg';
-            noResults.className = 'col-span-full text-center py-20 text-gray-400';
-            noResults.innerHTML = `
-                <i class="fas fa-search text-5xl mb-4 opacity-20"></i>
-                <p class="text-lg font-semibold">"${term}" සඳහා ප්‍රතිඵල නැත.</p>
-                <p class="text-sm">වෙනත් නමකින් උත්සාහ කරන්න.</p>
-            `;
-            homeContainer.appendChild(noResults);
-        }
-    } else {
-        if (noResults) noResults.remove();
+    // Mark all read
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', markAllAsRead);
     }
+
+    // Listen to auth - uses already-imported onAuthStateChanged, db, auth from top
+    onAuthStateChanged(auth, (user) => {
+        if (unsubNotif) { unsubNotif(); unsubNotif = null; }
+        if (!user) { badge.classList.add('hidden'); list.innerHTML = '<div class="px-4 py-8 text-center text-gray-400 text-sm"><i class="fa fa-bell-slash text-3xl mb-2 block opacity-30"></i>Login to see notifications</div>'; return; }
+        startListening(user.uid);
+    });
+
+    function startListening(uid) {
+        // Listen to user-specific + public notifications
+        const userNotifRef = collection(db, 'users', uid, 'notifications');
+        const q = query(userNotifRef, orderBy('createdAt', 'desc'), limit(20));
+
+        unsubNotif = onSnapshot(q, (snap) => {
+            const notifs = [];
+            snap.forEach(d => notifs.push({ id: d.id, ...d.data() }));
+            renderNotifications(notifs, uid);
+        });
+    }
+
+    function renderNotifications(notifs, uid) {
+        const unread = notifs.filter(n => !n.read).length;
+
+        // Update badge
+        if (unread > 0) {
+            badge.textContent = unread > 9 ? '9+' : unread;
+            badge.classList.remove('hidden');
+            // Subtle pulse animation
+            badge.style.animation = 'notif-pulse 2s ease-in-out infinite';
+        } else {
+            badge.classList.add('hidden');
+        }
+
+        if (notifs.length === 0) {
+            list.innerHTML = '<div class="px-4 py-8 text-center text-gray-400 text-sm"><i class="fa fa-bell-slash text-3xl mb-2 block opacity-30"></i>No notifications yet</div>';
+            return;
+        }
+
+        list.innerHTML = notifs.map(n => {
+            const timeAgo = getTimeAgo(n.createdAt?.toDate ? n.createdAt.toDate() : new Date());
+            const icon = getNotifIcon(n.type);
+            const bg   = n.read ? '' : 'bg-pink-50';
+            return `
+            <div class="flex items-start gap-3 px-4 py-3 ${bg} hover:bg-gray-50 transition-colors cursor-pointer notif-item" data-id="${n.id}">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm ${getNotifIconBg(n.type)}">
+                    ${icon}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 ${n.read ? '' : 'font-bold'}">${sanitize(n.title || 'Notification')}</p>
+                    <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${sanitize(n.message || '')}</p>
+                    <p class="text-[10px] text-gray-400 mt-1">${timeAgo}</p>
+                </div>
+                ${!n.read ? '<div class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-1.5"></div>' : ''}
+            </div>`;
+        }).join('');
+
+        // Click notification → go to link
+        list.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const id  = el.dataset.id;
+                const notif = notifs.find(n => n.id === id);
+                if (notif?.link) window.location.href = notif.link;
+            });
+        });
+    }
+
+    async function markAllAsRead() {
+        const user = auth.currentUser;
+        if (!user) return;
+        try {
+            const q = query(collection(db, 'users', user.uid, 'notifications'), where('read', '==', false));
+            const snap = await getDocs(q);
+            if (snap.empty) return;
+            const batch = writeBatch(db);
+            snap.forEach(d => batch.update(d.ref, { read: true }));
+            await batch.commit();
+        } catch(e) { console.warn('markAllAsRead:', e); }
+    }
+
+    function getNotifIcon(type) {
+        const icons = {
+            order:    '📦', sale: '🏷️', message: '💬',
+            system:   '⚙️', promo: '🎉', review: '⭐',
+            delivery: '🚚', payment: '💳'
+        };
+        return icons[type] || '🔔';
+    }
+
+    function getNotifIconBg(type) {
+        const bgs = {
+            order: 'bg-blue-100', sale: 'bg-red-100', message: 'bg-green-100',
+            system: 'bg-gray-100', promo: 'bg-yellow-100', review: 'bg-purple-100',
+            delivery: 'bg-teal-100', payment: 'bg-emerald-100'
+        };
+        return bgs[type] || 'bg-pink-100';
+    }
+
+    function getTimeAgo(date) {
+        const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+        if (secs < 60)    return 'Just now';
+        if (secs < 3600)  return `${Math.floor(secs/60)}m ago`;
+        if (secs < 86400) return `${Math.floor(secs/3600)}h ago`;
+        return `${Math.floor(secs/86400)}d ago`;
+    }
+})();
+
+// ================================================================
+// 🔍 SEARCH - index.html
+// Redirects to shop.html?q=term so search works properly
+// (homepage renders products dynamically in carousels - can't filter DOM)
+// ================================================================
+// Setup search for both desktop and mobile forms
+function setupIndexSearch(form, input) {
+    if (!form || !input) return;
+    form.style.position = 'relative';
+
+    let searchDebounce;
+    input.addEventListener('input', (e) => {
+        clearTimeout(searchDebounce);
+        const term = e.target.value.trim();
+        // Sync the other input
+        const otherId = input.id === 'search-input' ? 'search-input-mobile' : 'search-input';
+        const other = document.getElementById(otherId);
+        if (other && other.value !== e.target.value) other.value = e.target.value;
+
+        if (!term) { hideSuggestions(); return; }
+        searchDebounce = setTimeout(() => fetchSuggestions(term, form), 250);
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideSuggestions();
+    });
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const term = input.value.trim();
+        if (term) window.location.href = `shop.html?q=${encodeURIComponent(term)}`;
+    });
+}
+
+const searchForm  = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+setupIndexSearch(searchForm, searchInput);
+setupIndexSearch(
+    document.getElementById('search-form-mobile'),
+    document.getElementById('search-input-mobile')
+);
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#search-form') && !e.target.closest('#search-form-mobile')) hideSuggestions();
+});
+
+async function fetchSuggestions(term, parentForm) {
+    try {
+        const ref = collection(db, publicDataPath, 'products');
+        const q = query(ref,
+            where('name', '>=', term),
+            where('name', '<=', term + '\uf8ff'),
+            limit(6)
+        );
+        const snap = await getDocs(q);
+        const results = [];
+        snap.forEach(d => results.push({ id: d.id, ...d.data() }));
+        showSuggestions(results, term, parentForm);
+    } catch(e) { hideSuggestions(); }
+}
+
+function showSuggestions(results, term, parentForm) {
+    hideSuggestions();
+    const targetForm = parentForm || searchForm;
+    if (!targetForm) return;
+    let box = document.createElement('div');
+    box.id = 'search-suggestions';
+    box.className = 'absolute top-full left-0 right-0 bg-white rounded-2xl shadow-2xl border border-pink-100 z-[200] mt-1 overflow-hidden';
+    targetForm.style.position = 'relative';
+    targetForm.appendChild(box);
+
+    if (results.length === 0) {
+        box.innerHTML = `<div class="px-4 py-3 text-sm text-gray-400">No results for "<b>${sanitize(term)}</b>"</div>`;
+        box.classList.remove('hidden');
+        return;
+    }
+    box.innerHTML = results.map(p => {
+        const img = (p.images && p.images[0]) || p.imageUrl || 'https://placehold.co/40';
+        const price = p.price ? `<span class="text-mudalali-green font-bold text-xs">Rs. ${Number(p.price).toLocaleString()}</span>` : '';
+        return `<a href="product.html?id=${p.id}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-pink-50 transition-colors border-b border-gray-50 last:border-0">
+            <img src="${sanitize(img)}" class="w-10 h-10 rounded-lg object-cover border bg-gray-50" loading="lazy">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate">${sanitize(p.name)}</p>
+                ${price}
+            </div>
+        </a>`;
+    }).join('') + `<a href="shop.html?q=${encodeURIComponent(term)}" class="flex items-center justify-center gap-2 px-4 py-3 bg-pink-50 hover:bg-pink-100 text-mudalali-green font-bold text-sm transition-colors">
+        <i class="fa fa-search"></i> View all results for "${sanitize(term)}"
+    </a>`;
+    box.classList.remove('hidden');
+}
+
+function hideSuggestions() {
+    document.getElementById('search-suggestions')?.remove();
 }
 
     </script>

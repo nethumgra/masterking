@@ -142,30 +142,50 @@
                     <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-pink-100">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b border-pink-100 pb-3">Billing Details</h2>
                         <div class="space-y-4">
+                            <!-- Customer Name -->
                             <div>
-                                <label for="billing-name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                                <input type="text" id="billing-name" required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                                <label for="billing-name" class="block text-sm font-medium text-gray-700">Customer Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="billing-name" required placeholder="Enter customer name" class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
                             </div>
+                            <!-- Address -->
                             <div>
-                                <label for="billing-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                                <input type="tel" id="billing-phone" required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
-                            </div>
-                            <div>
-                                <label for="billing-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                                <input type="email" id="billing-email" required class="mt-1 block w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500" disabled>
-                            </div>
-                            <div>
-                                <label for="billing-address" class="block text-sm font-medium text-gray-700">Address Line</label>
+                                <label for="billing-address" class="block text-sm font-medium text-gray-700">Address <span class="text-red-500">*</span></label>
                                 <input type="text" id="billing-address" placeholder="Street Address, House No." required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <input type="text" id="billing-city" placeholder="City" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
-                                <input type="text" id="billing-district" placeholder="District" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
-                            </div>
-                            <input type="text" id="billing-postal-code" placeholder="Postal Code" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
-                            
+                            <!-- City -->
                             <div>
-                                <label for="order-notes" class="block text-sm font-medium text-gray-700">Order Notes (Optional)</label>
+                                <label for="billing-city" class="block text-sm font-medium text-gray-700">City <span class="text-red-500">*</span></label>
+                                <input type="text" id="billing-city" placeholder="City" required class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <!-- District -->
+                            <div>
+                                <label for="billing-district" class="block text-sm font-medium text-gray-700">District</label>
+                                <input type="text" id="billing-district" placeholder="District" class="w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <!-- Contact Number One -->
+                            <div>
+                                <label for="billing-phone" class="block text-sm font-medium text-gray-700">Contact Number One <span class="text-red-500">*</span></label>
+                                <input type="tel" id="billing-phone" required placeholder="Primary contact number" class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <!-- Contact Number Two -->
+                            <div>
+                                <label for="billing-phone-two" class="block text-sm font-medium text-gray-700">Contact Number Two</label>
+                                <input type="tel" id="billing-phone-two" placeholder="Secondary contact number (optional)" class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+                            <!-- Email -->
+                            <div>
+                                <label for="billing-email" class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" id="billing-email" class="mt-1 block w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500" disabled>
+                            </div>
+                            <!-- Due Date -->
+                            <div>
+                                <label for="billing-due-date" class="block text-sm font-medium text-gray-700">Due Date <span class="text-red-500">*</span></label>
+                                <input type="date" id="billing-due-date" required class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20">
+                            </div>
+
+                            <!-- Order Notes -->
+                            <div>
+                                <label for="order-notes" class="block text-sm font-medium text-gray-700">Order Note</label>
                                 <textarea id="order-notes" rows="3" class="mt-1 block w-full p-3 border border-pink-100 rounded-lg focus:ring-2 focus:ring-mudalali-green focus:border-mudalali-green outline-none bg-pink-50/20" placeholder="Notes about your order, e.g. special notes for delivery."></textarea>
                             </div>
                         </div>
@@ -327,51 +347,13 @@
     
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged, 
-            signOut 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            getDocs,
-            collection, 
-            onSnapshot,
-            query,
-            where,
-            orderBy,
-            limit,
-            setDoc,
-            addDoc,
-            updateDoc, 
-            deleteDoc, 
-            increment, 
-            serverTimestamp,
-            writeBatch,
-            collectionGroup
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+                // ── Firebase shared config (no more duplicates!) ──
+        import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
+        import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, writeBatch, collectionGroup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-       const firebaseConfig = {
-            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-            authDomain: "masterking-fa629.firebaseapp.com",
-            projectId: "masterking-fa629",
-            storageBucket: "masterking-fa629.firebasestorage.app",
-            messagingSenderId: "680021576286",
-            appId: "1:680021576286:web:52769441eeda5ab56f02cf"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); 
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`; 
+        const publicDataPath = PUBLIC_PATH;
+        const usersPath = USERS_PATH;
 
         let isInitialLoad = true;
         let currentUser = null;
@@ -450,7 +432,6 @@
                         document.getElementById('billing-address').value = defaultAddress.address || '';
                         document.getElementById('billing-city').value = defaultAddress.city || '';
                         document.getElementById('billing-district').value = defaultAddress.district || '';
-                        document.getElementById('billing-postal-code').value = defaultAddress.postalCode || '';
                     } else if (currentUserData.phone) {
                         document.getElementById('billing-phone').value = currentUserData.phone || '';
                     }
@@ -525,20 +506,34 @@ async function loadOrderSummary(userId) {
         const cartItemPromises = snapshot.docs.map(async (docSnap) => {
             const item = { id: docSnap.id, ...docSnap.data() };
             const quantity = parseInt(item.quantity) || 1;
-            const priceLKR = parseFloat(item.price) || 0;
-            const itemTotalLKR = priceLKR * quantity;
-            
-            subtotalLKR += itemTotalLKR;
-            
+
+            // ============================================================
+            // SECURITY FIX: Always fetch FRESH price from Firestore product
+            // document. Never trust the price stored in the cart document -
+            // a user could edit their cart doc directly to manipulate price.
+            // ============================================================
+            let priceLKR = 0;
             let itemShipping = 0;
+
             if (item.productId) {
                 const productSnap = await getDoc(doc(db, publicDataPath, 'products', item.productId));
                 if (productSnap.exists()) {
                     const pData = productSnap.data();
+                    // Use Firestore product price (server-authoritative)
+                    priceLKR = parseFloat(pData.price) || 0;
                     itemShipping = (parseFloat(pData.deliveryPrice) || parseFloat(pData.shipping) || 0) * quantity;
                     item.shippingCost = itemShipping;
+                    // Overwrite any cart-stored price with the real price
+                    item.price = priceLKR;
+                    item.name = pData.name || item.name;
+                } else {
+                    // Product no longer exists - skip with zero price
+                    console.warn('Product not found in Firestore:', item.productId);
                 }
             }
+
+            const itemTotalLKR = priceLKR * quantity;
+            subtotalLKR += itemTotalLKR;
             totalShipping += itemShipping;
             currentCart.push(item);
 
@@ -598,21 +593,48 @@ async function loadOrderSummary(userId) {
             
             const placeOrderBtn = document.getElementById('place-order-btn');
             const errorP = document.getElementById('checkout-error');
+            errorP.textContent = '';
+
+            // ============================================================
+            // SECURITY FIX: Input validation before placing order
+            // ============================================================
+            const nameVal    = document.getElementById('billing-name').value.trim();
+            const phoneVal   = document.getElementById('billing-phone').value.trim();
+            const addressVal = document.getElementById('billing-address').value.trim();
+            const cityVal    = document.getElementById('billing-city').value.trim();
+
+            if (!nameVal || nameVal.length < 2) {
+                errorP.textContent = 'Please enter a valid customer name.';
+                return;
+            }
+            if (!phoneVal || !/^(07[0-9]{8}|0[1-9][0-9]{8})$/.test(phoneVal.replace(/\s/g, ''))) {
+                errorP.textContent = 'Please enter a valid Sri Lankan phone number (e.g. 071XXXXXXX).';
+                return;
+            }
+            if (!addressVal || addressVal.length < 5) {
+                errorP.textContent = 'Please enter a valid delivery address.';
+                return;
+            }
+            if (!cityVal || cityVal.length < 2) {
+                errorP.textContent = 'Please enter a valid city.';
+                return;
+            }
+
             placeOrderBtn.disabled = true;
             placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Placing Order...';
-            errorP.textContent = '';
-            
+
             // --- 1. AFFILIATE ID EKA BROWSER EKEN GANNAWA ---
             const affiliateId = localStorage.getItem('affiliateRef');
-            
+
             const customerInfo = {
-                name: document.getElementById('billing-name').value,
-                phone: document.getElementById('billing-phone').value,
-                email: document.getElementById('billing-email').value,
-                address: document.getElementById('billing-address').value,
-                city: document.getElementById('billing-city').value,
-                district: document.getElementById('billing-district').value,
-                postalCode: document.getElementById('billing-postal-code').value
+                name: nameVal,
+                phone: phoneVal,
+                phoneTwo: document.getElementById('billing-phone-two').value.trim(),
+                email: document.getElementById('billing-email').value.trim(),
+                address: addressVal,
+                city: cityVal,
+                district: document.getElementById('billing-district').value.trim(),
+                dueDate: document.getElementById('billing-due-date').value,
             };
             
             const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;

@@ -77,8 +77,8 @@
             </a>
 
             <div class="flex-grow max-w-xl mx-4">
-                <form class="flex">
-                    <input type="text" placeholder="Search for anything..." class="w-full px-4 py-2 border border-pink-100 rounded-l-full focus:outline-none focus:ring-2 focus:ring-mudalali-green bg-pink-50/20">
+                <form id="shop-search-form" class="flex">
+                    <input type="text" id="shop-search-input" placeholder="Search for anything..." class="w-full px-4 py-2 border border-pink-100 rounded-l-full focus:outline-none focus:ring-2 focus:ring-mudalali-green bg-pink-50/20" autocomplete="off">
                     <button type="submit" class="bg-mudalali-green text-white px-6 py-2 rounded-r-full hover:bg-mudalali-green-dark transition-colors">
                         <i class="fa fa-search"></i>
                     </button>
@@ -126,16 +126,32 @@
         </div>
     </nav>
 
-    <header class="bg-white shadow-md sticky top-0 z-40 flex md:hidden items-center justify-between p-4">
-        <button id="mobile-menu-btn" class="text-2xl text-gray-600">
-            <i class="fa fa-bars"></i>
-        </button>
-        <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
-            TU<span class="text-gray-600">TU</span>
-        </a>
-        <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
-            <i class="fa fa-user"></i>
-        </a>
+    <!-- ===== MOBILE HEADER ===== -->
+    <header class="bg-white shadow-sm sticky top-0 z-40 md:hidden">
+        <!-- Row 1: Menu | Logo | Account -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-pink-50">
+            <button id="mobile-menu-btn" class="text-2xl text-gray-600 w-8">
+                <i class="fa fa-bars"></i>
+            </button>
+            <a href="index.html" id="mobile-logo-link" class="text-2xl font-bold text-mudalali-green-dark">
+                TU<span class="text-gray-600">TU</span>
+            </a>
+            <a href="account.html" id="mobile-account-btn" class="text-2xl text-gray-600 w-8 text-right">
+                <i class="fa fa-user"></i>
+            </a>
+        </div>
+        <!-- Row 2: Search Bar (full width) -->
+        <div class="px-3 py-2 bg-white">
+            <form id="shop-search-form-mobile" class="flex">
+                <input type="text" id="shop-search-input-mobile"
+                    placeholder="Search products..."
+                    autocomplete="off"
+                    class="w-full pl-4 pr-2 py-2.5 text-sm border border-pink-200 rounded-l-full focus:outline-none focus:ring-2 focus:ring-mudalali-green bg-pink-50/30">
+                <button type="submit" class="bg-mudalali-green text-white px-5 py-2.5 rounded-r-full hover:bg-mudalali-green-dark transition-colors">
+                    <i class="fa fa-search text-sm"></i>
+                </button>
+            </form>
+        </div>
     </header>
 
     <main class="container mx-auto px-4 py-8" style="min-height: calc(100vh - 200px);">
@@ -318,28 +334,16 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // NOTE: Added 'or' to imports below
-        import { getFirestore, doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction, or } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+                // ── Firebase shared config (no more duplicates!) ──
+        import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
+        import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction, or } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-            authDomain: "masterking-fa629.firebaseapp.com",
-            projectId: "masterking-fa629",
-            storageBucket: "masterking-fa629.firebasestorage.app",
-            messagingSenderId: "680021576286",
-            appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-            measurementId: "G-9443L8L88Q"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); 
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`; 
+        const publicDataPath = PUBLIC_PATH;
+        const usersPath = USERS_PATH;
+
+        // ============================================================
+ 
 
         let currentUser = null;
         let currentUserData = null;
@@ -347,6 +351,154 @@
 
         // Global variable to store loaded products for filtering
         let allLoadedProducts = []; 
+
+        // ================================================================
+        // 🔍 SEARCH FUNCTIONALITY - shop.html
+        // Searches allLoadedProducts array (already in memory)
+        // ================================================================
+        // ================================================================
+        // 🔍 SMART SEARCH WITH LIVE SUGGESTIONS
+        // - Suggests matching product names as you type
+        // - Filters the product grid in real-time
+        // - Handles ?q= URL param from homepage redirect
+        // ================================================================
+
+        // Suggestion dropdown styles (injected once)
+        if (!document.getElementById('search-styles')) {
+            const ss = document.createElement('style');
+            ss.id = 'search-styles';
+            ss.textContent = `
+                #search-suggestions { position:absolute; top:100%; left:0; right:0; z-index:9999; margin-top:4px; }
+                #search-suggestions a { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #fce7f3; text-decoration:none; transition:background 0.15s; }
+                #search-suggestions a:hover { background:#fff0f6; }
+                #search-suggestions a img { width:38px; height:38px; border-radius:8px; object-fit:cover; border:1px solid #fce7f3; flex-shrink:0; }
+                #search-suggestions .sug-name { font-size:13px; font-weight:600; color:#1f2937; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+                #search-suggestions .sug-cat  { font-size:11px; color:#9ca3af; margin-top:1px; }
+                #search-suggestions .sug-price{ font-size:12px; font-weight:700; color:#3a6a4a; }
+                #search-suggestions .sug-view-all { justify-content:center; background:#fff8fb; padding:10px; font-size:13px; font-weight:700; color:#3a6a4a; border-top:2px solid #fce7f3; }
+                .sug-highlight { background:#fef9c3; border-radius:2px; }
+            `;
+            document.head.appendChild(ss);
+        }
+
+        function setupSearch() {
+            // Setup both desktop AND mobile search forms
+            setupSearchFor(
+                document.getElementById('shop-search-form'),
+                document.getElementById('shop-search-input')
+            );
+            setupSearchFor(
+                document.getElementById('shop-search-form-mobile'),
+                document.getElementById('shop-search-input-mobile')
+            );
+        }
+
+        function setupSearchFor(form, input) {
+            if (!form || !input) return;
+
+            form.style.position = 'relative';
+            let debounceTimer;
+
+            // ---- Core search: filter grid + show suggestions ----
+            function doSearch(term) {
+                const raw  = term;
+                term = term.toLowerCase().trim();
+
+                hideSuggestions();
+
+                if (!term) {
+                    renderFilteredGrid(allLoadedProducts);
+                    return;
+                }
+
+                // Filter products (name, category, description, tags)
+                const results = allLoadedProducts.filter(p =>
+                    (p.name        || '').toLowerCase().includes(term) ||
+                    (p.category    || '').toLowerCase().includes(term) ||
+                    (p.description || '').toLowerCase().includes(term) ||
+                    (p.subCategory || '').toLowerCase().includes(term) ||
+                    (Array.isArray(p.tags) ? p.tags : []).some(t => t.toLowerCase().includes(term))
+                );
+
+                renderFilteredGrid(results);
+
+                // Show suggestions dropdown (top 6 name matches)
+                const suggestions = allLoadedProducts
+                    .filter(p => (p.name || '').toLowerCase().includes(term))
+                    .slice(0, 6);
+                if (suggestions.length > 0) showSuggestions(suggestions, raw);
+            }
+
+            // ---- Suggestion dropdown ----
+            function showSuggestions(items, term) {
+                let box = document.getElementById('search-suggestions');
+                if (!box) {
+                    box = document.createElement('div');
+                    box.id = 'search-suggestions';
+                    box.className = 'bg-white rounded-2xl shadow-2xl border border-pink-100 overflow-hidden';
+                    form.appendChild(box);
+                }
+
+                const termLower = term.toLowerCase();
+
+                function highlight(text) {
+                    if (!text) return '';
+                    const idx = text.toLowerCase().indexOf(termLower);
+                    if (idx === -1) return sanitize(text);
+                    return sanitize(text.slice(0, idx))
+                         + '<mark class="sug-highlight">' + sanitize(text.slice(idx, idx + term.length)) + '</mark>'
+                         + sanitize(text.slice(idx + term.length));
+                }
+
+                box.innerHTML = items.map(p => {
+                    const img   = (p.images && p.images[0]) || p.imageUrl || 'https://placehold.co/38';
+                    const price = p.price ? `<span class="sug-price">Rs. ${Number(p.price).toLocaleString()}</span>` : '';
+                    return `<a href="product.html?id=${p.id}">
+                        <img src="${sanitize(img)}" alt="" loading="lazy" onerror="this.src='https://placehold.co/38'">
+                        <div style="flex:1;min-width:0">
+                            <div class="sug-name">${highlight(p.name)}</div>
+                            <div class="sug-cat">${sanitize(p.category || '')}</div>
+                            ${price}
+                        </div>
+                    </a>`;
+                }).join('') + `<a class="sug-view-all" href="#" onclick="document.getElementById('search-suggestions')?.remove(); return false;">
+                    🔍 Showing ${items.length} result${items.length !== 1 ? 's' : ''} for "<b>${sanitize(term)}</b>"
+                </a>`;
+            }
+
+            function hideSuggestions() {
+                document.getElementById('search-suggestions')?.remove();
+            }
+
+            // ---- Event listeners ----
+            input.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const val = e.target.value;
+                // Sync both search inputs (mobile ↔ desktop)
+                const otherId = input.id === 'shop-search-input' ? 'shop-search-input-mobile' : 'shop-search-input';
+                const other = document.getElementById(otherId);
+                if (other && other.value !== val) other.value = val;
+
+                if (!val.trim()) { hideSuggestions(); renderFilteredGrid(allLoadedProducts); return; }
+                debounceTimer = setTimeout(() => doSearch(val), 180);
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { hideSuggestions(); input.blur(); }
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                clearTimeout(debounceTimer);
+                hideSuggestions();
+                doSearch(input.value);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#shop-search-form')) hideSuggestions();
+            });
+        }
+        setupSearch();
 
         document.addEventListener('DOMContentLoaded', () => {
             if (pageLoader) pageLoader.style.width = '30%';
@@ -531,6 +683,14 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const categoryName = urlParams.get('category') ? decodeURIComponent(urlParams.get('category')) : null;
+            // SEARCH FIX: If ?q= param exists, pre-fill BOTH search boxes
+            const searchQuery = urlParams.get('q') ? decodeURIComponent(urlParams.get('q')) : null;
+            if (searchQuery) {
+                ['shop-search-input', 'shop-search-input-mobile'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = searchQuery;
+                });
+            }
 
             // --- Load Sub Categories if a category is selected ---
             loadSubCategories(categoryName);
@@ -545,9 +705,16 @@
                 document.getElementById('sub-categories-wrapper').classList.add('hidden');
             }
 
-            gridEl.innerHTML = ''; 
-            gridEl.appendChild(loader); 
-            loader.classList.remove('hidden');
+            // Show skeleton grid instantly while Firestore loads
+            gridEl.innerHTML = Array(8).fill(0).map(() => `
+                <div class="group relative overflow-hidden rounded-lg bg-white shadow-md animate-pulse">
+                    <div class="h-48 md:h-64 bg-pink-100"></div>
+                    <div class="p-4 space-y-2">
+                        <div class="h-3 bg-pink-100 rounded w-2/3 mx-auto"></div>
+                        <div class="h-4 bg-pink-100 rounded w-1/2 mx-auto"></div>
+                        <div class="h-3 bg-pink-100 rounded w-1/3 mx-auto"></div>
+                    </div>
+                </div>`).join('');
 
             try {
                 const productsRef = collection(db, publicDataPath, 'products');
@@ -582,8 +749,24 @@
                 
                 loader.classList.add('hidden'); 
                 
-                // Initial Render
-                renderFilteredGrid(allLoadedProducts);
+                // Initial Render - check ?q= URL param first
+                const urlQ = new URLSearchParams(window.location.search).get('q');
+                if (urlQ) {
+                    const decoded = decodeURIComponent(urlQ).toLowerCase().trim();
+                    const filtered = allLoadedProducts.filter(p =>
+                        (p.name        || '').toLowerCase().includes(decoded) ||
+                        (p.category    || '').toLowerCase().includes(decoded) ||
+                        (p.description || '').toLowerCase().includes(decoded) ||
+                        (p.subCategory || '').toLowerCase().includes(decoded) ||
+                        (Array.isArray(p.tags) ? p.tags : []).some(t => t.toLowerCase().includes(decoded))
+                    );
+                    renderFilteredGrid(filtered);
+                    // Also show suggestions for prefilled input
+                    const input = document.getElementById('shop-search-input');
+                    if (input) input.dispatchEvent(new Event('input'));
+                } else {
+                    renderFilteredGrid(allLoadedProducts);
+                }
 
             } catch (error) {
                 console.error("Error loading products: ", error);
@@ -632,16 +815,18 @@
 
         function renderFilteredGrid(products) {
             const gridEl = document.getElementById('product-grid');
-            // Remove existing product cards but keep the loader div (hidden)
-            const loader = document.getElementById('shop-loader');
-            gridEl.innerHTML = '';
-            gridEl.appendChild(loader);
+            if (!gridEl) return;
+
+            // Clear grid safely (DON'T use innerHTML = '' before appendChild)
+            while (gridEl.firstChild) gridEl.removeChild(gridEl.firstChild);
 
             if (products.length === 0) {
-                gridEl.innerHTML += '<div class="col-span-full py-20 text-center"><div class="text-6xl mb-4">😕</div><p class="text-gray-500 text-lg font-medium">No products match your filters.</p><button id="reset-empty-btn" class="mt-4 text-mudalali-green font-bold hover:underline">Clear Filters</button></div>';
-                
+                const empty = document.createElement('div');
+                empty.className = 'col-span-full py-20 text-center';
+                empty.innerHTML = '<div class="text-6xl mb-4">😕</div><p class="text-gray-500 text-lg font-medium">No products match your filters.</p><button id="reset-empty-btn" class="mt-4 text-mudalali-green font-bold hover:underline">Clear Filters</button>';
+                gridEl.appendChild(empty);
                 setTimeout(() => {
-                    document.getElementById('reset-empty-btn')?.addEventListener('click', () => document.getElementById('clear-filters-btn').click());
+                    document.getElementById('reset-empty-btn')?.addEventListener('click', () => document.getElementById('clear-filters-btn')?.click());
                 }, 100);
                 return;
             }
@@ -674,19 +859,19 @@
             productEl.innerHTML = `
                 <a href="product.html?id=${productId}" class="block product-link">
                     <div class="relative h-48 md:h-64 overflow-hidden bg-gray-50">
-                        <img src="${imageUrl}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" />
+                        <img src="${imageUrl}" alt="${sanitize(product.name)}" class="absolute h-full w-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" loading="lazy" />
                         
                         ${product.images && product.images.length > 1 ? `
-                        <img src="${hoverImageUrl}" alt="${product.name} hover" class="absolute h-full w-full object-cover transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100" />
+                        <img src="${hoverImageUrl}" alt="${product.name} hover" class="absolute h-full w-full object-cover transition-opacity duration-500 ease-in-out opacity-0 group-hover:opacity-100" loading="lazy" />
                         ` : ''}
                         
                         ${badgeHtml}
                     </div>
                 </a>
                 <div class="p-4 text-center">
-                   <p class="text-xs text-gray-400 uppercase tracking-wide hidden md:block">${product.category || 'TUTU Collection'}</p>
+                   <p class="text-xs text-gray-400 uppercase tracking-wide hidden md:block">${sanitize(product.category) || 'TUTU Collection'}</p>
                     <a href="product.html?id=${productId}" class="block product-link">
-                        <h3 class="my-1 text-sm font-semibold text-gray-800 hover:text-mudalali-green md:text-lg line-clamp-2">${product.name}</h3>
+                        <h3 class="my-1 text-sm font-semibold text-gray-800 hover:text-mudalali-green md:text-lg line-clamp-2">${sanitize(product.name)}</h3>
                     </a>
                     ${priceHtml}
                     

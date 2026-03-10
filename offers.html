@@ -286,53 +286,13 @@
     
     <script type="module">
         
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged, 
-            signOut 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            getDocs,
-            collection, 
-            onSnapshot,
-            query,
-            where,
-            orderBy,
-            limit,
-            setDoc,
-            addDoc,
-            updateDoc, 
-            deleteDoc, 
-            increment, 
-            serverTimestamp,
-            runTransaction,
-            setLogLevel
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+                // ── Firebase shared config (no more duplicates!) ──
+        import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
+        import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, addDoc, updateDoc, deleteDoc, increment, serverTimestamp, runTransaction, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Firebase Config (Original)
-      const firebaseConfig = {
-  apiKey: "AIzaSyDKFinkyjgys2HOO_QpRoMosGYyTFEcIgE",
-  authDomain: "masterking-fa629.firebaseapp.com",
-  projectId: "masterking-fa629",
-  storageBucket: "masterking-fa629.firebasestorage.app",
-  messagingSenderId: "680021576286",
-  appId: "1:680021576286:web:52769441eeda5ab56f02cf",
-  measurementId: "G-9443L8L88Q"
-};
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); 
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const publicDataPath = `/artifacts/${appId}/public/data`;
-        const usersPath = `/users`; 
+        const publicDataPath = PUBLIC_PATH;
+        const usersPath = USERS_PATH;
 
         let currentUser = null;
         let currentUserData = null;
