@@ -53,6 +53,13 @@
             .rating-stars .star { @apply text-gray-300 cursor-pointer text-2xl transition-colors; }
             .rating-stars .star.selected { @apply text-yellow-400; }
         }
+
+        /* Gallery */
+        #main-product-image { transition: opacity 0.15s ease; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        #lightbox { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
     </style>
 </head>
 <body class="pb-20 md:pb-0">
@@ -97,14 +104,36 @@
     </div>
 
     <div id="product-content" class="hidden">
-        <div class="grid lg:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
             <div class="lg:col-span-2 space-y-10">
-                <div class="grid lg:grid-cols-2 gap-10">
-                   <div class="lg:sticky lg:top-28 h-fit mb-10 lg:mb-0">
-    <div class="bg-gray-50 rounded-[2.5rem] p-6 mb-4 flex items-center justify-center overflow-hidden aspect-square">
-        <img id="main-product-image" class="w-full h-full object-contain mix-blend-multiply transition-transform hover:scale-105 duration-500" src="" alt="Product Image">
-    </div>
-</div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
+                   <div class="lg:sticky lg:top-28 h-fit mb-6 lg:mb-0">
+
+                        <!-- Main Image -->
+                        <div class="rounded-2xl md:rounded-[2.5rem] mb-3 overflow-hidden aspect-square relative group bg-gray-50">
+                            <img id="main-product-image"
+                                class="absolute inset-0 w-full h-full object-cover transition-all duration-500 cursor-zoom-in"
+                                src="" alt="Product Image"
+                                onclick="openLightbox(this.src)">
+                            <!-- Prev/Next arrows (shown when multiple images) -->
+                            <button id="gallery-prev" onclick="galleryNav(-1)"
+                                class="hidden absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-mudalali-green transition-all z-10 opacity-0 group-hover:opacity-100">
+                                <i class="fa fa-chevron-left text-sm"></i>
+                            </button>
+                            <button id="gallery-next" onclick="galleryNav(1)"
+                                class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-mudalali-green transition-all z-10 opacity-0 group-hover:opacity-100">
+                                <i class="fa fa-chevron-right text-sm"></i>
+                            </button>
+                            <!-- Image counter badge -->
+                            <span id="gallery-counter" class="hidden absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">1 / 1</span>
+                        </div>
+
+                        <!-- Thumbnails strip -->
+                        <div id="thumbnail-strip" class="hidden flex gap-2 overflow-x-auto pb-1 scrollbar-hide"></div>
+
+                        <!-- Lightbox moved to body level -->
+
+                    </div>
 
                     <div class="flex flex-col">
                         <div class="flex justify-between items-start gap-4 mb-4">
@@ -180,9 +209,9 @@
             </div>
 
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm sticky top-28">
-                    <h3 class="font-bold mb-6 border-l-4 border-mudalali-green pl-3">More for You</h3>
-                    <div id="related-products-grid" class="space-y-4"></div>
+                <div class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm lg:sticky lg:top-28" style="z-index:1; position:relative;">
+                    <h3 class="font-bold mb-4 border-l-4 border-mudalali-green pl-3">More for You</h3>
+                    <div id="related-products-grid" class="grid grid-cols-2 gap-3 max-h-[75vh] overflow-y-auto pr-1" style="-ms-overflow-style:none;scrollbar-width:thin;scrollbar-color:#fbcfe8 transparent;"></div>
                 </div>
             </div>
         </div>
@@ -212,7 +241,7 @@
                 // ── Firebase shared config (no more duplicates!) ──
         import { db, auth, sanitize } from "./firebase-config.js";
         import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, deleteDoc, addDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         let currentUser = null;
         let productData = null;
@@ -281,7 +310,102 @@ async function handleShare() {
         const delEl = document.getElementById('product-delivery');
 
         if(nameEl) nameEl.textContent = productData.name;
-        if(imgEl) imgEl.src = productData.images?.[0] || productData.imageUrl;
+        // ── IMAGE GALLERY ──────────────────────────────────────
+        const images = (productData.images && productData.images.length > 0)
+            ? productData.images
+            : [productData.imageUrl || 'https://placehold.co/600'];
+
+        window._galleryImages  = images;
+        window._galleryIndex   = 0;
+
+        // Set first image
+        if (imgEl) imgEl.src = images[0];
+
+        const strip   = document.getElementById('thumbnail-strip');
+        const counter = document.getElementById('gallery-counter');
+        const prevBtn = document.getElementById('gallery-prev');
+        const nextBtn = document.getElementById('gallery-next');
+
+        function setGalleryImage(idx) {
+            window._galleryIndex = idx;
+            if (imgEl) {
+                imgEl.style.opacity = '0';
+                setTimeout(() => {
+                    imgEl.src = images[idx];
+                    imgEl.style.opacity = '1';
+                }, 150);
+            }
+            // Update thumbnails active state
+            strip?.querySelectorAll('.thumb-btn').forEach((t, i) => {
+                t.classList.toggle('ring-2',    i === idx);
+                t.classList.toggle('ring-mudalali-green', i === idx);
+                t.classList.toggle('opacity-50', i !== idx);
+            });
+            if (counter) counter.textContent = (idx + 1) + ' / ' + images.length;
+        }
+
+        // Build thumbnails
+        if (images.length > 1 && strip) {
+            strip.classList.remove('hidden');
+            strip.innerHTML = images.map((url, i) => `
+                <button class="thumb-btn flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 border-transparent transition-all ${i===0?'ring-2 ring-mudalali-green':'opacity-50'}"
+                    onclick="setGalleryImage(${i})" style="outline:none">
+                    <img src="${url}" class="w-full h-full object-cover" loading="lazy"
+                        onerror="this.src='https://placehold.co/64'">
+                </button>`).join('');
+
+            // Show arrows + counter
+            if (prevBtn) prevBtn.classList.remove('hidden');
+            if (nextBtn) nextBtn.classList.remove('hidden');
+            if (counter) { counter.classList.remove('hidden'); counter.textContent = '1 / ' + images.length; }
+        }
+
+        // Expose functions to window for inline onclick
+        window.setGalleryImage = setGalleryImage;
+        window.galleryNav = function(dir) {
+            const next = (window._galleryIndex + dir + images.length) % images.length;
+            setGalleryImage(next);
+        };
+        window.openLightbox = function(src) {
+            const lb    = document.getElementById('lightbox');
+            const lbImg = document.getElementById('lightbox-img');
+            const lbCounter = document.getElementById('lightbox-counter');
+            if (lb && lbImg) {
+                lbImg.src = src;
+                lb.classList.remove('hidden');
+                lb.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+                if (lbCounter && window._galleryImages) {
+                    lbCounter.textContent = (window._galleryIndex + 1) + ' / ' + window._galleryImages.length;
+                }
+            }
+        };
+        window.closeLightbox = function() {
+            const lb = document.getElementById('lightbox');
+            if (lb) { lb.classList.add('hidden'); lb.classList.remove('flex'); document.body.style.overflow = ''; }
+        };
+
+        // Keyboard navigation for lightbox
+        document.addEventListener('keydown', function(e) {
+            const lb = document.getElementById('lightbox');
+            if (!lb || lb.classList.contains('hidden')) return;
+            if (e.key === 'Escape')      { closeLightbox(); }
+            else if (e.key === 'ArrowLeft')  {
+                galleryNav(-1);
+                const lbImg = document.getElementById('lightbox-img');
+                const lbCounter = document.getElementById('lightbox-counter');
+                if (lbImg) lbImg.src = window._galleryImages[window._galleryIndex];
+                if (lbCounter) lbCounter.textContent = (window._galleryIndex+1)+' / '+window._galleryImages.length;
+            }
+            else if (e.key === 'ArrowRight') {
+                galleryNav(1);
+                const lbImg = document.getElementById('lightbox-img');
+                const lbCounter = document.getElementById('lightbox-counter');
+                if (lbImg) lbImg.src = window._galleryImages[window._galleryIndex];
+                if (lbCounter) lbCounter.textContent = (window._galleryIndex+1)+' / '+window._galleryImages.length;
+            }
+        });
+        // ── END GALLERY ─────────────────────────────────────
         if(descEl) descEl.innerHTML = productData.description?.replace(/\n/g, '<br>') || 'No description available.';
         if(delEl) delEl.innerHTML = productData.deliveryDetails || 'Estimated delivery: 3-5 working days.';
 
@@ -387,37 +511,61 @@ function updatePriceDisplay(amount) {
     const grid = document.getElementById('related-products-grid');
     if (!grid) return;
 
+    // Skeleton placeholders
+    grid.innerHTML = Array(6).fill(0).map(() => `
+        <div class="rounded-xl overflow-hidden bg-gray-50 animate-pulse">
+            <div class="h-36 bg-pink-100"></div>
+            <div class="p-2 space-y-1.5">
+                <div class="h-2.5 bg-pink-100 rounded w-3/4"></div>
+                <div class="h-3 bg-pink-100 rounded w-1/2"></div>
+            </div>
+        </div>`).join('');
+
     try {
-        // ඔයාගේ Database Path එක හරියටම පරීක්ෂා කරගන්න (default-app-id)
-        const q = query(collection(db, '/artifacts/default-app-id/public/data/products'), limit(6));
+        const q = query(collection(db, '/artifacts/default-app-id/public/data/products'), orderBy('createdAt', 'desc'), limit(13));
         const snap = await getDocs(q);
-        
+
         grid.innerHTML = '';
-        
+
         if (snap.empty) {
-            grid.innerHTML = '<p class="text-[10px] text-gray-400 italic">No related products found.</p>';
+            grid.innerHTML = '<p class="col-span-2 text-[10px] text-gray-400 italic text-center py-4">No products found.</p>';
             return;
         }
 
         snap.forEach(d => {
-            if (d.id === productId) return; // දැනට බලන භාණ්ඩය අත්හරින්න
+            if (d.id === productId) return;
             const p = d.data();
-            
-            // Image Fix: images array එක හෝ imageUrl පරීක්ෂා කිරීම
-            const img = p.images && p.images.length > 0 ? p.images[0] : (p.imageUrl || 'https://placehold.co/100');
-            const price = parseFloat(p.price) || 0;
 
-            grid.innerHTML += `
-                <a href="product.html?id=${d.id}" class="flex gap-4 items-center bg-gray-50 p-2 rounded-2xl hover:bg-pink-50 transition-all border border-transparent hover:border-pink-100 group">
-                    <img src="${img}" class="w-14 h-14 rounded-xl object-cover bg-white shadow-sm">
-                    <div class="min-w-0">
-                        <h4 class="text-[11px] font-bold truncate text-gray-800 group-hover:text-mudalali-green">${p.name}</h4>
-                        <p class="text-[11px] text-mudalali-green font-black mt-1">Rs. ${price.toLocaleString()}</p>
-                    </div>
-                </a>`;
+            const img  = (p.images && p.images.length > 0) ? p.images[0] : (p.imageUrl || 'https://placehold.co/400x400');
+            const img2 = (p.images && p.images.length > 1) ? p.images[1] : img;
+            const price = parseFloat(p.price) || 0;
+            const badge = p.saleTag
+                ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow">${p.saleTag}</span>`
+                : `<span class="absolute top-2 left-2 bg-mudalali-green text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow">NEW</span>`;
+
+            const card = document.createElement('a');
+            card.href = `product.html?id=${d.id}`;
+            card.className = 'group block rounded-xl overflow-hidden bg-white border border-gray-100 hover:border-pink-200 hover:shadow-md transition-all duration-300';
+            card.innerHTML = `
+                <div class="relative h-36 overflow-hidden bg-gray-50">
+                    <img src="${img}" alt="${p.name}"
+                        class="absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                        loading="lazy" onerror="this.src='https://placehold.co/200x200'">
+                    ${p.images && p.images.length > 1 ? `
+                    <img src="${img2}" alt="${p.name}"
+                        class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        loading="lazy">` : ''}
+                    ${badge}
+                </div>
+                <div class="p-2.5">
+                    <h4 class="text-[11px] font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-mudalali-green transition-colors mb-1">${p.name}</h4>
+                    <p class="text-[12px] font-black text-mudalali-green">Rs. ${price.toLocaleString()}</p>
+                </div>`;
+            grid.appendChild(card);
         });
     } catch (e) {
         console.error("Related Products Error:", e);
+        grid.innerHTML = '<p class="col-span-2 text-[10px] text-red-400 italic text-center py-4">Could not load products.</p>';
     }
 }
 
@@ -451,7 +599,7 @@ function updatePriceDisplay(amount) {
  // product.html ඇතුළේ addToCart function එක මෙහෙම වෙනස් කරන්න
 async function addToCart(buyNow = false) {
     if (!currentUser) {
-        alert("Please login to continue!");
+        openLoginModal(buyNow);
         return;
     }
     
@@ -494,6 +642,83 @@ async function addToCart(buyNow = false) {
     }
 }
         // --- UI HELPERS ---
+
+        // ── LOGIN MODAL ──────────────────────────────────
+        let _pendingBuyNow = false;
+
+        window.openLoginModal = (buyNow = false) => {
+            _pendingBuyNow = buyNow;
+            const modal = document.getElementById('login-modal');
+            const box   = document.getElementById('login-modal-box');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                box.classList.remove('scale-95','opacity-0');
+                box.classList.add('scale-100','opacity-100');
+            });
+            document.getElementById('modal-login-email').focus();
+        };
+
+        window.closeLoginModal = () => {
+            const modal = document.getElementById('login-modal');
+            const box   = document.getElementById('login-modal-box');
+            box.classList.remove('scale-100','opacity-100');
+            box.classList.add('scale-95','opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 250);
+            document.getElementById('modal-login-error').textContent = '';
+        };
+
+        window.toggleModalPw = () => {
+            const inp = document.getElementById('modal-login-password');
+            const eye = document.getElementById('modal-pw-eye');
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            eye.className = show ? 'fa fa-eye-slash text-sm' : 'fa fa-eye text-sm';
+        };
+
+        window.submitModalLogin = async () => {
+            const email    = document.getElementById('modal-login-email').value.trim();
+            const password = document.getElementById('modal-login-password').value;
+            const errEl    = document.getElementById('modal-login-error');
+            const btn      = document.getElementById('modal-login-btn');
+
+            if (!email || !password) { errEl.textContent = 'Please fill all fields.'; return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Logging in...';
+            errEl.textContent = '';
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will set currentUser — wait a tick then proceed
+                closeLoginModal();
+                setTimeout(() => addToCart(_pendingBuyNow), 400);
+            } catch (e) {
+                const msg = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password'
+                    ? 'Incorrect email or password.'
+                    : e.code === 'auth/user-not-found'
+                    ? 'No account found with this email.'
+                    : e.code === 'auth/too-many-requests'
+                    ? 'Too many attempts. Try later.'
+                    : 'Login failed. Please try again.';
+                errEl.textContent = msg;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-sign-in-alt"></i> Login';
+            }
+        };
+
+        // Close modal on backdrop click
+        document.getElementById('login-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeLoginModal();
+        });
+
+        // Enter key submits
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !document.getElementById('login-modal').classList.contains('hidden')) {
+                submitModalLogin();
+            }
+        });
+        // ── END LOGIN MODAL ──────────────────────────────
 
         function updateProgress(v) { 
             const bar = document.getElementById('page-loader');
@@ -592,5 +817,90 @@ async function addToCart(buyNow = false) {
 
         initProductPage();
     </script>
+
+    <!-- ===== LIGHTBOX (body level - covers everything) ===== -->
+    <div id="lightbox"
+        class="hidden fixed inset-0 bg-black/95 items-center justify-center p-4 cursor-zoom-out"
+        style="z-index:2147483647; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95);"
+        onclick="closeLightbox()">
+        <!-- Prev -->
+        <button onclick="event.stopPropagation(); galleryNav(-1); var li=document.getElementById('lightbox-img'); var lc=document.getElementById('lightbox-counter'); if(li) li.src=window._galleryImages[window._galleryIndex]; if(lc) lc.textContent=(window._galleryIndex+1)+' / '+window._galleryImages.length;"
+            style="position:absolute; left:16px; top:50%; transform:translateY(-50%); z-index:2147483647;"
+            class="w-11 h-11 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-lg transition-all">
+            <i class="fa fa-chevron-left"></i>
+        </button>
+        <!-- Image -->
+        <img id="lightbox-img" 
+            style="max-height:88vh; max-width:88vw; object-fit:contain; border-radius:1rem;"
+            onclick="event.stopPropagation()">
+        <!-- Next -->
+        <button onclick="event.stopPropagation(); galleryNav(1); var li=document.getElementById('lightbox-img'); var lc=document.getElementById('lightbox-counter'); if(li) li.src=window._galleryImages[window._galleryIndex]; if(lc) lc.textContent=(window._galleryIndex+1)+' / '+window._galleryImages.length;"
+            style="position:absolute; right:16px; top:50%; transform:translateY(-50%); z-index:2147483647;"
+            class="w-11 h-11 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-lg transition-all">
+            <i class="fa fa-chevron-right"></i>
+        </button>
+        <!-- Close -->
+        <button onclick="event.stopPropagation(); closeLightbox()"
+            style="position:absolute; top:16px; right:16px; z-index:2147483647;"
+            class="w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white text-xl transition-all">
+            <i class="fa fa-times"></i>
+        </button>
+        <!-- Counter -->
+        <span id="lightbox-counter"
+            style="position:absolute; bottom:16px; left:50%; transform:translateX(-50%);"
+            class="bg-black/60 text-white text-sm px-3 py-1 rounded-full"></span>
+    </div>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div id="login-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);">
+    <div id="login-modal-box" class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 relative transform transition-all duration-300 scale-95 opacity-0">
+        <!-- Close -->
+        <button onclick="closeLoginModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-pink-100 text-gray-400 hover:text-mudalali-green flex items-center justify-center transition-all">
+            <i class="fa fa-times text-sm"></i>
+        </button>
+
+        <!-- Header -->
+        <div class="text-center mb-7">
+            <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-user text-mudalali-green text-xl"></i>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900">Welcome Back</h2>
+            <p class="text-sm text-gray-400 mt-1">Login to continue shopping</p>
+        </div>
+
+        <!-- Form -->
+        <div class="space-y-4">
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Email</label>
+                <input id="modal-login-email" type="email" placeholder="you@example.com"
+                    class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-mudalali-green transition-colors bg-gray-50 focus:bg-white">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Password</label>
+                <div class="relative">
+                    <input id="modal-login-password" type="password" placeholder="••••••••"
+                        class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-mudalali-green transition-colors bg-gray-50 focus:bg-white pr-11">
+                    <button type="button" onclick="toggleModalPw()" class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
+                        <i id="modal-pw-eye" class="fa fa-eye text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <p id="modal-login-error" class="text-red-500 text-xs font-medium text-center h-4"></p>
+
+            <button id="modal-login-btn" onclick="submitModalLogin()"
+                class="w-full bg-mudalali-green hover:bg-mudalali-green-dark text-white font-black py-3.5 rounded-2xl text-sm transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-pink-200">
+                <i class="fa fa-sign-in-alt"></i> Login
+            </button>
+        </div>
+
+        <div class="mt-5 text-center">
+            <p class="text-xs text-gray-400">Don't have an account?
+                <a href="account.html" class="text-mudalali-green font-bold hover:underline">Register here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

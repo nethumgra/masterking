@@ -357,32 +357,113 @@
         // Searches allLoadedProducts array (already in memory)
         // ================================================================
         // ================================================================
-        // 🔍 SMART SEARCH WITH LIVE SUGGESTIONS
-        // - Suggests matching product names as you type
-        // - Filters the product grid in real-time
+        // ================================================================
+        // 🔍 SMART SEARCH v2 - shop.html
+        // - Live suggestions with highlight, recent & trending
+        // - Filters product grid in real-time (all fields)
+        // - Keyboard navigation (↑↓ Enter Escape)
         // - Handles ?q= URL param from homepage redirect
         // ================================================================
 
-        // Suggestion dropdown styles (injected once)
+        // ── Styles ───────────────────────────────────────────────────
         if (!document.getElementById('search-styles')) {
             const ss = document.createElement('style');
             ss.id = 'search-styles';
             ss.textContent = `
-                #search-suggestions { position:absolute; top:100%; left:0; right:0; z-index:9999; margin-top:4px; }
-                #search-suggestions a { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #fce7f3; text-decoration:none; transition:background 0.15s; }
-                #search-suggestions a:hover { background:#fff0f6; }
-                #search-suggestions a img { width:38px; height:38px; border-radius:8px; object-fit:cover; border:1px solid #fce7f3; flex-shrink:0; }
-                #search-suggestions .sug-name { font-size:13px; font-weight:600; color:#1f2937; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-                #search-suggestions .sug-cat  { font-size:11px; color:#9ca3af; margin-top:1px; }
-                #search-suggestions .sug-price{ font-size:12px; font-weight:700; color:#3a6a4a; }
-                #search-suggestions .sug-view-all { justify-content:center; background:#fff8fb; padding:10px; font-size:13px; font-weight:700; color:#3a6a4a; border-top:2px solid #fce7f3; }
-                .sug-highlight { background:#fef9c3; border-radius:2px; }
+                .sug-box {
+                    position:absolute; top:100%; left:0; right:0; z-index:9999;
+                    margin-top:8px; background:#fff;
+                    border-radius:16px; box-shadow:0 8px 40px rgba(219,39,119,.13);
+                    border:1px solid #fce7f3; overflow:hidden;
+                    animation: sugFadeIn .18s ease;
+                }
+                @keyframes sugFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+                .sug-item {
+                    display:flex; align-items:center; gap:12px;
+                    padding:10px 16px; border-bottom:1px solid #fdf2f8;
+                    text-decoration:none; transition:background .13s; cursor:pointer;
+                }
+                .sug-item:last-child { border-bottom:none; }
+                .sug-item:hover, .sug-item.active { background:#fff0f6; }
+                .sug-item img { width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #fce7f3; flex-shrink:0; }
+                .sug-name { font-size:13px; font-weight:600; color:#1f2937; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+                .sug-meta { display:flex; align-items:center; gap:6px; margin-top:2px; }
+                .sug-cat  { font-size:10px; color:#9ca3af; background:#f3f4f6; border-radius:4px; padding:1px 5px; }
+                .sug-price{ font-size:12px; font-weight:700; color:#db2777; }
+                .sug-section-label {
+                    padding:8px 16px 4px; font-size:10px; font-weight:700;
+                    color:#9ca3af; text-transform:uppercase; letter-spacing:.07em;
+                    display:flex; justify-content:space-between; align-items:center;
+                }
+                .sug-view-all {
+                    display:flex; align-items:center; justify-content:center; gap:6px;
+                    padding:11px 16px; font-size:13px; font-weight:700; color:#db2777;
+                    background:linear-gradient(to right,#fff0f6,#fff);
+                    border-top:1px solid #fce7f3; text-decoration:none; transition:background .13s;
+                }
+                .sug-view-all:hover { background:#fce7f3; }
+                .sug-pill {
+                    display:inline-block; padding:4px 12px; font-size:11px; font-weight:600;
+                    border-radius:999px; background:#fff0f6; color:#db2777;
+                    cursor:pointer; border:none; transition:background .13s;
+                }
+                .sug-pill:hover { background:#fce7f3; box-shadow:0 1px 4px rgba(219,39,119,.15); }
+                mark.sug-hl { background:#fef9c3; border-radius:2px; padding:0 1px; }
+                .sug-no-results { padding:16px; font-size:13px; color:#9ca3af; }
+                .sug-clear-btn { font-size:10px; color:#f9a8d4; font-weight:600; background:none; border:none; cursor:pointer; }
+                .sug-clear-btn:hover { color:#db2777; }
+                .sug-recent-row { position:relative; }
+                .sug-recent-row .sug-del {
+                    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+                    font-size:11px; color:#d1d5db; background:none; border:none; cursor:pointer;
+                    opacity:0; transition:opacity .15s;
+                }
+                .sug-recent-row:hover .sug-del { opacity:1; }
             `;
             document.head.appendChild(ss);
         }
 
+        // ── Recent searches helpers ───────────────────────────────────
+        const SHOP_RECENT_KEY = 'tutu_recent_searches';
+        const SHOP_MAX_RECENT = 6;
+        const SHOP_TRENDING   = ['Dress', 'Bag', 'Shoes', 'Earrings', 'Perfume', 'Watch', 'Lipstick', 'Saree'];
+
+        function getRecent() {
+            try { return JSON.parse(localStorage.getItem(SHOP_RECENT_KEY) || '[]'); } catch { return []; }
+        }
+        function saveRecent(term) {
+            if (!term) return;
+            let arr = getRecent().filter(t => t.toLowerCase() !== term.toLowerCase());
+            arr.unshift(term);
+            localStorage.setItem(SHOP_RECENT_KEY, JSON.stringify(arr.slice(0, SHOP_MAX_RECENT)));
+        }
+        function deleteRecent(term) {
+            localStorage.setItem(SHOP_RECENT_KEY, JSON.stringify(getRecent().filter(t => t !== term)));
+        }
+        function clearAllRecent() {
+            localStorage.removeItem(SHOP_RECENT_KEY);
+        }
+
+        // ── Keyboard nav state ────────────────────────────────────────
+        let _sugIdx = -1;
+        function _updateActive(box) {
+            const items = box ? Array.from(box.querySelectorAll('.sug-item')) : [];
+            items.forEach((el, i) => el.classList.toggle('active', i === _sugIdx));
+            return items;
+        }
+
+        // ── Highlight helper ─────────────────────────────────────────
+        function hlText(text, term) {
+            if (!text || !term) return sanitize(text || '');
+            const idx = text.toLowerCase().indexOf(term.toLowerCase());
+            if (idx === -1) return sanitize(text);
+            return sanitize(text.slice(0, idx))
+                 + '<mark class="sug-hl">' + sanitize(text.slice(idx, idx + term.length)) + '</mark>'
+                 + sanitize(text.slice(idx + term.length));
+        }
+
+        // ── setupSearch ───────────────────────────────────────────────
         function setupSearch() {
-            // Setup both desktop AND mobile search forms
             setupSearchFor(
                 document.getElementById('shop-search-form'),
                 document.getElementById('shop-search-input')
@@ -395,96 +476,179 @@
 
         function setupSearchFor(form, input) {
             if (!form || !input) return;
-
             form.style.position = 'relative';
             let debounceTimer;
 
-            // ---- Core search: filter grid + show suggestions ----
-            function doSearch(term) {
-                const raw  = term;
-                term = term.toLowerCase().trim();
-
+            // ── Show default (recent + trending) ─────────────────────
+            function showDefault() {
                 hideSuggestions();
+                _sugIdx = -1;
+                const recent   = getRecent();
+                const trending = SHOP_TRENDING;
+                if (!recent.length && !trending.length) return;
 
-                if (!term) {
-                    renderFilteredGrid(allLoadedProducts);
+                const box = _createBox(form);
+
+                const recentHtml = recent.length ? `
+                    <div class="sug-section-label">
+                        <span><i class="fa fa-clock-rotate-left" style="margin-right:4px"></i>Recent</span>
+                        <button class="sug-clear-btn" onclick="clearAllRecent(); hideSuggestions();">Clear all</button>
+                    </div>
+                    ${recent.map(t => `
+                        <div class="sug-item sug-recent-row" onclick="applySearch('${sanitize(t).replace(/'/g,"\\'")}', form_${form.id})">
+                            <i class="fa fa-clock-rotate-left" style="color:#d1d5db;font-size:12px;width:16px;flex-shrink:0"></i>
+                            <span style="flex:1;font-size:13px;color:#374151">${sanitize(t)}</span>
+                            <button class="sug-del" title="Remove"
+                                onclick="event.stopPropagation(); deleteRecent('${sanitize(t).replace(/'/g,"\\'")}'); showDefaultFor_${form.id}();">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>`).join('')}` : '';
+
+                const trendingHtml = trending.length ? `
+                    <div style="padding:10px 16px 12px;border-top:${recent.length?'1px solid #fdf2f8':'none'}">
+                        <div class="sug-section-label" style="padding:0 0 6px 0">
+                            <span><i class="fa fa-fire" style="color:#f97316;margin-right:4px"></i>Trending</span>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px">
+                            ${trending.map(t => `<button class="sug-pill" onclick="applySearch('${sanitize(t)}')">${sanitize(t)}</button>`).join('')}
+                        </div>
+                    </div>` : '';
+
+                box.innerHTML = recentHtml + trendingHtml;
+
+                // Bind dynamic helpers per-form via closure
+                window[`showDefaultFor_${form.id}`] = () => { hideSuggestions(); showDefault(); };
+                window[`form_${form.id}`] = form;
+            }
+
+            // ── Show search results ───────────────────────────────────
+            function showResults(items, term) {
+                hideSuggestions();
+                _sugIdx = -1;
+                const box = _createBox(form);
+
+                if (items.length === 0) {
+                    box.innerHTML = `
+                        <div class="sug-no-results">
+                            No results for <strong>"${sanitize(term)}"</strong>
+                            ${SHOP_TRENDING.length ? `
+                            <div style="margin-top:10px">
+                                <div class="sug-section-label" style="padding:0 0 6px 0">
+                                    <span><i class="fa fa-fire" style="color:#f97316;margin-right:4px"></i>Try instead</span>
+                                </div>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    ${SHOP_TRENDING.map(t => `<button class="sug-pill" onclick="applySearch('${sanitize(t)}')">${sanitize(t)}</button>`).join('')}
+                                </div>
+                            </div>` : ''}
+                        </div>`;
                     return;
                 }
 
-                // Filter products (name, category, description, tags)
-                const results = allLoadedProducts.filter(p =>
-                    (p.name        || '').toLowerCase().includes(term) ||
-                    (p.category    || '').toLowerCase().includes(term) ||
-                    (p.description || '').toLowerCase().includes(term) ||
-                    (p.subCategory || '').toLowerCase().includes(term) ||
-                    (Array.isArray(p.tags) ? p.tags : []).some(t => t.toLowerCase().includes(term))
-                );
+                const itemsHtml = items.map(p => {
+                    const img   = (p.images && p.images[0]) || p.imageUrl || 'https://placehold.co/42';
+                    const price = p.price ? `<span class="sug-price">Rs. ${Number(p.price).toLocaleString()}</span>` : '';
+                    const cat   = p.category ? `<span class="sug-cat">${sanitize(p.category)}</span>` : '';
+                    return `<a class="sug-item" href="product.html?id=${p.id}"
+                                onclick="saveRecent('${sanitize(p.name).replace(/'/g,"\\'")}')">
+                        <img src="${sanitize(img)}" alt="" loading="lazy" onerror="this.src='https://placehold.co/42'">
+                        <div style="flex:1;min-width:0">
+                            <div class="sug-name">${hlText(p.name, term)}</div>
+                            <div class="sug-meta">${cat}${price}</div>
+                        </div>
+                        <i class="fa fa-arrow-right" style="color:#e9d5e9;font-size:11px;flex-shrink:0"></i>
+                    </a>`;
+                }).join('');
 
+                const countLabel = items.length >= 6
+                    ? `${items.length}+ results`
+                    : `${items.length} result${items.length !== 1 ? 's' : ''}`;
+
+                box.innerHTML = `
+                    <div class="sug-section-label">
+                        <span>Products</span>
+                        <span style="font-size:10px;color:#e9a0c8">${countLabel}</span>
+                    </div>
+                    ${itemsHtml}
+                    <div class="sug-view-all" onclick="saveRecent('${sanitize(term).replace(/'/g,"\\'")}'); hideSuggestions();" style="cursor:pointer">
+                        <i class="fa fa-search" style="font-size:11px"></i>
+                        Showing all results for <span style="text-decoration:underline;margin-left:3px">"${sanitize(term)}"</span>
+                    </div>`;
+            }
+
+            // ── Core filter + suggest ─────────────────────────────────
+            function doSearch(term) {
+                const termL = term.toLowerCase().trim();
+                hideSuggestions();
+
+                if (!termL) {
+                    renderFilteredGrid(allLoadedProducts);
+                    showDefault();
+                    return;
+                }
+
+                const results = allLoadedProducts.filter(p =>
+                    (p.name        || '').toLowerCase().includes(termL) ||
+                    (p.category    || '').toLowerCase().includes(termL) ||
+                    (p.description || '').toLowerCase().includes(termL) ||
+                    (p.subCategory || '').toLowerCase().includes(termL) ||
+                    (Array.isArray(p.tags) ? p.tags : []).some(t => t.toLowerCase().includes(termL))
+                );
                 renderFilteredGrid(results);
 
-                // Show suggestions dropdown (top 6 name matches)
                 const suggestions = allLoadedProducts
-                    .filter(p => (p.name || '').toLowerCase().includes(term))
-                    .slice(0, 6);
-                if (suggestions.length > 0) showSuggestions(suggestions, raw);
+                    .filter(p => (p.name || '').toLowerCase().includes(termL))
+                    .slice(0, 7);
+                showResults(suggestions, term);
             }
 
-            // ---- Suggestion dropdown ----
-            function showSuggestions(items, term) {
-                let box = document.getElementById('search-suggestions');
-                if (!box) {
-                    box = document.createElement('div');
-                    box.id = 'search-suggestions';
-                    box.className = 'bg-white rounded-2xl shadow-2xl border border-pink-100 overflow-hidden';
-                    form.appendChild(box);
-                }
+            // ── Events ────────────────────────────────────────────────
+            input.addEventListener('focus', () => {
+                if (!input.value.trim()) showDefault();
+            });
 
-                const termLower = term.toLowerCase();
-
-                function highlight(text) {
-                    if (!text) return '';
-                    const idx = text.toLowerCase().indexOf(termLower);
-                    if (idx === -1) return sanitize(text);
-                    return sanitize(text.slice(0, idx))
-                         + '<mark class="sug-highlight">' + sanitize(text.slice(idx, idx + term.length)) + '</mark>'
-                         + sanitize(text.slice(idx + term.length));
-                }
-
-                box.innerHTML = items.map(p => {
-                    const img   = (p.images && p.images[0]) || p.imageUrl || 'https://placehold.co/38';
-                    const price = p.price ? `<span class="sug-price">Rs. ${Number(p.price).toLocaleString()}</span>` : '';
-                    return `<a href="product.html?id=${p.id}">
-                        <img src="${sanitize(img)}" alt="" loading="lazy" onerror="this.src='https://placehold.co/38'">
-                        <div style="flex:1;min-width:0">
-                            <div class="sug-name">${highlight(p.name)}</div>
-                            <div class="sug-cat">${sanitize(p.category || '')}</div>
-                            ${price}
-                        </div>
-                    </a>`;
-                }).join('') + `<a class="sug-view-all" href="#" onclick="document.getElementById('search-suggestions')?.remove(); return false;">
-                    🔍 Showing ${items.length} result${items.length !== 1 ? 's' : ''} for "<b>${sanitize(term)}</b>"
-                </a>`;
-            }
-
-            function hideSuggestions() {
-                document.getElementById('search-suggestions')?.remove();
-            }
-
-            // ---- Event listeners ----
             input.addEventListener('input', (e) => {
                 clearTimeout(debounceTimer);
                 const val = e.target.value;
-                // Sync both search inputs (mobile ↔ desktop)
                 const otherId = input.id === 'shop-search-input' ? 'shop-search-input-mobile' : 'shop-search-input';
                 const other = document.getElementById(otherId);
                 if (other && other.value !== val) other.value = val;
 
-                if (!val.trim()) { hideSuggestions(); renderFilteredGrid(allLoadedProducts); return; }
+                if (!val.trim()) {
+                    hideSuggestions();
+                    renderFilteredGrid(allLoadedProducts);
+                    showDefault();
+                    return;
+                }
                 debounceTimer = setTimeout(() => doSearch(val), 180);
             });
 
             input.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') { hideSuggestions(); input.blur(); }
+                const box   = document.getElementById('search-suggestions');
+                const items = _updateActive(null); // get without changing
+                const allItems = box ? Array.from(box.querySelectorAll('.sug-item')) : [];
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    _sugIdx = Math.min(_sugIdx + 1, allItems.length - 1);
+                    allItems.forEach((el, i) => el.classList.toggle('active', i === _sugIdx));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    _sugIdx = Math.max(_sugIdx - 1, 0);
+                    allItems.forEach((el, i) => el.classList.toggle('active', i === _sugIdx));
+                } else if (e.key === 'Enter') {
+                    if (_sugIdx >= 0 && allItems[_sugIdx]) {
+                        e.preventDefault();
+                        allItems[_sugIdx].click();
+                    } else {
+                        e.preventDefault();
+                        clearTimeout(debounceTimer);
+                        hideSuggestions();
+                        doSearch(input.value);
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                    input.blur();
+                }
             });
 
             form.addEventListener('submit', (e) => {
@@ -495,9 +659,40 @@
             });
 
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('#shop-search-form')) hideSuggestions();
+                if (!e.target.closest('#shop-search-form') && !e.target.closest('#shop-search-form-mobile')) {
+                    hideSuggestions();
+                }
             });
         }
+
+        // ── Shared helpers (global scope for inline onclick) ──────────
+        function _createBox(form) {
+            const box = document.createElement('div');
+            box.id = 'search-suggestions';
+            box.className = 'sug-box';
+            form.appendChild(box);
+            return box;
+        }
+        function hideSuggestions() {
+            document.getElementById('search-suggestions')?.remove();
+            _sugIdx = -1;
+        }
+        function applySearch(term) {
+            saveRecent(term);
+            ['shop-search-input', 'shop-search-input-mobile'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = term;
+            });
+            hideSuggestions();
+            // Trigger filter
+            const termL = term.toLowerCase();
+            const results = allLoadedProducts.filter(p =>
+                (p.name || '').toLowerCase().includes(termL) ||
+                (p.category || '').toLowerCase().includes(termL)
+            );
+            renderFilteredGrid(results);
+        }
+
         setupSearch();
 
         document.addEventListener('DOMContentLoaded', () => {

@@ -375,6 +375,13 @@
     });
 
     async function redirectUserBasedOnRole(user) {
+        // Check if there's a ?redirect= param — go back there after login
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get('redirect');
+        if (redirectTo) {
+            window.location.href = decodeURIComponent(redirectTo);
+            return;
+        }
         const userDoc = await getDoc(doc(db, usersPath, user.uid));
         if (userDoc.exists()) {
             const data = userDoc.data();
@@ -585,7 +592,11 @@
                 await batch.commit();
 
                 errorEl.textContent = "Success! Redirecting...";
-                if (userType === 'affiliate') window.location.href = 'affiliate-dashboard.html';
+                const params = new URLSearchParams(window.location.search);
+                const redirectTo = params.get('redirect');
+                if (redirectTo && userType === 'customer') {
+                    window.location.href = decodeURIComponent(redirectTo);
+                } else if (userType === 'affiliate') window.location.href = 'affiliate-dashboard.html';
                 else if (userType === 'reseller') window.location.href = 'reseller-dashboard.html';
                 else window.location.href = 'customer-account.html';
 
