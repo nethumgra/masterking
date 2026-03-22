@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - Pink Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        'pk': { light: '#fbcfe8', DEFAULT: '#db2777', dark: '#be185d', xdark: '#9d174d' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body { @apply font-sans bg-gray-50 text-gray-800; }
+        .sidebar-link { @apply flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all text-sm font-medium; }
+        .sidebar-link.active { @apply bg-white/15 text-white font-bold; }
+        .stat-card { @apply bg-white rounded-2xl p-5 shadow-sm border border-gray-100; }
+        .btn-pk { @apply bg-pk text-white px-4 py-2 rounded-xl font-bold hover:bg-pk-dark transition-all text-sm disabled:opacity-50; }
+        .btn-outline { @apply border-2 border-pk text-pk px-4 py-2 rounded-xl font-bold hover:bg-pink-50 transition-all text-sm; }
+        .form-input { @apply w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pk/30 bg-white; }
+        .tab-btn { @apply px-5 py-2.5 rounded-xl font-bold text-sm transition-all text-gray-500 hover:text-pk; }
+        .tab-btn.active { @apply bg-pk text-white shadow-md; }
+        .badge { @apply text-xs font-bold px-2.5 py-1 rounded-full; }
+        .badge-pending  { @apply bg-yellow-100 text-yellow-700; }
+        .badge-approved { @apply bg-green-100  text-green-700; }
+        .badge-rejected { @apply bg-red-100    text-red-700; }
+        .badge-processing { @apply bg-blue-100 text-blue-700; }
+        .badge-shipped    { @apply bg-purple-100 text-purple-700; }
+        .badge-delivered  { @apply bg-emerald-100 text-emerald-700; }
+        .section { @apply hidden; }
+        .section.active { @apply block; }
+        .modal-overlay { @apply fixed inset-0 bg-black/50 z-50 items-center justify-center p-4; display: none; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { @apply bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto; }
+        .img-thumb { @apply w-20 h-20 object-cover rounded-xl border-2 border-gray-100 cursor-pointer hover:border-pk transition-all; }
+        .img-thumb.selected { @apply border-pk ring-2 ring-pk; }
+    </style>
+</head>
+<body>
+
+<!-- PENDING APPROVAL BANNER -->
+<div id="pending-banner" class="hidden bg-yellow-500 text-white text-center py-3 px-4 text-sm font-bold">
+    ⏳ Your seller account is under review. Admin approval ekata passe products add karanna puluwanwenawa.
+    <span id="seller-status-text"></span>
+</div>
+
+<div class="flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-gradient-to-b from-pk-dark to-pk-xdark text-white flex flex-col flex-shrink-0 hidden md:flex">
+        <div class="p-5 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div id="sidebar-avatar" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold">S</div>
+                <div class="min-w-0">
+                    <p id="sidebar-shop-name" class="font-bold text-sm truncate">My Shop</p>
+                    <p id="sidebar-email" class="text-xs text-pink-200 truncate">seller@email.com</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 p-3 space-y-1">
+            <a href="#" class="sidebar-link active" data-section="overview"><i class="fa fa-chart-pie w-5"></i> Overview</a>
+            <a href="#" class="sidebar-link" data-section="products"><i class="fa fa-box w-5"></i> My Products</a>
+            <a href="#" class="sidebar-link" data-section="orders"><i class="fa fa-shopping-bag w-5"></i> My Orders</a>
+            <a href="#" class="sidebar-link" data-section="earnings"><i class="fa fa-wallet w-5"></i> Earnings</a>
+            <a href="#" class="sidebar-link" data-section="profile"><i class="fa fa-store w-5"></i> Store Profile</a>
+        </nav>
+        <div class="p-3 border-t border-white/10 space-y-1">
+            <a href="shop.html" class="sidebar-link"><i class="fa fa-store w-5"></i> Visit Store</a>
+            <a href="#" id="logout-btn" class="sidebar-link"><i class="fa fa-sign-out-alt w-5"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- MOBILE TOP BAR -->
+    <div class="md:hidden fixed top-0 left-0 right-0 z-40 bg-pk-dark text-white flex items-center justify-between px-4 py-3 shadow-lg">
+        <button id="mobile-menu-btn" class="text-xl"><i class="fa fa-bars"></i></button>
+        <p class="font-bold text-sm" id="mobile-shop-name">Seller Dashboard</p>
+        <a href="shop.html" class="text-sm"><i class="fa fa-home"></i></a>
+    </div>
+
+    <!-- MOBILE SIDEBAR DRAWER -->
+    <div id="mobile-sidebar" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50" id="mobile-sidebar-overlay"></div>
+        <aside class="absolute left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-pk-dark to-pk-xdark text-white flex flex-col">
+            <div class="p-5 border-b border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">S</div>
+                    <div><p id="mobile-sidebar-shop" class="font-bold text-sm">My Shop</p></div>
+                </div>
+                <button id="close-mobile-sidebar" class="text-white/70 hover:text-white text-xl"><i class="fa fa-times"></i></button>
+            </div>
+            <nav class="flex-1 p-3 space-y-1">
+                <a href="#" class="sidebar-link active" data-section="overview"><i class="fa fa-chart-pie w-5"></i> Overview</a>
+                <a href="#" class="sidebar-link" data-section="products"><i class="fa fa-box w-5"></i> My Products</a>
+                <a href="#" class="sidebar-link" data-section="orders"><i class="fa fa-shopping-bag w-5"></i> My Orders</a>
+                <a href="#" class="sidebar-link" data-section="earnings"><i class="fa fa-wallet w-5"></i> Earnings</a>
+                <a href="#" class="sidebar-link" data-section="profile"><i class="fa fa-store w-5"></i> Store Profile</a>
+            </nav>
+            <div class="p-3 border-t border-white/10">
+                <a href="#" id="mobile-logout-btn" class="sidebar-link"><i class="fa fa-sign-out-alt w-5"></i> Logout</a>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-x-hidden pt-16 md:pt-0">
+        <div class="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
+
+            <!-- ── OVERVIEW ── -->
+            <div id="section-overview" class="section active space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-black text-gray-800">Overview</h1>
+                        <p class="text-gray-400 text-sm">Welcome back, <span id="overview-name" class="text-pk font-bold">Seller</span>!</p>
+                    </div>
+                    <button id="add-product-quick-btn" class="btn-pk"><i class="fa fa-plus mr-2"></i>Add Product</button>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="stat-card">
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Products</p>
+                        <p id="stat-products" class="text-3xl font-black text-pk">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
+                        <p id="stat-orders" class="text-3xl font-black text-blue-600">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Pending</p>
+                        <p id="stat-pending" class="text-3xl font-black text-yellow-500">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
+                        <p id="stat-revenue" class="text-3xl font-black text-emerald-600">Rs.0</p>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="flex items-center justify-between p-5 border-b">
+                        <h2 class="font-bold text-gray-700">Recent Orders</h2>
+                        <a href="#" class="text-pk text-sm font-bold" data-section="orders">View All →</a>
+                    </div>
+                    <div id="overview-orders-list" class="divide-y divide-gray-50">
+                        <p class="text-center py-8 text-gray-400 text-sm">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PRODUCTS ── -->
+            <div id="section-products" class="section space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h1 class="text-2xl font-black text-gray-800">My Products</h1>
+                    <button id="add-product-btn" class="btn-pk"><i class="fa fa-plus mr-2"></i>Add New Product</button>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="flex gap-2 overflow-x-auto pb-1">
+                    <button class="tab-btn active" data-filter="all">All</button>
+                    <button class="tab-btn" data-filter="approved">Live</button>
+                    <button class="tab-btn" data-filter="pending">Pending Review</button>
+                </div>
+
+                <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div class="col-span-full text-center py-12 text-gray-400">
+                        <i class="fa fa-box text-5xl mb-3 opacity-20 block"></i>
+                        <p class="font-semibold">No products yet</p>
+                        <p class="text-sm">Click "Add New Product" to get started</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ORDERS ── -->
+            <div id="section-orders" class="section space-y-4">
+                <h1 class="text-2xl font-black text-gray-800">My Orders</h1>
+
+                <!-- Filter Tabs -->
+                <div class="flex gap-2 overflow-x-auto pb-1 flex-wrap">
+                    <button class="tab-btn active" data-order-filter="all">All</button>
+                    <button class="tab-btn" data-order-filter="pending">Pending</button>
+                    <button class="tab-btn" data-order-filter="processing">Processing</button>
+                    <button class="tab-btn" data-order-filter="shipped">Shipped</button>
+                    <button class="tab-btn" data-order-filter="delivered">Delivered</button>
+                </div>
+
+                <div id="orders-list" class="space-y-3">
+                    <p class="text-center py-12 text-gray-400 text-sm">Loading orders...</p>
+                </div>
+            </div>
+
+            <!-- ── EARNINGS ── -->
+            <div id="section-earnings" class="section space-y-4">
+                <h1 class="text-2xl font-black text-gray-800">Earnings</h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="stat-card text-center">
+                        <i class="fa fa-coins text-3xl text-yellow-500 mb-2 block"></i>
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Total Earned</p>
+                        <p id="earn-total" class="text-3xl font-black text-emerald-600">Rs. 0</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <i class="fa fa-clock text-3xl text-blue-500 mb-2 block"></i>
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">This Month</p>
+                        <p id="earn-month" class="text-3xl font-black text-blue-600">Rs. 0</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <i class="fa fa-shopping-cart text-3xl text-pk mb-2 block"></i>
+                        <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Orders Delivered</p>
+                        <p id="earn-delivered" class="text-3xl font-black text-pk">0</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="font-bold text-gray-700 mb-4">Order History (Earnings)</h2>
+                    <div id="earnings-list" class="space-y-3 text-sm text-gray-500">
+                        <p class="text-center py-8">No completed orders yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PROFILE ── -->
+            <div id="section-profile" class="section space-y-4">
+                <h1 class="text-2xl font-black text-gray-800">Store Profile</h1>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-2xl">
+
+                    <!-- Banner Preview -->
+                    <div class="relative">
+                        <div id="banner-preview" class="w-full h-36 bg-gradient-to-br from-pk-light via-pink-100 to-pk/20 overflow-hidden">
+                            <img id="banner-preview-img" src="" alt="" class="w-full h-full object-cover hidden">
+                        </div>
+                        <button id="upload-banner-btn" class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all flex items-center gap-1">
+                            <i class="fa fa-camera"></i> Change Banner
+                        </button>
+                        <input type="file" id="banner-file-input" accept="image/*" class="hidden">
+
+                        <!-- Logo overlay -->
+                        <div class="absolute -bottom-8 left-5">
+                            <div class="relative group">
+                                <div id="profile-avatar-circle" class="w-16 h-16 rounded-2xl bg-pk/20 border-4 border-white shadow-lg flex items-center justify-center text-2xl font-black text-pk">S</div>
+                                <img id="logo-preview-img" src="" alt="" class="w-16 h-16 rounded-2xl border-4 border-white shadow-lg object-cover hidden absolute inset-0">
+                                <button id="upload-logo-btn" class="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                    <i class="fa fa-camera text-white text-xs"></i>
+                                </button>
+                                <input type="file" id="logo-file-input" accept="image/*" class="hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-12 px-6 pb-6 space-y-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <p id="profile-shop-name-display" class="text-lg font-black">My Shop</p>
+                            <span id="profile-status-badge" class="badge badge-pending">Pending Approval</span>
+                        </div>
+                        <p id="upload-status-text" class="text-xs text-pk font-bold hidden">⬆️ Uploading image...</p>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Shop Name</label><input type="text" id="profile-shop-name" class="form-input"></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Phone</label><input type="tel" id="profile-phone" class="form-input"></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">WhatsApp</label><input type="tel" id="profile-whatsapp" class="form-input"></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Store Description</label><textarea id="profile-description" rows="3" class="form-input resize-none"></textarea></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Bank Name</label><input type="text" id="profile-bank" class="form-input" placeholder="e.g. Sampath Bank"></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Bank Account No.</label><input type="text" id="profile-account" class="form-input"></div>
+                        <button id="save-profile-btn" class="btn-pk w-full py-3"><i class="fa fa-save mr-2"></i>Save Changes</button>
+                        <p id="profile-save-msg" class="text-center text-sm text-green-600 hidden">✅ Profile saved!</p>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /max-w -->
+    </main>
+</div>
+
+<!-- ═══════════════ ADD / EDIT PRODUCT MODAL ═══════════════ -->
+<div id="product-modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
+            <h2 id="modal-title" class="text-xl font-black text-gray-800">Add New Product</h2>
+            <button id="close-product-modal" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 text-lg transition-all">&times;</button>
+        </div>
+        <div class="p-6 space-y-5">
+
+            <!-- Images -->
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Product Images (Max 5)</label>
+                <div id="image-preview-area" class="flex flex-wrap gap-2 mb-2 min-h-[84px] p-3 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                    <p class="text-sm text-gray-400 self-center w-full text-center" id="no-images-text">No images yet. Click below to upload.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
+                    <button id="upload-image-btn" class="btn-outline text-xs py-2 px-3">
+                        <i class="fa fa-upload mr-1"></i> Upload Images
+                    </button>
+                    <span id="upload-progress-text" class="text-xs text-gray-400"></span>
+                </div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2"><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Product Name *</label><input type="text" id="p-name" class="form-input" placeholder="e.g. Women's Floral Dress"></div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Category *</label>
+                    <select id="p-category" class="form-input"><option value="">-- Select Category --</option></select>
+                </div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Sub Category</label><input type="text" id="p-subcategory" class="form-input" placeholder="e.g. Summer Dresses"></div>
+            </div>
+
+            <!-- Prices -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Selling Price (Rs.) *</label><input type="number" id="p-price" class="form-input" placeholder="0.00"></div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Original Price (Rs.)</label><input type="number" id="p-orig-price" class="form-input" placeholder="0.00"></div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Resell Price (Rs.)</label><input type="number" id="p-resell-price" class="form-input" placeholder="0.00"></div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Delivery (Rs.)</label><input type="number" id="p-delivery" class="form-input" placeholder="0.00"></div>
+            </div>
+
+            <!-- Stock & Weight -->
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Stock Qty</label><input type="number" id="p-stock" class="form-input" value="10" min="0"></div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Weight (kg)</label><input type="number" id="p-weight" class="form-input" placeholder="0.5" step="0.1"></div>
+            </div>
+
+            <!-- Description -->
+            <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description</label><textarea id="p-description" rows="3" class="form-input resize-none" placeholder="Describe your product..."></textarea></div>
+            <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Delivery Details</label><textarea id="p-delivery-info" rows="2" class="form-input resize-none" placeholder="e.g. Island-wide delivery 3-5 days..."></textarea></div>
+
+            <!-- Variations -->
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Variations (Optional)</label>
+                <div id="variations-container" class="space-y-3"></div>
+                <button id="add-variation-btn" class="mt-2 text-xs text-pk font-bold hover:underline"><i class="fa fa-plus mr-1"></i> Add Variation Group (e.g. Size, Color)</button>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex gap-3 pt-2">
+                <button id="save-product-btn" class="btn-pk flex-1 py-3 text-base"><i class="fa fa-check mr-2"></i>Submit for Review</button>
+                <button id="cancel-product-btn" class="btn-outline py-3 px-5">Cancel</button>
+            </div>
+            <p id="product-save-error" class="text-red-500 text-sm text-center hidden"></p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ ORDER DETAIL MODAL ═══════════════ -->
+<div id="order-modal" class="modal-overlay">
+    <div class="modal-box max-w-lg">
+        <div class="flex items-center justify-between p-5 border-b">
+            <h2 class="font-black text-gray-800">Order Details</h2>
+            <button id="close-order-modal" class="w-9 h-9 rounded-full bg-gray-100 text-gray-500 text-lg flex items-center justify-center">&times;</button>
+        </div>
+        <div id="order-detail-content" class="p-5 space-y-4 text-sm"></div>
+    </div>
+</div>
+
+<script type="module">
+    import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
+    import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit,
+             setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch, increment
+           } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    const publicDataPath = PUBLIC_PATH;
+    const usersPath      = USERS_PATH;
+    const IMGBB_KEY      = "e2f2d5556ca498ec3392bcfcea70ef6f";
+
+    let currentUser  = null;
+    let sellerData   = null;
+    let editingProductId = null;
+    let productImages    = [];   // array of uploaded URLs
+    let currentFilter    = 'all';
+    let currentOrderFilter = 'all';
+    let allOrders = [];
+    let variationCount = 0;
+
+    // ─── AUTH GUARD ───────────────────────────────────────────────
+    onAuthStateChanged(auth, user => {
+        if (!user) { window.location.href = 'account.html'; return; }
+        currentUser = user;
+
+        // Real-time listener — detects admin approval instantly without page reload
+        onSnapshot(doc(db, usersPath, user.uid), (snap) => {
+            if (!snap.exists()) { window.location.href = 'account.html'; return; }
+            sellerData = snap.data();
+
+            const role      = sellerData.role || '';
+            const isSeller  = sellerData.isSeller || role === 'seller' || role === 'seller_pending' || sellerData.wantsToBeASeller;
+            if (!isSeller)  { window.location.href = 'customer-account.html'; return; }
+
+            const shopName   = sellerData.sellerDetails?.shopName || sellerData.displayName || user.email;
+            const isApproved = sellerData.isSeller === true && role === 'seller';
+
+            document.querySelectorAll('#sidebar-shop-name, #mobile-shop-name, #mobile-sidebar-shop, #overview-name, #profile-shop-name-display').forEach(el => {
+                if (el) el.textContent = shopName;
+            });
+            if (document.getElementById('sidebar-email')) document.getElementById('sidebar-email').textContent = user.email;
+            if (document.getElementById('sidebar-avatar')) document.getElementById('sidebar-avatar').textContent = shopName.charAt(0).toUpperCase();
+            if (document.getElementById('profile-avatar-circle')) document.getElementById('profile-avatar-circle').textContent = shopName.charAt(0).toUpperCase();
+
+            const sd = sellerData.sellerDetails || {};
+            if (document.getElementById('profile-shop-name')) document.getElementById('profile-shop-name').value = sd.shopName || '';
+            if (document.getElementById('profile-phone'))     document.getElementById('profile-phone').value     = sd.phone || '';
+            if (document.getElementById('profile-whatsapp'))  document.getElementById('profile-whatsapp').value  = sd.whatsapp || '';
+            if (document.getElementById('profile-description')) document.getElementById('profile-description').value = sd.description || '';
+            if (document.getElementById('profile-bank'))     document.getElementById('profile-bank').value     = sd.bankName || '';
+            if (document.getElementById('profile-account')) document.getElementById('profile-account').value = sd.accountNo || '';
+
+            const statusBadge = document.getElementById('profile-status-badge');
+            if (statusBadge) {
+                if (isApproved) { statusBadge.textContent = '✅ Approved Seller'; statusBadge.className = 'badge badge-approved'; }
+                else            { statusBadge.textContent = '⏳ Pending Approval'; statusBadge.className = 'badge badge-pending'; }
+            }
+
+            const banner  = document.getElementById('pending-banner');
+            const addBtns = document.querySelectorAll('#add-product-btn, #add-product-quick-btn');
+            if (isApproved) {
+                banner?.classList.add('hidden');
+                addBtns.forEach(b => { b.disabled = false; b.title = ''; });
+                if (!window._approvalToastShown) {
+                    window._approvalToastShown = true;
+                    showToast('🎉 Your account is approved! You can now add products.', 'success');
+                }
+            } else {
+                banner?.classList.remove('hidden');
+                addBtns.forEach(b => { b.disabled = true; b.title = 'Awaiting admin approval'; });
+            }
+
+            // Load product/order data only once
+            if (!window._dataLoaded) {
+                window._dataLoaded = true;
+                initProfileImages();
+                loadCategories();
+                loadMyProducts();
+                loadMyOrders();
+            }
+        });
+    });
+
+    // ─── TOAST NOTIFICATION ───────────────────────────────────────
+    function showToast(message, type = 'success') {
+        const existing = document.getElementById('toast-notification');
+        if (existing) existing.remove();
+        const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
+        const toast = document.createElement('div');
+        toast.id = 'toast-notification';
+        toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl text-white font-bold shadow-2xl text-sm max-w-sm text-center transition-all ${colors[type] || colors.success}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    // ─── LOGOUT ───────────────────────────────────────────────────
+    ['logout-btn','mobile-logout-btn'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', async e => {
+            e.preventDefault();
+            await signOut(auth);
+            window.location.href = 'account.html';
+        });
+    });
+
+    // ─── SIDEBAR NAVIGATION ───────────────────────────────────────
+    function showSection(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        const sec = document.getElementById('section-' + name);
+        if (sec) sec.classList.add('active');
+        document.querySelectorAll(`[data-section="${name}"]`).forEach(l => l.classList.add('active'));
+        document.getElementById('mobile-sidebar')?.classList.add('hidden');
+    }
+
+    document.querySelectorAll('[data-section]').forEach(link => {
+        link.addEventListener('click', e => { e.preventDefault(); showSection(link.dataset.section); });
+    });
+
+    // Mobile menu
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => document.getElementById('mobile-sidebar')?.classList.remove('hidden'));
+    document.getElementById('close-mobile-sidebar')?.addEventListener('click', () => document.getElementById('mobile-sidebar')?.classList.add('hidden'));
+    document.getElementById('mobile-sidebar-overlay')?.addEventListener('click', () => document.getElementById('mobile-sidebar')?.classList.add('hidden'));
+
+    // ─── LOAD CATEGORIES ──────────────────────────────────────────
+    async function loadCategories() {
+        const snap = await getDocs(collection(db, publicDataPath, 'categories')).catch(() => null);
+        if (!snap) return;
+        const sel = document.getElementById('p-category');
+        if (!sel) return;
+        snap.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.data().name;
+            opt.textContent = d.data().name;
+            sel.appendChild(opt);
+        });
+    }
+
+    // ─── LOAD MY PRODUCTS ─────────────────────────────────────────
+    function loadMyProducts() {
+        if (!currentUser) return;
+        // No orderBy — avoids Firestore composite index requirement. Sort client-side.
+        const q = query(collection(db, publicDataPath, 'products'),
+                        where('sellerUid', '==', currentUser.uid));
+        onSnapshot(q, snap => {
+            const allProducts = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            renderProducts(allProducts);
+            document.getElementById('stat-products').textContent = allProducts.length;
+        }, err => {
+            console.error('Products load error:', err);
+            showToast('Products load karanna bari wuna: ' + err.message, 'error');
+        });
+    }
+
+    function renderProducts(products) {
+        const grid = document.getElementById('products-grid');
+        const filtered = currentFilter === 'all' ? products
+            : currentFilter === 'approved' ? products.filter(p => p.isApproved === true)
+            : products.filter(p => p.isApproved !== true);
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">
+                <i class="fa fa-box text-5xl mb-3 opacity-20 block"></i>
+                <p class="font-semibold">No products in this category</p>
+            </div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(p => {
+            const img = p.images?.[0] || p.imageUrl || 'https://placehold.co/300';
+            const statusBadge = p.isApproved === true
+                ? `<span class="badge badge-approved text-[10px]">✅ Live</span>`
+                : p.isApproved === false
+                    ? `<span class="badge badge-rejected text-[10px]">❌ Rejected</span>`
+                    : `<span class="badge badge-pending text-[10px]">⏳ Pending</span>`;
+            return `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
+                <div class="relative">
+                    <img src="${sanitize(img)}" class="w-full h-36 object-cover">
+                    <div class="absolute top-2 left-2">${statusBadge}</div>
+                </div>
+                <div class="p-3">
+                    <p class="font-bold text-xs text-gray-800 line-clamp-2 mb-1">${sanitize(p.name)}</p>
+                    <p class="text-pk font-black text-sm">Rs. ${(p.price || 0).toLocaleString()}</p>
+                    <div class="flex gap-2 mt-3">
+                        <button class="flex-1 text-xs py-1.5 rounded-lg bg-pink-50 text-pk font-bold hover:bg-pk hover:text-white transition-all" onclick="editProduct('${p.id}')"><i class="fa fa-pen mr-1"></i>Edit</button>
+                        <button class="text-xs py-1.5 px-3 rounded-lg bg-red-50 text-red-500 font-bold hover:bg-red-500 hover:text-white transition-all" onclick="deleteProduct('${p.id}','${sanitize(p.name)}')"><i class="fa fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Product filter tabs
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentFilter = btn.dataset.filter;
+            document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadMyProducts();
+        });
+    });
+
+    // ─── LOAD MY ORDERS ───────────────────────────────────────────
+    function loadMyOrders() {
+        if (!currentUser) return;
+        const q = query(collection(db, 'orders'),
+                        where('items', 'array-contains-any', [{ sellerUid: currentUser.uid }]));
+        // Fallback: query all orders containing sellerUid in items
+        // Use simpler approach: query by sellerUid field if orders are tagged
+        const q2 = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100));
+        onSnapshot(q2, snap => {
+            // Filter orders that contain items from this seller
+            allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                .filter(order => (order.items || []).some(item => item.sellerUid === currentUser.uid));
+            renderOrders(allOrders);
+            computeStats(allOrders);
+            renderEarnings(allOrders);
+        });
+    }
+
+    function renderOrders(orders) {
+        const list = document.getElementById('orders-list');
+        const filtered = currentOrderFilter === 'all' ? orders
+            : orders.filter(o => (o.status || 'pending').toLowerCase() === currentOrderFilter);
+
+        if (filtered.length === 0) {
+            list.innerHTML = `<div class="text-center py-12 text-gray-400"><i class="fa fa-shopping-bag text-5xl opacity-20 block mb-3"></i><p>No orders found</p></div>`;
+            return;
+        }
+
+        list.innerHTML = filtered.map(order => {
+            const myItems = (order.items || []).filter(i => i.sellerUid === currentUser.uid);
+            const myTotal = myItems.reduce((s, i) => s + (parseFloat(i.price) * (i.quantity || 1)), 0);
+            const date = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : 'N/A';
+            const status = order.status || 'pending';
+            const badgeClass = { pending:'badge-pending', processing:'badge-processing', shipped:'badge-shipped', delivered:'badge-approved', cancelled:'badge-rejected' }[status] || 'badge-pending';
+
+            return `
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all" onclick="showOrderDetail('${order.id}')">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="font-bold text-xs text-gray-400 mb-1">Order #${order.id.slice(-8).toUpperCase()}</p>
+                        <p class="font-bold text-gray-800 text-sm">${sanitize(order.customerInfo?.name || 'Customer')}</p>
+                        <p class="text-xs text-gray-400">${date} · ${myItems.length} item(s)</p>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            ${myItems.slice(0,2).map(i => `<span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${sanitize(i.name || '')}</span>`).join('')}
+                            ${myItems.length > 2 ? `<span class="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">+${myItems.length-2} more</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="font-black text-pk text-sm">Rs. ${myTotal.toLocaleString()}</p>
+                        <span class="badge ${badgeClass} mt-1 inline-block capitalize">${status}</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // Also update overview recent orders
+        const ovList = document.getElementById('overview-orders-list');
+        if (ovList) {
+            const recent = orders.slice(0, 5);
+            if (recent.length === 0) {
+                ovList.innerHTML = `<p class="text-center py-8 text-gray-400 text-sm">No orders yet</p>`;
+            } else {
+                ovList.innerHTML = recent.map(order => {
+                    const myItems = (order.items || []).filter(i => i.sellerUid === currentUser.uid);
+                    const myTotal = myItems.reduce((s, i) => s + (parseFloat(i.price) * (i.quantity || 1)), 0);
+                    const status = order.status || 'pending';
+                    const badgeClass = { pending:'badge-pending', processing:'badge-processing', shipped:'badge-shipped', delivered:'badge-approved', cancelled:'badge-rejected' }[status] || 'badge-pending';
+                    const date = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+                    return `<div class="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors">
+                        <div><p class="font-bold text-sm text-gray-800">${sanitize(order.customerInfo?.name || 'Customer')}</p><p class="text-xs text-gray-400">${date} · #${order.id.slice(-6).toUpperCase()}</p></div>
+                        <div class="text-right"><p class="font-black text-pk text-sm">Rs.${myTotal.toLocaleString()}</p><span class="badge ${badgeClass} text-[10px] capitalize">${status}</span></div>
+                    </div>`;
+                }).join('');
+            }
+        }
+    }
+
+    // Order filter tabs
+    document.querySelectorAll('[data-order-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentOrderFilter = btn.dataset.orderFilter;
+            document.querySelectorAll('[data-order-filter]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderOrders(allOrders);
+        });
+    });
+
+    // ─── STATS ────────────────────────────────────────────────────
+    function computeStats(orders) {
+        const pending   = orders.filter(o => (o.status||'pending') === 'pending').length;
+        const totalRevenue = orders
+            .filter(o => o.status === 'delivered')
+            .reduce((sum, order) => {
+                const myItems = (order.items||[]).filter(i => i.sellerUid === currentUser.uid);
+                return sum + myItems.reduce((s,i) => s + (parseFloat(i.price)*(i.quantity||1)), 0);
+            }, 0);
+
+        document.getElementById('stat-orders').textContent  = orders.length;
+        document.getElementById('stat-pending').textContent  = pending;
+        document.getElementById('stat-revenue').textContent  = 'Rs.' + totalRevenue.toLocaleString();
+    }
+
+    function loadStats() { /* called after loadMyOrders populates allOrders */ }
+
+    // ─── EARNINGS ─────────────────────────────────────────────────
+    function renderEarnings(orders) {
+        const delivered = orders.filter(o => o.status === 'delivered');
+        const now = new Date();
+        const thisMonth = delivered.filter(o => {
+            if (!o.createdAt?.toDate) return false;
+            const d = o.createdAt.toDate();
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        });
+
+        const totalEarned = delivered.reduce((sum, order) => {
+            return sum + (order.items||[]).filter(i => i.sellerUid === currentUser.uid)
+                .reduce((s,i) => s + (parseFloat(i.price)*(i.quantity||1)), 0);
+        }, 0);
+        const monthEarned = thisMonth.reduce((sum, order) => {
+            return sum + (order.items||[]).filter(i => i.sellerUid === currentUser.uid)
+                .reduce((s,i) => s + (parseFloat(i.price)*(i.quantity||1)), 0);
+        }, 0);
+
+        document.getElementById('earn-total').textContent     = 'Rs. ' + totalEarned.toLocaleString();
+        document.getElementById('earn-month').textContent     = 'Rs. ' + monthEarned.toLocaleString();
+        document.getElementById('earn-delivered').textContent = delivered.length;
+
+        const earningsList = document.getElementById('earnings-list');
+        if (delivered.length === 0) {
+            earningsList.innerHTML = `<p class="text-center py-8 text-gray-400">No completed orders yet.</p>`;
+            return;
+        }
+        earningsList.innerHTML = delivered.slice(0,20).map(order => {
+            const myItems = (order.items||[]).filter(i => i.sellerUid === currentUser.uid);
+            const earned  = myItems.reduce((s,i) => s+(parseFloat(i.price)*(i.quantity||1)),0);
+            const date    = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'N/A';
+            return `<div class="flex justify-between items-center py-3 border-b last:border-0">
+                <div><p class="font-semibold text-gray-700">#${order.id.slice(-8).toUpperCase()}</p><p class="text-xs text-gray-400">${date}</p></div>
+                <p class="font-black text-emerald-600">+ Rs. ${earned.toLocaleString()}</p>
+            </div>`;
+        }).join('');
+    }
+
+    // ─── SHOW ORDER DETAIL ────────────────────────────────────────
+    window.showOrderDetail = function(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) return;
+        const myItems = (order.items||[]).filter(i => i.sellerUid === currentUser.uid);
+        const myTotal = myItems.reduce((s,i) => s+(parseFloat(i.price)*(i.quantity||1)),0);
+        const ci = order.customerInfo || {};
+        const status = order.status || 'pending';
+        const badgeClass = { pending:'badge-pending', processing:'badge-processing', shipped:'badge-shipped', delivered:'badge-approved', cancelled:'badge-rejected' }[status] || 'badge-pending';
+
+        document.getElementById('order-detail-content').innerHTML = `
+            <div class="flex justify-between items-start">
+                <div><p class="text-xs text-gray-400">Order ID</p><p class="font-bold">#${orderId.slice(-10).toUpperCase()}</p></div>
+                <span class="badge ${badgeClass} capitalize">${status}</span>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4">
+                <p class="font-bold text-xs text-gray-400 uppercase mb-2">Customer</p>
+                <p class="font-bold">${sanitize(ci.name||'')}</p>
+                <p class="text-gray-500">${sanitize(ci.phone||'')} · ${sanitize(ci.email||'')}</p>
+                <p class="text-gray-500 mt-1">${sanitize(ci.address||'')}${ci.city ? ', '+sanitize(ci.city) : ''}</p>
+            </div>
+            <div>
+                <p class="font-bold text-xs text-gray-400 uppercase mb-2">Your Items in This Order</p>
+                ${myItems.map(item => `
+                    <div class="flex items-center gap-3 py-2 border-b last:border-0">
+                        <img src="${sanitize(item.imageUrl || item.images?.[0] || 'https://placehold.co/60')}" class="w-12 h-12 rounded-xl object-cover bg-gray-100">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-gray-800 text-xs truncate">${sanitize(item.name||'')}</p>
+                            <p class="text-xs text-gray-400">${sanitize(Object.values(item.variations||{}).join(' / '))}</p>
+                        </div>
+                        <div class="text-right text-xs">
+                            <p class="font-black text-pk">Rs. ${(parseFloat(item.price)||0).toLocaleString()}</p>
+                            <p class="text-gray-400">× ${item.quantity||1}</p>
+                        </div>
+                    </div>`).join('')}
+            </div>
+            <div class="flex justify-between items-center bg-pink-50 rounded-xl p-4">
+                <p class="font-bold text-gray-700">Your Earnings</p>
+                <p class="text-xl font-black text-pk">Rs. ${myTotal.toLocaleString()}</p>
+            </div>
+            <div>
+                <p class="font-bold text-xs text-gray-400 uppercase mb-2">Update Status</p>
+                <div class="flex gap-2 flex-wrap">
+                    ${['pending','processing','shipped','delivered'].map(s =>
+                        `<button onclick="updateOrderStatus('${orderId}','${s}')" class="text-xs px-3 py-2 rounded-xl border font-bold transition-all ${status===s?'bg-pk text-white border-pk':'border-gray-200 text-gray-500 hover:border-pk hover:text-pk'} capitalize">${s}</button>`
+                    ).join('')}
+                </div>
+            </div>`;
+        document.getElementById('order-modal').classList.add('open');
+    };
+
+    window.updateOrderStatus = async function(orderId, newStatus) {
+        try {
+            await updateDoc(doc(db, 'orders', orderId), { status: newStatus, updatedAt: serverTimestamp() });
+            document.getElementById('order-modal').classList.remove('open');
+        } catch(e) { alert('Error: ' + e.message); }
+    };
+
+    document.getElementById('close-order-modal')?.addEventListener('click', () => document.getElementById('order-modal').classList.remove('open'));
+
+    // ─── PRODUCT MODAL ────────────────────────────────────────────
+    function openAddProductModal() {
+        editingProductId = null;
+        productImages = [];
+        variationCount = 0;
+        document.getElementById('modal-title').textContent = 'Add New Product';
+        document.getElementById('p-name').value = '';
+        document.getElementById('p-price').value = '';
+        document.getElementById('p-orig-price').value = '';
+        document.getElementById('p-resell-price').value = '';
+        document.getElementById('p-delivery').value = '';
+        document.getElementById('p-stock').value = '10';
+        document.getElementById('p-weight').value = '';
+        document.getElementById('p-description').value = '';
+        document.getElementById('p-delivery-info').value = '';
+        document.getElementById('p-category').value = '';
+        document.getElementById('p-subcategory').value = '';
+        document.getElementById('variations-container').innerHTML = '';
+        renderImagePreviews();
+        document.getElementById('product-save-error').classList.add('hidden');
+        document.getElementById('product-modal').classList.add('open');
+    }
+
+    window.editProduct = async function(productId) {
+        const snap = await getDoc(doc(db, publicDataPath, 'products', productId));
+        if (!snap.exists()) return;
+        const p = snap.data();
+        editingProductId = productId;
+        productImages = p.images || (p.imageUrl ? [p.imageUrl] : []);
+        document.getElementById('modal-title').textContent = 'Edit Product';
+        document.getElementById('p-name').value         = p.name || '';
+        document.getElementById('p-price').value        = p.price || '';
+        document.getElementById('p-orig-price').value   = p.originalPrice || '';
+        document.getElementById('p-resell-price').value = p.resellPrice || '';
+        document.getElementById('p-delivery').value     = p.deliveryPrice || '';
+        document.getElementById('p-stock').value        = p.stock ?? 10;
+        document.getElementById('p-weight').value       = p.weight || '';
+        document.getElementById('p-description').value  = p.description || '';
+        document.getElementById('p-delivery-info').value = p.deliveryDetails || '';
+        document.getElementById('p-category').value     = p.category || '';
+        document.getElementById('p-subcategory').value  = p.subCategory || '';
+
+        // Render variations
+        variationCount = 0;
+        document.getElementById('variations-container').innerHTML = '';
+        if (p.variations && Array.isArray(p.variations)) {
+            p.variations.forEach(v => addVariationGroup(v));
+        }
+
+        renderImagePreviews();
+        document.getElementById('product-save-error').classList.add('hidden');
+        document.getElementById('product-modal').classList.add('open');
+    };
+
+    window.deleteProduct = async function(productId, name) {
+        if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+        await deleteDoc(doc(db, publicDataPath, 'products', productId));
+    };
+
+    document.getElementById('add-product-btn')?.addEventListener('click', openAddProductModal);
+    document.getElementById('add-product-quick-btn')?.addEventListener('click', openAddProductModal);
+    document.getElementById('close-product-modal')?.addEventListener('click', () => document.getElementById('product-modal').classList.remove('open'));
+    document.getElementById('cancel-product-btn')?.addEventListener('click', () => document.getElementById('product-modal').classList.remove('open'));
+
+    // ─── IMAGE UPLOAD ─────────────────────────────────────────────
+    document.getElementById('upload-image-btn')?.addEventListener('click', () => document.getElementById('image-upload-input').click());
+
+    document.getElementById('image-upload-input')?.addEventListener('change', async e => {
+        const files = Array.from(e.target.files);
+        if (productImages.length + files.length > 5) { alert('Maximum 5 images allowed.'); return; }
+        const progEl = document.getElementById('upload-progress-text');
+        progEl.textContent = 'Uploading...';
+        document.getElementById('upload-image-btn').disabled = true;
+
+        for (const file of files) {
+            try {
+                const url = await uploadToImgBB(file);
+                productImages.push(url);
+                renderImagePreviews();
+            } catch(err) { alert('Upload failed: ' + err.message); }
+        }
+        progEl.textContent = '';
+        document.getElementById('upload-image-btn').disabled = false;
+        e.target.value = '';
+    });
+
+    async function uploadToImgBB(file) {
+        const formData = new FormData();
+        formData.append('image', file);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) return data.data.url;
+        throw new Error(data.error?.message || 'Upload failed');
+    }
+
+    function renderImagePreviews() {
+        const area = document.getElementById('image-preview-area');
+        const noText = document.getElementById('no-images-text');
+        if (productImages.length === 0) {
+            area.innerHTML = '';
+            area.appendChild(noText || Object.assign(document.createElement('p'), { className:'text-sm text-gray-400 self-center w-full text-center', textContent:'No images yet.' }));
+            return;
+        }
+        area.innerHTML = productImages.map((url, i) => `
+            <div class="relative group">
+                <img src="${url}" class="img-thumb ${i===0?'selected':''}">
+                <button onclick="removeImage(${i})" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">&times;</button>
+                ${i===0?'<p class="text-[9px] text-center text-pk font-bold mt-0.5">Cover</p>':''}
+            </div>`).join('');
+    }
+
+    window.removeImage = function(idx) {
+        productImages.splice(idx, 1);
+        renderImagePreviews();
+    };
+
+    // ─── VARIATIONS ───────────────────────────────────────────────
+    document.getElementById('add-variation-btn')?.addEventListener('click', () => addVariationGroup());
+
+    function addVariationGroup(existing = null) {
+        variationCount++;
+        const id = variationCount;
+        const div = document.createElement('div');
+        div.id = `var-group-${id}`;
+        div.className = 'bg-gray-50 rounded-xl p-3 space-y-2';
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <input type="text" placeholder="Group name (e.g. Size, Color)" value="${sanitize(existing?.name||'')}"
+                    class="form-input flex-1 text-sm" id="var-name-${id}">
+                <button onclick="document.getElementById('var-group-${id}').remove()" class="text-red-400 hover:text-red-600 text-lg font-bold px-2">&times;</button>
+            </div>
+            <div id="var-options-${id}" class="space-y-1">
+                ${(existing?.options||[{name:''}]).map((opt,oi) => `
+                <div class="flex gap-2">
+                    <input type="text" placeholder="Option (e.g. S, M, Red)" value="${sanitize(opt.name||'')}"
+                        class="form-input flex-1 text-sm var-option-name" id="var-opt-name-${id}-${oi}">
+                    <input type="number" placeholder="Extra price" value="${opt.price||0}"
+                        class="form-input w-28 text-sm" id="var-opt-price-${id}-${oi}">
+                </div>`).join('')}
+            </div>
+            <button onclick="addVariationOption(${id})" class="text-xs text-pk font-bold hover:underline">+ Add Option</button>`;
+        document.getElementById('variations-container').appendChild(div);
+    }
+
+    window.addVariationOption = function(groupId) {
+        const container = document.getElementById(`var-options-${groupId}`);
+        const optIdx = container.children.length;
+        const div = document.createElement('div');
+        div.className = 'flex gap-2';
+        div.innerHTML = `
+            <input type="text" placeholder="Option (e.g. S, M, Red)" class="form-input flex-1 text-sm var-option-name" id="var-opt-name-${groupId}-${optIdx}">
+            <input type="number" placeholder="Extra price" value="0" class="form-input w-28 text-sm" id="var-opt-price-${groupId}-${optIdx}">`;
+        container.appendChild(div);
+    };
+
+    function collectVariations() {
+        const groups = document.querySelectorAll('#variations-container > div');
+        return Array.from(groups).map(g => {
+            const gid = g.id.replace('var-group-','');
+            const name = document.getElementById(`var-name-${gid}`)?.value.trim() || '';
+            const optRows = document.querySelectorAll(`#var-options-${gid} > div`);
+            const options = Array.from(optRows).map((row, oi) => ({
+                name:  document.getElementById(`var-opt-name-${gid}-${oi}`)?.value.trim() || '',
+                price: parseFloat(document.getElementById(`var-opt-price-${gid}-${oi}`)?.value) || 0
+            })).filter(o => o.name);
+            return { name, options };
+        }).filter(g => g.name && g.options.length > 0);
+    }
+
+    // ─── SAVE PRODUCT ─────────────────────────────────────────────
+    document.getElementById('save-product-btn')?.addEventListener('click', async () => {
+        const errEl = document.getElementById('product-save-error');
+        errEl.classList.add('hidden');
+        const name  = document.getElementById('p-name').value.trim();
+        const price = parseFloat(document.getElementById('p-price').value);
+        if (!name)          { errEl.textContent = 'Product name is required.'; errEl.classList.remove('hidden'); return; }
+        if (!price || price <= 0) { errEl.textContent = 'Please enter a valid selling price.'; errEl.classList.remove('hidden'); return; }
+        if (productImages.length === 0) { errEl.textContent = 'Please upload at least one product image.'; errEl.classList.remove('hidden'); return; }
+
+        const shopName = sellerData?.sellerDetails?.shopName || sellerData?.displayName || '';
+        const productData = {
+            name,
+            price,
+            originalPrice:  parseFloat(document.getElementById('p-orig-price').value)   || 0,
+            resellPrice:    parseFloat(document.getElementById('p-resell-price').value)  || 0,
+            deliveryPrice:  parseFloat(document.getElementById('p-delivery').value)      || 0,
+            stock:          parseInt(document.getElementById('p-stock').value)           || 0,
+            weight:         parseFloat(document.getElementById('p-weight').value)        || 0,
+            description:    document.getElementById('p-description').value.trim(),
+            deliveryDetails: document.getElementById('p-delivery-info').value.trim(),
+            category:       document.getElementById('p-category').value,
+            subCategory:    document.getElementById('p-subcategory').value.trim(),
+            images:         productImages,
+            imageUrl:       productImages[0] || '',
+            variations:     collectVariations(),
+            sellerUid:      currentUser.uid,
+            sellerName:     shopName,
+            isApproved:     null,    // null = pending admin review
+            updatedAt:      serverTimestamp()
+        };
+
+        const btn = document.getElementById('save-product-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>Saving...';
+
+        try {
+            if (editingProductId) {
+                await updateDoc(doc(db, publicDataPath, 'products', editingProductId), productData);
+            } else {
+                productData.createdAt = serverTimestamp();
+                await addDoc(collection(db, publicDataPath, 'products'), productData);
+            }
+            document.getElementById('product-modal').classList.remove('open');
+        } catch(e) {
+            errEl.textContent = 'Error: ' + e.message;
+            errEl.classList.remove('hidden');
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-check mr-2"></i>Submit for Review';
+    });
+
+    // ─── BANNER & LOGO UPLOAD ─────────────────────────────────────
+    let profileBannerUrl = '';
+    let profileLogoUrl   = '';
+
+    function initProfileImages() {
+        const sd = sellerData?.sellerDetails || {};
+        if (sd.bannerUrl) {
+            profileBannerUrl = sd.bannerUrl;
+            const img = document.getElementById('banner-preview-img');
+            img.src = sd.bannerUrl; img.classList.remove('hidden');
+        }
+        if (sd.logoUrl) {
+            profileLogoUrl = sd.logoUrl;
+            const img = document.getElementById('logo-preview-img');
+            img.src = sd.logoUrl; img.classList.remove('hidden');
+            document.getElementById('profile-avatar-circle').classList.add('hidden');
+        }
+    }
+
+    document.getElementById('upload-banner-btn')?.addEventListener('click', () =>
+        document.getElementById('banner-file-input').click());
+
+    document.getElementById('upload-logo-btn')?.addEventListener('click', () =>
+        document.getElementById('logo-file-input').click());
+
+    document.getElementById('banner-file-input')?.addEventListener('change', async e => {
+        const file = e.target.files[0]; if (!file) return;
+        const statusEl = document.getElementById('upload-status-text');
+        statusEl.textContent = '⬆️ Uploading banner...'; statusEl.classList.remove('hidden');
+        try {
+            profileBannerUrl = await uploadToImgBB(file);
+            const img = document.getElementById('banner-preview-img');
+            img.src = profileBannerUrl; img.classList.remove('hidden');
+            statusEl.textContent = '✅ Banner ready — click Save Changes';
+        } catch(err) { statusEl.textContent = '❌ Upload failed: ' + err.message; }
+        e.target.value = '';
+    });
+
+    document.getElementById('logo-file-input')?.addEventListener('change', async e => {
+        const file = e.target.files[0]; if (!file) return;
+        const statusEl = document.getElementById('upload-status-text');
+        statusEl.textContent = '⬆️ Uploading logo...'; statusEl.classList.remove('hidden');
+        try {
+            profileLogoUrl = await uploadToImgBB(file);
+            const img = document.getElementById('logo-preview-img');
+            img.src = profileLogoUrl; img.classList.remove('hidden');
+            document.getElementById('profile-avatar-circle').classList.add('hidden');
+            statusEl.textContent = '✅ Logo ready — click Save Changes';
+        } catch(err) { statusEl.textContent = '❌ Upload failed: ' + err.message; }
+        e.target.value = '';
+    });
+
+    // ─── SAVE PROFILE ─────────────────────────────────────────────
+    document.getElementById('save-profile-btn')?.addEventListener('click', async () => {
+        if (!currentUser) return;
+        const msgEl = document.getElementById('profile-save-msg');
+        const statusEl = document.getElementById('upload-status-text');
+        const btn = document.getElementById('save-profile-btn');
+        btn.disabled = true;
+        try {
+            const updates = {
+                'sellerDetails.shopName':    document.getElementById('profile-shop-name').value.trim(),
+                'sellerDetails.phone':       document.getElementById('profile-phone').value.trim(),
+                'sellerDetails.whatsapp':    document.getElementById('profile-whatsapp').value.trim(),
+                'sellerDetails.description': document.getElementById('profile-description').value.trim(),
+                'sellerDetails.bankName':    document.getElementById('profile-bank').value.trim(),
+                'sellerDetails.accountNo':   document.getElementById('profile-account').value.trim(),
+                'displayName':               document.getElementById('profile-shop-name').value.trim(),
+                'updatedAt':                 serverTimestamp()
+            };
+            if (profileBannerUrl) updates['sellerDetails.bannerUrl'] = profileBannerUrl;
+            if (profileLogoUrl)   updates['sellerDetails.logoUrl']   = profileLogoUrl;
+
+            await updateDoc(doc(db, usersPath, currentUser.uid), updates);
+            msgEl.classList.remove('hidden');
+            statusEl.classList.add('hidden');
+            setTimeout(() => msgEl.classList.add('hidden'), 3000);
+            const newName = updates['sellerDetails.shopName'];
+            document.querySelectorAll('#sidebar-shop-name, #mobile-shop-name, #mobile-sidebar-shop, #overview-name, #profile-shop-name-display').forEach(el => { if(el) el.textContent = newName; });
+        } catch(e) { alert('Error saving: ' + e.message); }
+        btn.disabled = false;
+    });
+
+</script>
+</body>
+</html>

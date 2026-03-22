@@ -683,11 +683,11 @@
             });
         }
 
-        const updateWishlistCountBadge = () => {
+        const updateWishlistCountBadge = (count = 0) => {
             const desktopBadge = document.getElementById('wishlist-count-badge');
             const mobileBadge = document.getElementById('mobile-wishlist-badge');
-            if (desktopBadge) desktopBadge.textContent = '0';
-            if (mobileBadge) mobileBadge.textContent = '0';
+            if (desktopBadge) desktopBadge.textContent = count;
+            if (mobileBadge) mobileBadge.textContent = count;
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -708,6 +708,8 @@
                 loggedOutView.classList.remove('flex');
                 document.getElementById('account-drawer-user-email').textContent = user.email;
                 attachCartDrawerListener(user.uid);
+                // Real-time wishlist count
+                onSnapshot(collection(db, usersPath, user.uid, 'wishlist'), snap => updateWishlistCountBadge(snap.size));
 
                 desktopAccountBtn.href = "account.html";
                 desktopAccountBtn.addEventListener('click', (e) => { 
@@ -1051,6 +1053,7 @@
                     if (querySnapshot.empty) { gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">No products found.</p>'; return; }
                     querySnapshot.forEach((doc) => {
                         const product = doc.data();
+                        if (product.isApproved === false) return; // skip rejected
                         const productId = doc.id;
                         // ── Cache for search suggestions ──
                         if (!window._idxProductCache) window._idxProductCache = new Map();
@@ -1171,6 +1174,7 @@
                     if (querySnapshot.empty) { gridEl.innerHTML = '<p class="col-span-full text-gray-500 text-center">No new products.</p>'; return; }
                     querySnapshot.forEach((doc) => {
                         const product = doc.data();
+                        if (product.isApproved === false) return; // skip rejected
                         const productId = doc.id;
                         // ── Cache for search suggestions ──
                         if (!window._idxProductCache) window._idxProductCache = new Map();
@@ -1462,7 +1466,7 @@
 
     function startListening(uid) {
         // Listen to user-specific + public notifications
-        const userNotifRef = collection(db, 'users', uid, 'notifications');
+        const userNotifRef = collection(db, usersPath, uid, 'notifications');
         const q = query(userNotifRef, orderBy('createdAt', 'desc'), limit(20));
 
         unsubNotif = onSnapshot(q, (snap) => {
@@ -1522,7 +1526,7 @@
         const user = auth.currentUser;
         if (!user) return;
         try {
-            const q = query(collection(db, 'users', user.uid, 'notifications'), where('read', '==', false));
+            const q = query(collection(db, usersPath, user.uid, 'notifications'), where('read', '==', false));
             const snap = await getDocs(q);
             if (snap.empty) return;
             const batch = writeBatch(db);

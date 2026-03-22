@@ -2,7 +2,7 @@
 <html lang="si">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Shop - TUTU Fashion</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,6 +41,8 @@
     <style type="text/tailwindcss">
         body {
             @apply font-sans text-gray-800 bg-white;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .sale-tag {
             @apply absolute top-0 right-0 bg-mudalali-green text-white text-xs font-bold px-3 py-1;
@@ -210,7 +212,7 @@
                 <div class="col-span-2 md:col-span-1"><h4 class="font-bold text-gray-800 mb-4">FOLLOW US</h4><div id="footer-socials" class="flex space-x-4 mb-4 text-mudalali-green text-xl"></div><h4 class="font-bold text-gray-800 mb-4 mt-6">PAYMENTS</h4><div class="flex space-x-2 opacity-70 grayscale hover:grayscale-0 transition-all"><img src="https://i.ibb.co/fDYrL3g/visa.png" alt="Visa" class="h-6"><img src="https://i.ibb.co/7rmXz4F/mastercard.png" alt="Mastercard" class="h-6"><img src="https://i.ibb.co/C0W2LFr/amex.png" alt="Amex" class="h-6"></div></div>
             </div>
             <div class="border-t border-gray-200 pt-6 text-sm text-center md:flex justify-between text-gray-400">
-                <p>&copy; 2025 Pink Store. All Rights reserved.</p>
+                <p>&copy; 2025 TUTU. All Rights reserved.</p>
                 <div class="space-x-4 mt-4 md:mt-0"><a href="#" class="hover:text-mudalali-green">Terms</a><span>|</span><a href="#" class="hover:text-mudalali-green">Privacy</a></div>
             </div>
         </div>
@@ -914,16 +916,22 @@
             try {
                 const productsRef = collection(db, publicDataPath, 'products');
                 let q;
+                const urlQ = new URLSearchParams(window.location.search).get('q');
+                const searchTerm = urlQ ? decodeURIComponent(urlQ).trim() : null;
 
-                // UPDATE: Changed query to check both category AND subCategory
                 if (categoryName) {
-                    q = query(productsRef, 
+                    // Category filter — load up to 500
+                    q = query(productsRef,
                         or(
                             where("category", "==", categoryName),
-                            where("subCategory", "==", categoryName) // Assumes DB field is 'subCategory'
-                        ), 
-                        limit(100)
+                            where("subCategory", "==", categoryName)
+                        ),
+                        limit(500)
                     );
+                } else if (searchTerm) {
+                    // Search mode — load ALL products (no limit, or high limit)
+                    // Firestore doesn't support full-text search, so we fetch all and filter client-side
+                    q = query(productsRef, orderBy("createdAt", "desc"), limit(1000));
                 } else {
                     q = query(productsRef, orderBy("createdAt", "desc"), limit(100));
                 }
@@ -933,7 +941,11 @@
                 // Store data in global variable for filtering
                 allLoadedProducts = [];
                 querySnapshot.forEach((doc) => {
-                    allLoadedProducts.push({ id: doc.id, ...doc.data() });
+                    const p = doc.data();
+                    // Hide rejected products (isApproved===false). null=pending, true=approved — both show.
+                    if (p.isApproved !== false) {
+                        allLoadedProducts.push({ id: doc.id, ...p });
+                    }
                 });
 
                 // Hide page loader
@@ -945,7 +957,6 @@
                 loader.classList.add('hidden'); 
                 
                 // Initial Render - check ?q= URL param first
-                const urlQ = new URLSearchParams(window.location.search).get('q');
                 if (urlQ) {
                     const decoded = decodeURIComponent(urlQ).toLowerCase().trim();
                     const filtered = allLoadedProducts.filter(p =>
@@ -1264,11 +1275,11 @@
             });
         }
 
-        const updateWishlistCountBadge = () => {
+        const updateWishlistCountBadge = (count = 0) => {
             const desktopBadge = document.getElementById('wishlist-count-badge');
             const mobileBadge = document.getElementById('mobile-wishlist-badge');
-            if (desktopBadge) desktopBadge.textContent = '0';
-            if (mobileBadge) mobileBadge.textContent = '0';
+            if (desktopBadge) desktopBadge.textContent = count;
+            if (mobileBadge) mobileBadge.textContent = count;
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -1290,6 +1301,8 @@
                 loggedOutView.classList.remove('flex');
                 document.getElementById('account-drawer-user-email').textContent = user.email;
                 attachCartDrawerListener(user.uid);
+                // Real-time wishlist count
+                onSnapshot(collection(db, usersPath, user.uid, 'wishlist'), snap => updateWishlistCountBadge(snap.size));
 
                 desktopAccountBtn.href = "account.html";
                 desktopAccountBtn.addEventListener('click', (e) => { 
@@ -1495,5 +1508,6 @@
         }
 
 </script>
+    <script src="app-back.js"></script>
 </body>
 </html>

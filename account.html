@@ -137,8 +137,9 @@
                             <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-2 mb-6">
+                        <div class="grid grid-cols-4 gap-2 mb-6">
                             <label class="user-type-label"><input type="radio" name="userType" value="customer" class="hidden" checked><i class="fa fa-shopping-bag"></i> Customer</label>
+                            <label class="user-type-label"><input type="radio" name="userType" value="seller" class="hidden"><i class="fa fa-store"></i> Seller</label>
                             <label class="user-type-label"><input type="radio" name="userType" value="affiliate" class="hidden"><i class="fa fa-bullhorn"></i> Affiliate</label>
                             <label class="user-type-label"><input type="radio" name="userType" value="reseller" class="hidden"><i class="fa fa-handshake"></i> Reseller</label>
                         </div>
@@ -153,6 +154,18 @@
                                 <input type="url" id="reg-youtube" placeholder="YouTube" class="form-input text-sm">
                                 <input type="url" id="reg-facebook" placeholder="Facebook" class="form-input text-sm">
                                 <input type="url" id="reg-tiktok-insta" placeholder="TikTok/Insta" class="form-input text-sm">
+                            </div>
+
+                            <div id="seller-fields" class="hidden space-y-3 pt-3 border-t border-pink-100 bg-pink-50/50 p-4 rounded-xl">
+                                <h3 class="text-sm font-bold text-mudalali-green-dark flex items-center gap-2"><i class="fa fa-store"></i> Seller Details</h3>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">Shop / Store Name *</label><input type="text" id="sel-shop-name" placeholder="My Fashion Store" class="form-input text-sm"></div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-1">Mobile *</label><input type="tel" id="sel-phone" placeholder="077xxxxxxx" class="form-input text-sm"></div>
+                                    <div><label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp</label><input type="tel" id="sel-whatsapp" placeholder="077xxxxxxx" class="form-input text-sm"></div>
+                                </div>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">Business Description</label><textarea id="sel-description" rows="2" placeholder="What do you sell?" class="form-input text-sm resize-none"></textarea></div>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">NIC / Business Reg. No. *</label><input type="text" id="sel-nic" placeholder="98xxxxxxxV" class="form-input text-sm uppercase"></div>
+                                <p class="text-xs text-gray-400 italic">📋 Your seller account will be reviewed by admin before going live.</p>
                             </div>
 
                             <div id="reseller-fields" class="hidden space-y-3 pt-3 border-t border-rose-100 bg-rose-50/50 p-4 rounded-xl">
@@ -386,6 +399,7 @@
         if (userDoc.exists()) {
             const data = userDoc.data();
             if (data.isAffiliate || data.wantsToBeAffiliate) window.location.href = 'affiliate-dashboard.html';
+            else if (data.isSeller || data.role === 'seller' || data.role === 'seller_pending' || data.wantsToBeASeller) window.location.href = 'seller-dashboard.html';
             else if (data.role === 'reseller' || data.wantsToBeReseller) window.location.href = 'reseller-dashboard.html';
             else window.location.href = 'customer-account.html';
         } else window.location.href = 'customer-account.html';
@@ -492,13 +506,16 @@
         const userTypeRadios = document.querySelectorAll('input[name="userType"]');
         const affiliateFields = document.getElementById('affiliate-fields');
         const resellerFields = document.getElementById('reseller-fields');
+        const sellerFields = document.getElementById('seller-fields');
         
         userTypeRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
                 affiliateFields.classList.add('hidden');
                 resellerFields.classList.add('hidden');
+                if (sellerFields) sellerFields.classList.add('hidden');
                 if (e.target.value === 'affiliate') affiliateFields.classList.remove('hidden');
                 else if (e.target.value === 'reseller') resellerFields.classList.remove('hidden');
+                else if (e.target.value === 'seller' && sellerFields) sellerFields.classList.remove('hidden');
             });
         });
 
@@ -586,6 +603,26 @@
                     userData.role = "reseller_pending";
                     userData.wantsToBeReseller = true;
                     userData.resellerDetails = resellerData;
+                } else if (userType === 'seller') {
+                    const shopName = document.getElementById('sel-shop-name').value.trim();
+                    const selPhone = document.getElementById('sel-phone').value.trim();
+                    const selNic   = document.getElementById('sel-nic').value.trim();
+                    if (!shopName) throw new Error("Please enter your Shop Name.");
+                    if (!selPhone) throw new Error("Please enter your Mobile Number.");
+                    if (!selNic)   throw new Error("Please enter your NIC / Business Reg. No.");
+                    userData.isSeller = false; // becomes true after admin approval
+                    userData.role = "seller_pending";
+                    userData.wantsToBeASeller = true;
+                    userData.sellerDetails = {
+                        shopName,
+                        phone: selPhone,
+                        whatsapp: document.getElementById('sel-whatsapp').value.trim(),
+                        description: document.getElementById('sel-description').value.trim(),
+                        nic: selNic,
+                        isApproved: false,
+                        appliedAt: serverTimestamp()
+                    };
+                    userData.displayName = shopName;
                 }
 
                 batch.set(userDocRef, userData);
@@ -598,6 +635,7 @@
                     window.location.href = decodeURIComponent(redirectTo);
                 } else if (userType === 'affiliate') window.location.href = 'affiliate-dashboard.html';
                 else if (userType === 'reseller') window.location.href = 'reseller-dashboard.html';
+                else if (userType === 'seller') window.location.href = 'seller-dashboard.html';
                 else window.location.href = 'customer-account.html';
 
             } catch (err) {

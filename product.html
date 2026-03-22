@@ -171,6 +171,10 @@
                             <button id="add-to-cart-btn" class="btn-secondary">Add to Cart</button>
                             <button id="buy-now-btn" class="btn-primary">Buy Now</button>
                         </div>
+                        <button id="wishlist-btn" class="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-gray-200 text-gray-500 hover:border-pink-300 hover:text-mudalali-green transition-all font-semibold text-sm">
+                            <i id="wishlist-icon" class="fa fa-heart-o text-lg"></i>
+                            <span id="wishlist-text">Add to Wishlist</span>
+                        </button>
                     </div>
                 </div>
 
@@ -239,9 +243,12 @@
 
     <script type="module">
                 // ── Firebase shared config (no more duplicates!) ──
-        import { db, auth, sanitize } from "./firebase-config.js";
+        import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
         import { doc, getDoc, getDocs, collection, onSnapshot, query, where, orderBy, limit, setDoc, deleteDoc, addDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const publicDataPath = PUBLIC_PATH;
+        const usersPath = USERS_PATH;
 
         let currentUser = null;
         let productData = null;
@@ -257,7 +264,7 @@ async function initProductPage() {
     if (!productId) return window.location.href = 'shop.html';
 
     try {
-        const docSnap = await getDoc(doc(db, '/artifacts/default-app-id/public/data/products', productId));
+        const docSnap = await getDoc(doc(db, publicDataPath, 'products', productId));
         if (!docSnap.exists()) return window.location.href = 'shop.html';
 
         productData = { id: docSnap.id, ...docSnap.data() };
@@ -498,12 +505,19 @@ function updatePriceDisplay(amount) {
 }
         async function loadSellerData(uid) {
             if (!uid) return;
-            const snap = await getDoc(doc(db, 'users', uid));
+            // First try sellerName from productData (faster, no extra fetch)
+            if (productData.sellerName) {
+                document.getElementById('seller-name').textContent = productData.sellerName;
+            }
+            // Then fetch full seller profile for logo and store link
+            const snap = await getDoc(doc(db, usersPath, uid));
             if (snap.exists()) {
                 const data = snap.data();
-                document.getElementById('seller-name').textContent = data.displayName || 'Pink Store Verified';
+                const shopName = data.sellerDetails?.shopName || data.displayName || 'Verified Seller';
+                document.getElementById('seller-name').textContent = shopName;
                 if (data.photoURL) document.getElementById('seller-logo').src = data.photoURL;
                 document.getElementById('seller-store-link').href = `store.html?uid=${uid}`;
+                document.getElementById('seller-store-link').textContent = 'View Store';
             }
         }
 
@@ -522,7 +536,7 @@ function updatePriceDisplay(amount) {
         </div>`).join('');
 
     try {
-        const q = query(collection(db, '/artifacts/default-app-id/public/data/products'), orderBy('createdAt', 'desc'), limit(13));
+        const q = query(collection(db, publicDataPath, 'products'), orderBy('createdAt', 'desc'), limit(13));
         const snap = await getDocs(q);
 
         grid.innerHTML = '';
@@ -571,7 +585,7 @@ function updatePriceDisplay(amount) {
 
         function loadReviews() {
             const list = document.getElementById('reviews-list');
-            const q = query(collection(db, '/artifacts/default-app-id/public/data/productReviews'), 
+            const q = query(collection(db, publicDataPath, 'productReviews'), 
                         where('productId', '==', productId), orderBy('createdAt', 'desc'));
             
             onSnapshot(q, snap => {
@@ -628,7 +642,7 @@ async function addToCart(buyNow = false) {
             addedAt: serverTimestamp()
         };
 
-        await setDoc(doc(db, 'users', currentUser.uid, 'cart', cartId), cartData, { merge: true });
+        await setDoc(doc(db, usersPath, currentUser.uid, 'cart', cartId), cartData, { merge: true });
         
         if (buyNow) {
             window.location.href = 'checkout.html';
@@ -650,6 +664,12 @@ async function addToCart(buyNow = false) {
             _pendingBuyNow = buyNow;
             const modal = document.getElementById('login-modal');
             const box   = document.getElementById('login-modal-box');
+
+            // Context-aware heading
+            document.getElementById('login-modal-subtitle').textContent = buyNow
+                ? 'Login කරලා order place කරන්න 🛍️'
+                : 'Login කරලා cart එකට add කරන්න 🛒';
+
             modal.classList.remove('hidden');
             requestAnimationFrame(() => {
                 box.classList.remove('scale-95','opacity-0');
@@ -729,7 +749,7 @@ async function addToCart(buyNow = false) {
         // Global Remove Function
         window.removeFromCart = async (id) => {
             if(!currentUser) return;
-            await deleteDoc(doc(db, 'users', currentUser.uid, 'cart', id));
+            await deleteDoc(doc(db, usersPath, currentUser.uid, 'cart', id));
         };
 
         // --- EVENT LISTENERS ---
@@ -741,6 +761,31 @@ async function addToCart(buyNow = false) {
         document.getElementById('cart-drawer-btn').onclick = () => document.getElementById('cart-drawer').classList.add('open');
         document.getElementById('close-cart').onclick = () => document.getElementById('cart-drawer').classList.remove('open');
         document.getElementById('cart-overlay').onclick = () => document.getElementById('cart-drawer').classList.remove('open');
+
+        // Wishlist Button
+        document.getElementById('wishlist-btn').onclick = async () => {
+            if (!currentUser) { alert('Please log in to use wishlist.'); return; }
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            if (!productId) return;
+            const wishlistRef = doc(db, usersPath, currentUser.uid, 'wishlist', productId);
+            const snap = await getDoc(wishlistRef);
+            if (snap.exists()) {
+                await deleteDoc(wishlistRef);
+                document.getElementById('wishlist-icon').className = 'fa fa-heart-o text-lg';
+                document.getElementById('wishlist-text').textContent = 'Add to Wishlist';
+            } else {
+                await setDoc(wishlistRef, {
+                    productId,
+                    name: productData?.name || '',
+                    price: productData?.price || 0,
+                    image: productData?.images?.[0] || '',
+                    addedAt: serverTimestamp()
+                });
+                document.getElementById('wishlist-icon').className = 'fa fa-heart text-lg text-mudalali-green';
+                document.getElementById('wishlist-text').textContent = 'Saved to Wishlist';
+            }
+        };
 
         // Tab Switching
         ['desc', 'delivery', 'reviews'].forEach(t => {
@@ -772,7 +817,7 @@ async function addToCart(buyNow = false) {
             const text = document.getElementById('review-text').value.trim();
             if(!text) return;
             try {
-                await addDoc(collection(db, '/artifacts/default-app-id/public/data/productReviews'), {
+                await addDoc(collection(db, publicDataPath, 'productReviews'), {
                     productId, userId: currentUser.uid, rating: currentRating, text, createdAt: serverTimestamp()
                 });
                 document.getElementById('review-form').reset();
@@ -785,7 +830,18 @@ async function addToCart(buyNow = false) {
             currentUser = user;
             if (user) {
                 document.getElementById('review-form-container').classList.remove('hidden');
-                onSnapshot(collection(db, 'users', user.uid, 'cart'), snap => {
+                // Check wishlist state
+                const params = new URLSearchParams(window.location.search);
+                const productId = params.get('id');
+                if (productId) {
+                    getDoc(doc(db, usersPath, user.uid, 'wishlist', productId)).then(snap => {
+                        if (snap.exists()) {
+                            document.getElementById('wishlist-icon').className = 'fa fa-heart text-lg text-mudalali-green';
+                            document.getElementById('wishlist-text').textContent = 'Saved to Wishlist';
+                        }
+                    });
+                }
+                onSnapshot(collection(db, usersPath, user.uid, 'cart'), snap => {
                     document.getElementById('cart-count-badge').textContent = snap.size;
                     const container = document.getElementById('cart-items-container');
                     let total = 0; 
@@ -862,10 +918,10 @@ async function addToCart(buyNow = false) {
         <!-- Header -->
         <div class="text-center mb-7">
             <div class="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i class="fa fa-user text-mudalali-green text-xl"></i>
+                <i class="fa fa-lock text-mudalali-green text-xl"></i>
             </div>
-            <h2 class="text-2xl font-black text-gray-900">Welcome Back</h2>
-            <p class="text-sm text-gray-400 mt-1">Login to continue shopping</p>
+            <h2 class="text-xl font-black text-gray-900">Login Required</h2>
+            <p id="login-modal-subtitle" class="text-sm text-gray-400 mt-1">Login කරලා continue කරන්න</p>
         </div>
 
         <!-- Form -->

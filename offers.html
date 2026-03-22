@@ -636,11 +636,11 @@
             });
         }
 
-        const updateWishlistCountBadge = () => {
+        const updateWishlistCountBadge = (count = 0) => {
             const desktopBadge = document.getElementById('wishlist-count-badge');
             const mobileBadge = document.getElementById('mobile-wishlist-badge');
-            if (desktopBadge) desktopBadge.textContent = '0';
-            if (mobileBadge) mobileBadge.textContent = '0';
+            if (desktopBadge) desktopBadge.textContent = count;
+            if (mobileBadge) mobileBadge.textContent = count;
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -665,6 +665,8 @@
                 loggedOutView.classList.remove('flex');
                 document.getElementById('account-drawer-user-email').textContent = user.email;
                 attachCartDrawerListener(user.uid);
+                // Real-time wishlist count
+                onSnapshot(collection(db, usersPath, user.uid, 'wishlist'), snap => updateWishlistCountBadge(snap.size));
 
                 desktopAccountBtn.href = "account.html";
                 desktopAccountBtn.addEventListener('click', (e) => {

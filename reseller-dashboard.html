@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Tutu Reseller | Rose Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -37,7 +37,8 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .animate-slide-up { animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    </style>
+            body { padding-top: env(safe-area-inset-top) !important; padding-bottom: env(safe-area-inset-bottom) !important; }
+        </style>
 </head>
 <body class="bg-rose-light text-gray-800 font-sans antialiased overflow-hidden">
 
@@ -154,10 +155,20 @@
             <div class="flex-1 overflow-y-auto p-5">
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="md:w-5/12">
-                        <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-center h-72 relative overflow-hidden group">
+                        <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-center h-72 relative overflow-hidden group cursor-zoom-in" onclick="openImgLightbox()">
                             <img id="modalImg" src="" class="max-h-full max-w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110">
                             <span id="modalWeightBadge" class="absolute top-3 left-3 bg-sidebar-dark text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg"></span>
+                            <!-- Gallery nav arrows -->
+                            <button id="modalGalleryPrev" onclick="event.stopPropagation();modalGalleryNav(-1)" class="hidden absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full shadow text-gray-600 hover:text-rose-500 flex items-center justify-center z-10"><i class="fa fa-chevron-left text-xs"></i></button>
+                            <button id="modalGalleryNext" onclick="event.stopPropagation();modalGalleryNav(1)" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full shadow text-gray-600 hover:text-rose-500 flex items-center justify-center z-10"><i class="fa fa-chevron-right text-xs"></i></button>
+                            <span id="modalGalleryCounter" class="hidden absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
                         </div>
+                        <!-- Thumbnail strip -->
+                        <div id="modalThumbnailStrip" class="hidden flex gap-2 mt-2 overflow-x-auto pb-1"></div>
+                        <!-- Download button -->
+                        <button onclick="downloadCurrentImage()" class="mt-2 w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold py-2.5 rounded-xl transition-all active:scale-95 shadow">
+                            <i class="fa fa-download"></i> Download Image
+                        </button>
                     </div>
                     <div class="md:w-7/12 space-y-5">
                         <div class="flex justify-between items-start gap-4">
@@ -326,6 +337,17 @@
         </div>
     </div>
 
+    <!-- Image Lightbox -->
+    <div id="imgLightbox" class="hidden fixed inset-0 z-[80] bg-black/95 flex items-center justify-center" onclick="closeImgLightbox()">
+        <button onclick="closeImgLightbox()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full text-white flex items-center justify-center z-10"><i class="fa fa-times"></i></button>
+        <button onclick="event.stopPropagation();modalGalleryNav(-1)" id="lbPrev" class="hidden absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full text-white flex items-center justify-center z-10"><i class="fa fa-chevron-left"></i></button>
+        <button onclick="event.stopPropagation();modalGalleryNav(1)" id="lbNext" class="hidden absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full text-white flex items-center justify-center z-10"><i class="fa fa-chevron-right"></i></button>
+        <img id="lbImg" src="" class="max-h-[90vh] max-w-[95vw] object-contain rounded-xl shadow-2xl" onclick="event.stopPropagation()">
+        <button onclick="event.stopPropagation();downloadCurrentImage()" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white text-gray-900 font-bold px-6 py-3 rounded-2xl shadow-xl hover:bg-gray-100 transition-all text-sm">
+            <i class="fa fa-download"></i> Download Image
+        </button>
+    </div>
+
     <!-- Invoice Modal (Slip Download) -->
     <div id="invoiceModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-sidebar-dark/80 backdrop-blur-sm" onclick="document.getElementById('invoiceModal').classList.add('hidden')"></div>
@@ -419,6 +441,8 @@
 
     let currentUser = null;
     let currentModalProduct = {};
+    let _galleryImages = [];
+    let _galleryIndex  = 0;
     let currentCartData = [];
     let lastVisibleProduct = null;
     let isProductsLoading = false;
@@ -592,6 +616,13 @@ window.openModal = (id) => {
     document.getElementById('modalTitle').innerText = product.name;
     const modalImgSrc = (product.images && product.images.length > 0) ? product.images[0] : (product.imageUrl || 'https://via.placeholder.com/300');
     document.getElementById('modalImg').src = modalImgSrc;
+
+    // ── Gallery setup ──
+    _galleryImages = (product.images && product.images.length > 0)
+        ? product.images
+        : (product.imageUrl ? [product.imageUrl] : ['https://via.placeholder.com/300']);
+    _galleryIndex = 0;
+    setupModalGallery();
     document.getElementById('modalDesc').innerText = product.description || '';
     document.getElementById('modalWeightBadge').innerText = `${product.weight || 0} KG`;
     document.getElementById('modalDeliveryCost').innerText = (product.deliveryPrice || 350).toLocaleString();
@@ -978,6 +1009,104 @@ window.updateDynamicPrices = () => {
         searchTimeout = setTimeout(() => loadProducts(true), 500);
     });
 
+    // ── IMAGE GALLERY ──────────────────────────────────────────
+    function setupModalGallery() {
+        const strip    = document.getElementById('modalThumbnailStrip');
+        const prevBtn  = document.getElementById('modalGalleryPrev');
+        const nextBtn  = document.getElementById('modalGalleryNext');
+        const counter  = document.getElementById('modalGalleryCounter');
+
+        const multi = _galleryImages.length > 1;
+
+        // Thumbnails
+        if (multi) {
+            strip.classList.remove('hidden');
+            strip.innerHTML = '';
+            _galleryImages.forEach((url, i) => {
+                const thumb = document.createElement('img');
+                thumb.src = url;
+                thumb.className = `w-14 h-14 object-cover rounded-lg border-2 cursor-pointer flex-shrink-0 transition-all ${i === 0 ? 'border-rose-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`;
+                thumb.onclick = () => setGalleryImage(i);
+                strip.appendChild(thumb);
+            });
+            prevBtn.classList.remove('hidden'); prevBtn.classList.add('flex');
+            nextBtn.classList.remove('hidden'); nextBtn.classList.add('flex');
+            counter.classList.remove('hidden');
+            counter.textContent = `1 / ${_galleryImages.length}`;
+        } else {
+            strip.classList.add('hidden');
+            prevBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            counter.classList.add('hidden');
+        }
+
+        // Lightbox nav
+        document.getElementById('lbPrev').classList.toggle('hidden', !multi);
+        document.getElementById('lbPrev').classList.toggle('flex', multi);
+        document.getElementById('lbNext').classList.toggle('hidden', !multi);
+        document.getElementById('lbNext').classList.toggle('flex', multi);
+    }
+
+    function setGalleryImage(idx) {
+        _galleryIndex = Math.max(0, Math.min(idx, _galleryImages.length - 1));
+        const url = _galleryImages[_galleryIndex];
+        document.getElementById('modalImg').src = url;
+        document.getElementById('lbImg').src = url;
+        // Counter
+        document.getElementById('modalGalleryCounter').textContent = `${_galleryIndex + 1} / ${_galleryImages.length}`;
+        // Thumbnails
+        document.querySelectorAll('#modalThumbnailStrip img').forEach((t, i) => {
+            t.className = `w-14 h-14 object-cover rounded-lg border-2 cursor-pointer flex-shrink-0 transition-all ${i === _galleryIndex ? 'border-rose-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`;
+        });
+    }
+
+    window.modalGalleryNav = (dir) => setGalleryImage(_galleryIndex + dir);
+
+    window.openImgLightbox = () => {
+        const lb = document.getElementById('imgLightbox');
+        document.getElementById('lbImg').src = _galleryImages[_galleryIndex];
+        lb.classList.remove('hidden');
+        lb.classList.add('flex');
+    };
+
+    window.closeImgLightbox = () => {
+        const lb = document.getElementById('imgLightbox');
+        lb.classList.add('hidden');
+        lb.classList.remove('flex');
+    };
+
+    // ── DOWNLOAD IMAGE ─────────────────────────────────────────
+    window.downloadCurrentImage = async () => {
+        const url = _galleryImages[_galleryIndex];
+        if (!url) return;
+
+        const btn = event?.currentTarget;
+        if (btn) { btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Downloading...'; btn.disabled = true; }
+
+        try {
+            // Fetch image as blob (works for cross-origin via proxy)
+            const response = await fetch(url, { mode: 'cors' });
+            if (!response.ok) throw new Error('fetch failed');
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            const productName = (currentModalProduct.name || 'product').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            a.href = blobUrl;
+            a.download = `${productName}_${_galleryIndex + 1}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        } catch (e) {
+            // Fallback: open in new tab if CORS blocks
+            window.open(url, '_blank');
+        }
+
+        if (btn) { btn.innerHTML = '<i class="fa fa-download"></i> Download Image'; btn.disabled = false; }
+    };
+
 </script>
+    <script src="app-back.js"></script>
 </body>
 </html>

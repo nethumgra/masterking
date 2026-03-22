@@ -352,7 +352,9 @@
                 loggedOutView.classList.remove('flex');
                 document.getElementById('account-drawer-user-email').textContent = user.email;
                 attachCartDrawerListener(user.uid);
-                loadCartPageItems(user.uid); 
+                loadCartPageItems(user.uid);
+                // Real-time wishlist count
+                onSnapshot(collection(db, usersPath, user.uid, 'wishlist'), snap => updateWishlistCountBadge(snap.size));
 
                 desktopAccountBtn.href = "account.html";
                 desktopAccountBtn.addEventListener('click', (e) => { 
@@ -617,6 +619,13 @@
                     setTimeout(() => badge.classList.remove('pop'), 200);
                 }
             });
+        }
+
+        function updateWishlistCountBadge(count = 0) {
+            const desktopBadge = document.getElementById('wishlist-count-badge');
+            const mobileBadge = document.getElementById('mobile-wishlist-badge');
+            if (desktopBadge) desktopBadge.textContent = count;
+            if (mobileBadge) mobileBadge.textContent = count;
         }
 
         function attachCartDrawerListener(userId) {

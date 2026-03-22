@@ -82,6 +82,18 @@
             </header>
 
             <div class="bg-white border-b border-rose-100 z-10 shrink-0 shadow-sm">
+
+                <!-- ── Tab Navigation ── -->
+                <div class="flex border-b border-gray-100 px-4">
+                    <button id="tab-orders" onclick="switchTab('orders')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-rose-primary text-rose-primary transition-all flex items-center gap-2">
+                        <i class="fa fa-box-open"></i> My Orders
+                    </button>
+                    <button id="tab-track" onclick="switchTab('track')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-all flex items-center gap-2">
+                        <i class="fa fa-search-location"></i> Track Order
+                    </button>
+                </div>
+
+                <div id="panel-orders">
                 <div class="px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-b border-gray-100">
                     <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
                         <p class="text-xs text-gray-500 uppercase font-bold">Orders (This View)</p>
@@ -132,11 +144,33 @@
                         </button>
                     </div>
                 </div>
-            </div>
+                </div><!-- end #panel-orders -->
+
+                <!-- ── Track Order Panel ── -->
+                <div id="panel-track" class="hidden px-6 py-5">
+                    <p class="text-xs text-gray-400 mb-3 font-medium">Order ID, Reference Number (RSL-001 වගේ) හෝ Customer Name ගහන්න</p>
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <input type="text" id="trackInput" placeholder="e.g. RSL-001  or  abc12345  or  Kamal" 
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-rose-primary text-sm outline-none transition-all font-mono"
+                                onkeydown="if(event.key==='Enter') trackOrder()">
+                            <i class="fa fa-search-location absolute left-3 top-3.5 text-rose-300"></i>
+                        </div>
+                        <button onclick="trackOrder()" id="trackBtn"
+                            class="bg-rose-primary hover:bg-rose-dark text-white px-6 py-3 rounded-xl font-bold text-sm transition-colors shadow-md flex items-center gap-2 whitespace-nowrap">
+                            <i class="fa fa-location-arrow"></i> Track
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- end .bg-white sticky bar -->
 
             <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-rose-light/50" id="scrollContainer">
-                <div id="ordersContainer" class="space-y-4 max-w-5xl mx-auto pb-10">
-                    </div>
+                <!-- Orders list -->
+                <div id="ordersContainer" class="space-y-4 max-w-5xl mx-auto pb-10"></div>
+
+                <!-- Track results -->
+                <div id="trackContainer" class="hidden max-w-2xl mx-auto pb-10"></div>
                 
                 <div id="loadingSpinner" class="hidden text-center py-6">
                     <div class="loader mx-auto"></div>
@@ -534,6 +568,206 @@ function renderOrders(docs) {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => applyFilters(), 600);
         });
+
+        // ── TAB SWITCHING ─────────────────────────────────────────
+        window.switchTab = (tab) => {
+            ['orders', 'track'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const panel = document.getElementById(`panel-${t}`);
+                const container = document.getElementById(`${t}Container`);
+                if (t === tab) {
+                    btn.classList.add('border-rose-primary', 'text-rose-primary');
+                    btn.classList.remove('border-transparent', 'text-gray-400');
+                    if (panel) panel.classList.remove('hidden');
+                    if (container) container.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('border-rose-primary', 'text-rose-primary');
+                    btn.classList.add('border-transparent', 'text-gray-400');
+                    if (panel) panel.classList.add('hidden');
+                    if (container) container.classList.add('hidden');
+                }
+            });
+            document.getElementById('endOfResults').classList.add('hidden');
+            document.getElementById('loadingSpinner').classList.add('hidden');
+        };
+
+        // ── ORDER TRACKING ────────────────────────────────────────
+        window.trackOrder = async () => {
+            const raw = document.getElementById('trackInput').value.trim();
+            if (!raw) return;
+
+            const btn = document.getElementById('trackBtn');
+            const container = document.getElementById('trackContainer');
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Tracking...';
+            btn.disabled = true;
+            container.innerHTML = `<div class="flex justify-center py-16"><div class="loader mx-auto"></div></div>`;
+
+            try {
+                const { collection: col, query: qry, where, getDocs, orderBy: ob } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                const upper = raw.toUpperCase();
+                let orders = [];
+
+                // 1. orderRef exact match
+                const refSnap = await getDocs(qry(col(db, 'reseller_orders'),
+                    where('resellerId', '==', currentUser.uid),
+                    where('orderRef', '==', upper)));
+                refSnap.forEach(d => orders.push({ id: d.id, ...d.data() }));
+
+                // 2. Fallback: match by partial doc ID or customer name
+                if (orders.length === 0) {
+                    const allSnap = await getDocs(qry(col(db, 'reseller_orders'),
+                        where('resellerId', '==', currentUser.uid),
+                        ob('createdAt', 'desc')));
+                    allSnap.forEach(d => {
+                        const data = d.data();
+                        if (d.id.toLowerCase().startsWith(raw.toLowerCase()) ||
+                            (data.customer?.name || '').toLowerCase().includes(raw.toLowerCase()) ||
+                            (data.orderRef || '').toLowerCase() === raw.toLowerCase()) {
+                            orders.push({ id: d.id, ...data });
+                        }
+                    });
+                }
+
+                if (orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
+                            <div class="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa fa-search text-rose-300 text-2xl"></i>
+                            </div>
+                            <p class="font-bold text-gray-700">Order හමු නොවුණා</p>
+                            <p class="text-xs text-gray-400 mt-2">"<span class="font-mono text-gray-600">${raw}</span>" — Order ID, Reference Number හෝ Customer Name නිවැරදිද?</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => renderTrackCard(order)).join('');
+
+            } catch(e) {
+                console.error(e);
+                container.innerHTML = `<p class="text-red-500 text-center py-10 text-sm">Error: ${e.message}</p>`;
+            } finally {
+                btn.innerHTML = '<i class="fa fa-location-arrow"></i> Track';
+                btn.disabled = false;
+            }
+        };
+
+        function renderTrackCard(order) {
+            const status = order.status || 'Pending';
+            const isCancelled = status === 'Cancelled';
+            const date = order.createdAt
+                ? new Date(order.createdAt.seconds * 1000).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' })
+                : 'N/A';
+
+            const steps = [
+                { key: 'Pending',   icon: 'fa-clipboard-list', label: 'Order Placed', activeColor: 'bg-yellow-500 border-yellow-500 ring-yellow-100', textColor: 'text-yellow-600', lineActive: 'bg-yellow-400' },
+                { key: 'Shipped',   icon: 'fa-truck',          label: 'Shipped',       activeColor: 'bg-blue-500 border-blue-500 ring-blue-100',     textColor: 'text-blue-600',   lineActive: 'bg-blue-400'   },
+                { key: 'Delivered', icon: 'fa-check-circle',   label: 'Delivered',     activeColor: 'bg-green-500 border-green-500 ring-green-100',  textColor: 'text-green-600',  lineActive: 'bg-green-400'  },
+            ];
+            const currentIdx = isCancelled ? -1 : steps.findIndex(s => s.key === status);
+
+            const timelineHtml = steps.map((step, i) => {
+                let dotCls, labelCls, connCls;
+                if (isCancelled) {
+                    dotCls = 'bg-gray-200 border-gray-300 text-gray-400';
+                    labelCls = 'text-gray-400';
+                    connCls = 'bg-gray-200';
+                } else if (i < currentIdx) {
+                    dotCls = 'bg-green-500 border-green-500 text-white';
+                    labelCls = 'text-green-600 font-bold';
+                    connCls = 'bg-green-400';
+                } else if (i === currentIdx) {
+                    dotCls = `${step.activeColor} text-white ring-4`;
+                    labelCls = `${step.textColor} font-black`;
+                    connCls = 'bg-gray-200';
+                } else {
+                    dotCls = 'bg-white border-gray-300 text-gray-300';
+                    labelCls = 'text-gray-400';
+                    connCls = 'bg-gray-200';
+                }
+                return `
+                <div class="flex flex-col items-center flex-1">
+                    <div class="relative w-full flex items-center justify-center">
+                        ${i > 0 ? `<div class="absolute right-1/2 top-1/2 -translate-y-1/2 w-full h-1 ${connCls}"></div>` : ''}
+                        <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center z-10 ${dotCls} transition-all">
+                            <i class="fa ${step.icon} text-sm"></i>
+                        </div>
+                    </div>
+                    <p class="text-[10px] mt-2 text-center leading-tight ${labelCls}">${step.label}</p>
+                </div>`;
+            }).join('');
+
+            const statusBadge = { Pending:'bg-yellow-100 text-yellow-700 border-yellow-200', Shipped:'bg-blue-100 text-blue-700 border-blue-200', Delivered:'bg-green-100 text-green-700 border-green-200', Cancelled:'bg-red-100 text-red-700 border-red-200' }[status] || 'bg-gray-100 text-gray-600';
+
+            const refBadge = order.orderRef
+                ? `<span class="bg-purple-100 text-purple-700 border border-purple-200 font-black font-mono text-xs px-2.5 py-1 rounded-lg">${order.orderRef}</span>`
+                : '';
+
+            const itemsHtml = order.items.map(item => {
+                const vars = item.variations ? Object.values(item.variations).join(' / ') : '';
+                return `<div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                    <img src="${item.imageUrl || 'https://via.placeholder.com/48'}" class="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-gray-800 truncate">${item.name}</p>
+                        ${vars ? `<p class="text-[10px] text-purple-500 font-bold">${vars}</p>` : ''}
+                        <p class="text-[10px] text-gray-400">x${item.quantity} &nbsp;·&nbsp; LKR ${(item.sellingPrice * item.quantity).toLocaleString()}</p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const cancelNote = isCancelled && order.cancellationReason
+                ? `<div class="mt-3 bg-red-50 border border-red-100 rounded-xl p-3 flex items-start gap-2 text-xs">
+                       <i class="fa fa-ban text-red-400 mt-0.5"></i>
+                       <div><p class="font-bold text-red-600">Cancelled</p><p class="text-red-500">${order.cancellationReason}</p></div>
+                   </div>` : '';
+
+            return `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
+                <div class="bg-gradient-to-r from-gray-900 to-gray-800 p-4 flex justify-between items-start">
+                    <div>
+                        <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Order ID</p>
+                        <p class="text-white font-mono font-bold">#${order.id.slice(0,8)}</p>
+                        <p class="text-gray-400 text-[10px] mt-0.5"><i class="fa fa-calendar mr-1"></i>${date}</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5">
+                        ${refBadge}
+                        <span class="text-[10px] px-2.5 py-1 rounded-lg border font-bold ${statusBadge}">${status}</span>
+                    </div>
+                </div>
+
+                ${!isCancelled ? `<div class="px-8 py-5 bg-gray-50 border-b border-gray-100">
+                    <div class="flex items-start justify-between">${timelineHtml}</div>
+                </div>` : ''}
+
+                <div class="p-4 bg-blue-50/40 border-b border-gray-100">
+                    <p class="text-[9px] font-black text-blue-400 uppercase mb-1.5">Delivery To</p>
+                    <div class="flex items-start gap-2">
+                        <i class="fa fa-user-circle text-blue-300 text-xl mt-0.5"></i>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800">${order.customer?.name || '-'}</p>
+                            <p class="text-[11px] text-gray-500"><i class="fa fa-phone text-green-400 mr-1"></i>${order.customer?.phone || '-'}</p>
+                            <p class="text-[11px] text-gray-400 italic"><i class="fa fa-map-marker-alt text-rose-400 mr-1"></i>${order.customer?.address || '-'}</p>
+                        </div>
+                    </div>
+                    ${cancelNote}
+                </div>
+
+                <div class="p-4 border-b border-gray-100">
+                    <p class="text-[9px] font-black text-gray-400 uppercase mb-2">Items Ordered</p>
+                    ${itemsHtml}
+                </div>
+
+                <div class="p-4 bg-gray-900 flex justify-between items-center rounded-b-2xl">
+                    <div>
+                        <p class="text-[9px] text-gray-400 uppercase font-bold">Cust. Pays</p>
+                        <p class="text-white font-bold">LKR ${(order.financials?.grandTotal || 0).toLocaleString()}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] text-gray-400 uppercase font-bold">Your Profit</p>
+                        <p class="font-black text-lg ${isCancelled ? 'text-gray-500 line-through' : 'text-green-400'}">+ LKR ${(order.financials?.resellerProfit || 0).toLocaleString()}</p>
+                    </div>
+                </div>
+            </div>`;
+        }
 
     </script>
 </body>

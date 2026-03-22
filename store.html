@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Seller Store - Pink Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        'pk': { light: '#fbcfe8', DEFAULT: '#db2777', dark: '#be185d' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body { @apply font-sans bg-gray-50 text-gray-800; }
+        .product-card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer; }
+        .skeleton { @apply animate-pulse bg-gray-200 rounded-xl; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAV -->
+    <nav class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
+            <a href="index.html" class="flex items-center gap-2 text-gray-500 hover:text-pk transition-colors">
+                <i class="fa fa-arrow-left"></i>
+                <img src="logo.png" class="h-8" alt="Pink Store">
+            </a>
+            <span class="text-gray-300">|</span>
+            <p class="text-sm text-gray-500">Seller Store</p>
+        </div>
+    </nav>
+
+    <!-- BANNER -->
+    <div class="relative">
+        <div id="store-banner" class="w-full h-48 md:h-64 bg-gradient-to-br from-pk-light via-pink-100 to-pk/20 overflow-hidden">
+            <img id="store-banner-img" src="" alt="" class="w-full h-full object-cover hidden">
+        </div>
+
+        <!-- Store Info Card -->
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="bg-white rounded-2xl shadow-md -mt-12 relative z-10 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <div id="store-logo-placeholder" class="w-20 h-20 rounded-2xl bg-gradient-to-br from-pk to-pk-dark flex items-center justify-center text-3xl font-black text-white shadow-lg">
+                        S
+                    </div>
+                    <img id="store-logo-img" src="" alt="" class="w-20 h-20 rounded-2xl object-cover shadow-lg hidden">
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <h1 id="store-name" class="text-2xl font-black text-gray-900">Loading...</h1>
+                        <span id="verified-badge" class="hidden bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">✅ Verified</span>
+                    </div>
+                    <p id="store-description" class="text-gray-500 text-sm mt-1 line-clamp-2"></p>
+                    <div class="flex flex-wrap gap-4 mt-3 text-xs text-gray-400">
+                        <span id="store-phone" class="hidden"><i class="fa fa-phone mr-1 text-pk"></i><span></span></span>
+                        <span id="store-whatsapp" class="hidden"><i class="fa fa-whatsapp mr-1 text-green-500"></i><span></span></span>
+                        <span id="store-product-count"><i class="fa fa-box mr-1 text-pk"></i><span>0</span> Products</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2 flex-shrink-0">
+                    <a id="whatsapp-btn" href="#" target="_blank" class="hidden bg-green-500 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2">
+                        <i class="fa fa-whatsapp"></i> Chat
+                    </a>
+                    <button onclick="shareStore()" class="border-2 border-gray-200 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm hover:border-pk hover:text-pk transition-all flex items-center gap-2">
+                        <i class="fa fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="max-w-6xl mx-auto px-4 mt-6">
+        <div class="flex gap-1 bg-white rounded-2xl p-1 shadow-sm border border-gray-100 w-fit">
+            <button id="tab-products" onclick="switchTab('products')" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-pk text-white transition-all">
+                <i class="fa fa-box mr-2"></i>Products
+            </button>
+            <button id="tab-about" onclick="switchTab('about')" class="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-500 hover:text-pk transition-all">
+                <i class="fa fa-info-circle mr-2"></i>About
+            </button>
+        </div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div id="tab-products-content" class="max-w-6xl mx-auto px-4 mt-6 pb-12">
+        <!-- Search & Filter -->
+        <div class="flex gap-3 mb-5">
+            <div class="relative flex-1 max-w-xs">
+                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" id="product-search" placeholder="Search products..." class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pk/30">
+            </div>
+            <select id="sort-select" class="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pk/30 bg-white font-medium">
+                <option value="newest">Newest</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+            </select>
+        </div>
+
+        <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Skeleton loaders -->
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+            <div class="bg-white rounded-2xl overflow-hidden border border-gray-100"><div class="skeleton h-44 w-full"></div><div class="p-3 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-1/2"></div></div></div>
+        </div>
+
+        <div id="no-products" class="hidden text-center py-16 text-gray-400">
+            <i class="fa fa-box text-5xl opacity-20 block mb-4"></i>
+            <p class="font-bold text-lg text-gray-600">No products yet</p>
+            <p class="text-sm mt-1">This seller hasn't added any products.</p>
+        </div>
+    </div>
+
+    <!-- ABOUT TAB -->
+    <div id="tab-about-content" class="hidden max-w-6xl mx-auto px-4 mt-6 pb-12">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 max-w-2xl space-y-4">
+            <h2 class="font-bold text-lg text-gray-800">About This Store</h2>
+            <p id="about-description" class="text-gray-600 text-sm leading-relaxed"></p>
+            <div id="about-contact" class="space-y-3 pt-4 border-t border-gray-100">
+                <div id="about-phone-row" class="hidden flex items-center gap-3 text-sm">
+                    <div class="w-9 h-9 rounded-xl bg-pk/10 flex items-center justify-center"><i class="fa fa-phone text-pk"></i></div>
+                    <span id="about-phone" class="text-gray-600 font-medium"></span>
+                </div>
+                <div id="about-wa-row" class="hidden flex items-center gap-3 text-sm">
+                    <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center"><i class="fa fa-whatsapp text-green-500 text-lg"></i></div>
+                    <a id="about-wa-link" href="#" target="_blank" class="text-green-600 font-bold hover:underline">Chat on WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { db, auth, sanitize, PUBLIC_PATH, USERS_PATH } from "./firebase-config.js";
+    import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const publicDataPath = PUBLIC_PATH;
+    const usersPath      = USERS_PATH;
+
+    // Get seller UID from URL
+    const params    = new URLSearchParams(window.location.search);
+    const sellerUid = params.get('uid');
+    if (!sellerUid) window.location.href = 'shop.html';
+
+    let allProducts = [];
+
+    // ── Load Seller Profile ───────────────────────────────────────
+    async function loadSellerProfile() {
+        const snap = await getDoc(doc(db, usersPath, sellerUid));
+        if (!snap.exists()) { window.location.href = 'shop.html'; return; }
+
+        const data = snap.data();
+        const sd   = data.sellerDetails || {};
+        const shopName = sd.shopName || data.displayName || 'Seller Store';
+
+        // Page title
+        document.title = shopName + ' - Pink Store';
+        document.getElementById('page-title').textContent = shopName + ' - Pink Store';
+
+        // Store name & verified badge
+        document.getElementById('store-name').textContent = shopName;
+        if (data.isSeller && data.role === 'seller') {
+            document.getElementById('verified-badge').classList.remove('hidden');
+        }
+
+        // Logo
+        if (sd.logoUrl || data.photoURL) {
+            const img = document.getElementById('store-logo-img');
+            img.src = sd.logoUrl || data.photoURL;
+            img.classList.remove('hidden');
+            document.getElementById('store-logo-placeholder').classList.add('hidden');
+        } else {
+            document.getElementById('store-logo-placeholder').textContent = shopName.charAt(0).toUpperCase();
+        }
+
+        // Banner
+        if (sd.bannerUrl) {
+            const bannerImg = document.getElementById('store-banner-img');
+            bannerImg.src   = sd.bannerUrl;
+            bannerImg.classList.remove('hidden');
+        }
+
+        // Description
+        const desc = sd.description || '';
+        document.getElementById('store-description').textContent = desc;
+        document.getElementById('about-description').textContent = desc || 'No description provided.';
+
+        // Phone
+        if (sd.phone) {
+            document.getElementById('store-phone').classList.remove('hidden');
+            document.getElementById('store-phone').querySelector('span').textContent = sd.phone;
+            document.getElementById('about-phone-row').classList.remove('hidden');
+            document.getElementById('about-phone').textContent = sd.phone;
+        }
+
+        // WhatsApp
+        const wa = sd.whatsapp || sd.phone;
+        if (wa) {
+            const waNum = wa.replace(/^0/, '94').replace(/\D/g,'');
+            const waLink = `https://wa.me/${waNum}`;
+            document.getElementById('store-whatsapp').classList.remove('hidden');
+            document.getElementById('store-whatsapp').querySelector('span').textContent = wa;
+            document.getElementById('whatsapp-btn').href = waLink;
+            document.getElementById('whatsapp-btn').classList.remove('hidden');
+            document.getElementById('about-wa-row').classList.remove('hidden');
+            document.getElementById('about-wa-link').href = waLink;
+        }
+    }
+
+    // ── Load Products ─────────────────────────────────────────────
+    async function loadProducts() {
+        const q    = query(collection(db, publicDataPath, 'products'),
+                           where('sellerUid', '==', sellerUid));
+        const snap = await getDocs(q);
+
+        allProducts = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(p => p.isApproved === true)   // approved products only
+            .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+
+        document.getElementById('store-product-count').querySelector('span').textContent = allProducts.length;
+        renderProducts(allProducts);
+    }
+
+    function renderProducts(products) {
+        const grid = document.getElementById('products-grid');
+        const none = document.getElementById('no-products');
+
+        if (products.length === 0) {
+            grid.innerHTML = '';
+            none.classList.remove('hidden');
+            return;
+        }
+        none.classList.add('hidden');
+        grid.innerHTML = products.map(p => {
+            const img   = p.images?.[0] || p.imageUrl || 'https://placehold.co/300';
+            const price = (p.price || 0).toLocaleString();
+            const orig  = p.originalPrice && p.originalPrice > p.price
+                ? `<span class="line-through text-gray-400 text-xs ml-1">Rs.${p.originalPrice.toLocaleString()}</span>` : '';
+            return `
+            <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
+                <div class="relative overflow-hidden">
+                    <img src="${sanitize(img)}" alt="${sanitize(p.name)}" class="w-full h-44 object-cover hover:scale-105 transition-transform duration-300">
+                    ${p.originalPrice > p.price ? `<div class="absolute top-2 right-2 bg-pk text-white text-[10px] font-black px-2 py-0.5 rounded-full">SALE</div>` : ''}
+                </div>
+                <div class="p-3">
+                    <p class="font-bold text-sm text-gray-800 line-clamp-2 leading-tight mb-1">${sanitize(p.name)}</p>
+                    <div class="flex items-center flex-wrap gap-1">
+                        <span class="font-black text-pk text-sm">Rs. ${price}</span>${orig}
+                    </div>
+                    ${p.category ? `<p class="text-[10px] text-gray-400 mt-1">${sanitize(p.category)}</p>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Search & Sort ─────────────────────────────────────────────
+    document.getElementById('product-search').addEventListener('input', filterAndSort);
+    document.getElementById('sort-select').addEventListener('change', filterAndSort);
+
+    function filterAndSort() {
+        const term = document.getElementById('product-search').value.toLowerCase();
+        const sort = document.getElementById('sort-select').value;
+        let filtered = allProducts.filter(p => p.name?.toLowerCase().includes(term));
+        if (sort === 'price-low')  filtered.sort((a,b) => (a.price||0) - (b.price||0));
+        if (sort === 'price-high') filtered.sort((a,b) => (b.price||0) - (a.price||0));
+        if (sort === 'newest')     filtered.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+        renderProducts(filtered);
+    }
+
+    // ── Tab Switch ────────────────────────────────────────────────
+    window.switchTab = function(tab) {
+        document.getElementById('tab-products-content').classList.toggle('hidden', tab !== 'products');
+        document.getElementById('tab-about-content').classList.toggle('hidden', tab !== 'about');
+        document.getElementById('tab-products').className = tab === 'products'
+            ? 'px-6 py-2.5 rounded-xl font-bold text-sm bg-pk text-white transition-all'
+            : 'px-6 py-2.5 rounded-xl font-bold text-sm text-gray-500 hover:text-pk transition-all';
+        document.getElementById('tab-about').className = tab === 'about'
+            ? 'px-6 py-2.5 rounded-xl font-bold text-sm bg-pk text-white transition-all'
+            : 'px-6 py-2.5 rounded-xl font-bold text-sm text-gray-500 hover:text-pk transition-all';
+    };
+
+    // ── Share ─────────────────────────────────────────────────────
+    window.shareStore = async function() {
+        const url = window.location.href;
+        if (navigator.share) {
+            await navigator.share({ title: document.title, url });
+        } else {
+            await navigator.clipboard.writeText(url);
+            alert('Link copied!');
+        }
+    };
+
+    // ── Init ──────────────────────────────────────────────────────
+    await loadSellerProfile();
+    await loadProducts();
+</script>
+</body>
+</html>
