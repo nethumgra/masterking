@@ -444,8 +444,9 @@ async function handleShare() {
     let optName, optPrice;
     if (typeof opt === 'object' && opt !== null) {
         optName = opt.name || opt.label;
-        // මෙතැනදී 'price' වෙනුවට 'marketPrice' භාවිතා කරන්න
-        optPrice = parseFloat(opt.marketPrice) || 0; 
+        // marketPrice field use කරනවා (seller-dashboard saves as marketPrice)
+        // opt.price fallback for backward compatibility with older products
+        optPrice = parseFloat(opt.marketPrice) || parseFloat(opt.price) || 0;
     } else {
         optName = opt;
         optPrice = 0;
