@@ -519,11 +519,61 @@ async function loadOrderSummary(userId) {
                 const productSnap = await getDoc(doc(db, publicDataPath, 'products', item.productId));
                 if (productSnap.exists()) {
                     const pData = productSnap.data();
-                    // Use Firestore product price (server-authoritative)
-                    priceLKR = parseFloat(pData.price) || 0;
+
+                    // ============================================================
+                    // VARIATION PRICE FIX:
+                    // If the cart item has a selected variation, look up that
+                    // variation's price from the product document (server-authoritative).
+                    // Only fall back to the base product price if no matching
+                    // variation price is found.
+                    // ============================================================
+                    let resolvedPrice = parseFloat(pData.price) || 0;
+
+                    if (item.variations && pData.variations) {
+                        // pData.variations can be an array or object — normalise it
+                        const varGroups = Array.isArray(pData.variations)
+                            ? pData.variations
+                            : Object.values(pData.variations);
+
+                        let highestVariationPrice = 0;
+                        let foundVariationPrice = false;
+
+                        // Loop over each variation group selected by the user
+                        for (const [groupName, selectedOptionName] of Object.entries(item.variations)) {
+                            // Find the matching group in the product data
+                            const group = varGroups.find(g => g.name === groupName);
+                            if (!group || !group.options) continue;
+
+                            const options = Array.isArray(group.options)
+                                ? group.options
+                                : Object.values(group.options);
+
+                            // Find the matching option
+                            const matchedOpt = options.find(opt => {
+                                const name = (typeof opt === 'object') ? (opt.name || opt.label) : opt;
+                                return name === selectedOptionName;
+                            });
+
+                            if (matchedOpt && typeof matchedOpt === 'object') {
+                                // Use marketPrice (same field product.html uses for display)
+                                const optPrice = parseFloat(matchedOpt.marketPrice) || parseFloat(matchedOpt.price) || 0;
+                                if (optPrice > 0) {
+                                    highestVariationPrice = optPrice;
+                                    foundVariationPrice = true;
+                                }
+                            }
+                        }
+
+                        // If we found a valid variation price, use it instead of base price
+                        if (foundVariationPrice && highestVariationPrice > 0) {
+                            resolvedPrice = highestVariationPrice;
+                        }
+                    }
+
+                    priceLKR = resolvedPrice;
                     itemShipping = (parseFloat(pData.deliveryPrice) || parseFloat(pData.shipping) || 0) * quantity;
                     item.shippingCost = itemShipping;
-                    // Overwrite any cart-stored price with the real price
+                    // Overwrite any cart-stored price with the server-verified price
                     item.price = priceLKR;
                     item.name = pData.name || item.name;
                 } else {
